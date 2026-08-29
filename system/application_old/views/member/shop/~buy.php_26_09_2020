@@ -1,0 +1,89 @@
+
+<div class="container">
+  <div class="col-md-12">
+                <?php
+                if (!$product) {
+                    foreach ($categories as $e) { ?>
+                       
+                                 <a class="btn btn-success" href="<?php echo site_url('cart/show_products/' . $e->id) ?>"><?php echo $e->cat_name ?>
+                                
+                                <?php //echo $e->description ?>
+                                </a>
+                        
+                    <?php }
+                } ?>
+    </div> 
+ </div>
+
+<?php if (isset($product_top)) { ?>
+      <!--   <a href="<?php echo site_url('cart/buy_2/' . $e->id) ?>"> -->
+        <div class="row container ">
+              <?php foreach ($product_top as $e) { ?>
+            <div class="col-sm-3 col-lg-3 col-6">
+              
+                <div class="card prodcard">
+                  <img class="card-img-top" src="<?php echo base_url('uploads/' . ($e->image ? $e->image : 'default.jpg')) ?>" height="150" alt="Card image cap">
+                  <div class="card-body">
+                    <h4 class="card-title"><?php echo $e->prod_name ?></h4>
+                    <h4>MRP: INR <?php echo $e->prod_price ?></h4>
+                    <span class="card-text">Dealer Price: INR <?php echo $e->dealer_price ?></span> <br>
+                     <span class="card-text">PV: <?php 
+                     // if($e->pv ==''){
+                     //    echo $e->pv=0;
+                     //    }else{
+                     //        echo $e->pv;
+                     //    } 
+                        ?>
+                        </span>  
+                    <span class="card-text"><?php echo $e->prod_desc ?></span> 
+                    </div>
+                    
+                    <div class="card-footer">
+                        <a href="<?php echo site_url('cart/buy_2/' . $e->id) ?>" class="btn btn-primary btn-round btn-sm btn-block" style=" font-size: 0.6rem;">Add to Cart</a>
+                        <a href="<?php echo site_url('cart/view_product/' . $e->id) ?>" class="btn btn-success btn-round btn-sm btn-block">View</a> 
+                    </div>
+
+                </div>
+            </div>
+            <?php } ?>
+        <!-- </a> -->
+    </div>
+<?php } ?>
+
+    <a href="<?php echo site_url('cart/buy_2/' . $e->id) ?>">
+       
+              <div class="container row">
+        <?php foreach ($product as $e) { ?>
+        <div class="col-sm-3 col-lg-3 col-6 col-6">
+             <div class="card prodcards" >
+                  <img class="card-img-top" src="<?php echo base_url('uploads/' . ($e->image ? $e->image : 'default.jpg')) ?>" alt="Card image cap">
+                  <div class="card-body">
+                    <h4 class="card-title"><?php echo $e->prod_name ?></h4>
+                    <h4>MRP: INR <?php echo $e->prod_price ?></h4>
+                    <span class="card-text">Dealer Price: INR <?php echo $e->dealer_price ?></span> <br>
+                     <p class="card-text">PV: <?php if($e->pv ==''){
+                        echo $e->pv=0;
+                        }else{
+                            echo $e->pv;
+                        } ?>
+                            
+
+                        </p> 
+                    <span class="card-text"><?php echo $e->prod_desc ?></span> 
+                     </div>
+                     <div class="card-footer">
+
+                    <a href="<?php echo site_url('cart/buy_2/' . $e->id) ?>" class="btn btn-success btn-round btn-sm btn-block" style="font-size: 0.6rem;">Add to Cart</a>
+                     <a href="<?php echo site_url('cart/view_product/' . $e->id) ?>" class="btn btn-success btn-round btn-sm btn-block">View</a> 
+                  </div>
+                  </div>
+                </div>
+       
+        <?php } ?>
+    </div>
+    </div>
+</div><!-- end of panel-->
+
+    </a>
+
+

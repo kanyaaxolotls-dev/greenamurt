@@ -1,0 +1,196 @@
+
+body{
+  background-color: #368ebd;
+  
+}
+.blink{	
+		color: #368ebd;
+		animation: blink 2s infinite;
+	 }
+
+@keyframes blink{
+        0%{opacity: 1;}
+        75%{opacity: 1;}
+        76%{ opacity: 0;}
+        100%{opacity: 0;}
+}
+.panel-body {
+    padding: 5px;
+}
+/* Customized theme */
+
+ .ui-content {
+    width: auto;
+    -webkit-transition: all .299s;
+    transition: all .299s;
+    background-color: #fff;
+    min-height: 565px;
+
+}
+.wallet{
+  margin-top: 13px;
+}
+.wallet-balance{
+  color: blue;
+  padding-top: 5px;
+ 
+}
+.w-states .btn {
+    margin-bottom: 10px;
+    -webkit-border-radius: 0;
+    border-radius: 1px;
+    padding: 15px 10px 20px;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 140px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px;
+  position: absolute;
+  z-index: 1;
+  bottom: 150%;
+  left: 50%;
+  margin-left: -75px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.ui-aside {
+
+    float: left;
+    width: 240px;
+    color: #fff;
+    background-color: #368ebd;
+    border-right: 1px solid rgba(125, 8, 128, 0.1);
+    -webkit-transition: all .299s;
+    transition: all .299s;
+    position: relative;
+
+}
+.purple-btn{
+color: #fff;
+background-color: #368ebd;
+border-color: #368ebd;
+}
+#footer{
+    text-align:right; 
+    padding: 13px; 
+    background-color: #368ebd; 
+    color: #fff; font-size: 13px; 
+    position:relative; 
+    bottom:0; width: 100%
+}
+.nav .active, .nav li a:hover {
+    background-color: #0e75ad;
+    padding: 10px;
+}
+
+.left-menu{
+    border-bottom: 1px solid #7fa1ba;
+}
+.btn-danger {
+    color: #fff;
+    background-color: #368640;
+    border-color: #368640;
+}
+.btn-danger.active, .btn-danger.focus, .btn-danger:active, .btn-danger:focus {
+    color: #fff !important;
+    background-color: red !important;
+    border-color: #fff !important;
+}
+
+.purple-btn {
+    color: #777171;
+    background-color: #fff;
+    border-color: #368ebd;
+}
+.panel-default {
+    border-color: #e7e7e7;
+}
+.helpbtn1 {
+   color: #01074b;
+border: 1px solid white;
+box-shadow: 2px 1px 6px #b9b9b9;
+background-color: #30ff6c;
+}
+.helpbtn2 {
+    color: #000;
+   background-color: #afc4ff;
+border: 1px solid white;
+box-shadow: 2px 1px 6px #b9b9b9;
+}
+.helpbtn3 {
+    color: #000;
+ background-color: #ffbad7;
+border: 1px solid white;
+box-shadow: 2px 1px 6px #b9b9b9;
+
+}
+.helpbtn4 { 
+    color: #000;
+    border: 1px solid silver;
+    box-shadow: 2px 1px 6px #b9b9b9;
+}
+.ui{
+  position: absolute;
+width: 100%;
+min-width: 316px;
+height: auto;
+min-height: 100%;
+padding-top: 50px;
+overflow: hidden;
+}
+@media only screen and (max-width: 600px){
+.navbar-collapse .navbar-right {
+    float: right!important;
+    margin: 0px -15px;
+    height: 50px;
+    font-size: small;
+}
+
+}
+@media only screen and (max-width: 1024px){
+  .breaking-news-ticker{
+    display: none;
+  }
+  .repurclass{
+    display: none;
+  }
+
+}
+@media only screen and (min-width:600px){
+.navbar-collapse .navbar-right {
+    float: right!important;
+    margin: 0px -15px;
+    height: 50px;
+    font-size: small;
+}
+
+}
+
+

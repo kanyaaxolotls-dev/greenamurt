@@ -1,0 +1,116 @@
+<table border="0" cellpadding="0" cellspacing="1" style="height:140px; width:100%">
+	<tbody>
+		<tr>
+			<!--<td>
+			<p>&nbsp;Mypipelineindia Marketing Pvt. Ltd.</p>
+
+			<p>C/o Hiradas Vilas Sonawale, Nr. Ganesh, Buldg,</p>
+
+			<p>Bhuodhvi, Chitalsar Manpada, Thane, Maharashtra, India, 400607</p>
+			</td>-->
+
+				<td>
+			<p>&nbsp;1-kadamshopy</p>
+
+		
+
+			<p>India.</p>
+			</td>
+			<!--<td><img alt="" src="http://acteasy.in/login/uploads/logo.png" style="float:right; height:83px; width:160px" /></td>-->
+
+            <td><img alt="" src="http://1-kadamshopy.com/system/uploads/logo.png" style="float:right; height:83px; width:160px" /></td>
+
+		</tr>
+	</tbody>
+</table>
+
+<hr />
+<table border="0" cellpadding="1" cellspacing="1" style="height:140px; width:100%">
+	<tbody>
+		<tr>
+			<td>
+			<p><span style="font-size:12px"><strong>Dear {{member_name}},</strong></span></p>
+
+			<p><span style="font-size:12px"><strong>Register Date:</strong> {{member_join_date}}</span></p>
+
+			<p style="text-align:center"><strong><span style="font-size:12px"><u>ACCEPTANCE LETTER</u></span></strong></p>
+
+			<p style="text-align:center"><span style="font-size:12px">Acceptance of Online agreement / contract with 1-kadamshopy</span></p>
+
+			<table border="0" cellpadding="1" cellspacing="1" style="height:180px; width:985px">
+				<tbody>
+					<tr>
+						<td>
+						<p><span style="font-size:12px">Associate Id: {{member_id}}<br />
+						Full Name: {{member_name}}<br />
+						Permanant Address:{{member_add}}<br />
+						Contact Number: {{member_phone}}<br />
+						Email: {{member_email}}<br />
+						Package Purchased: {{member_purchased}}<br />
+						Associate Sponsor: Mr/Ms. {{sponsor_name}} <span style="font-size:12px">{{member_sponsor}}<br />
+						Price: INR {{member_product_price}} Only<br />
+						Date of Birth:{{member_dob}}</span></span></p>
+						</td>
+						<td style="text-align:right"><span style="font-size:12px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+						<table border="1" cellpadding="1" cellspacing="1" style="float:right; height:99px; width:108px">
+							<tbody>
+								<tr>
+									<td><span style="font-size:12px">Photograph&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></td>
+								</tr>
+							</tbody>
+						</table>
+						<span style="font-size:12px">&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;</span></td>
+						<td style="text-align:right">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+				</tbody>
+			</table>
+			<hr />
+			<p style="text-align:center"><strong>Declaration</strong></p>
+			<p>I solemnly declare and affirm as under:-</p>
+			
+			<ol>
+				<li>I declare that I am of the age of 18 years or more and competent to contract</li>
+				<li>That I have read and understood the terms and conditions for appointment of 1-kadamshopy Retailer/associate (Direct seller) of the company, and accept to them.</li>
+				<li>I have also gone through the company&#39;s official website including FAQ&#39;s, Printed materials and brochures. I agree to the contents of the materials and convinced about the business and I have applied to appoint me as a Direct seller as on my own volition</li>
+				<li>I declared that I have not been given any assurance or promise or inducement by the company or its directors in regards to any fixed income incentive, price or benefit on account of the products purchased by me.</li>
+				<li>I have clearly understood that eligibility of income exclusively depends on my performance as per the business plan of the company. I further agree that the company reserves the rights to change the Business Plan at any point of time without any prior notice.</li>
+				<li>I undertake not to misguide or induce dishonestly anybody to join the Company.</li>
+				<li>I hereby agree to submit all disputes to dispute redressal cell / Arbitration as provided in the terms and conditions of the company.</li>
+				<li>I hereby declare that I am signing this &quot;DECLARATION&quot; with complete understanding and with my FREE WILL, without any PRESSURE / UNDUE INFLUENCE or INDUCEMENT.</li>
+				<li>I hereby agree and adhere to the terms and conditions as given on the website of the company (1-kadamshopy@gmail.com) and as mentioned above to purchase the product and to do the Direct Seller activities.</li>
+			</ol>
+
+			<table border="1" cellpadding="1" cellspacing="1" style="height:29px; width:100%">
+				<tbody>
+					<tr>
+						<td><br />
+						<br />
+						&nbsp;</td>
+						<td><br />
+						&nbsp;</td>
+					</tr>
+					<tr>
+						<td style="text-align:center">
+						<p><strong><span style="font-size:12px">Signature of Joining Direct Seller</span></strong><br />
+						<strong><span style="font-size:12px">(1-kadamshopy Purchaser)</span></strong></p>
+						</td>
+						<td style="text-align:center"><span style="font-size:12px"><strong>Signature of sponsoring </strong></span><strong><span style="font-size:12px">1-kadamshopy </span></strong><span style="font-size:12px"><strong> Associates</strong></span></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<p><span style="font-size:12px">Please submit this form </span><span style="font-size:12px">allong</span><span style="font-size:12px"> with following documents to the company office.</span></p>
+
+			<ol>
+				<li><span style="font-size:12px">A Photocopy of any one of </span><span style="font-size:12px">self attested</span><span style="font-size:12px"> Govt. issued photo identification document.</span></li>
+				<li><span style="font-size:12px">A Photocopy of any one of </span><span style="font-size:12px">self attested</span><span style="font-size:12px"> Govt. issued address proof.</span></li>
+				<li><span style="font-size:12px">Self-attested photocopy of PAN card.</span></li>
+			</ol>
+
+			<hr/>
+			<p><span style="font-size:10px">NOTE: It is the sole responsibility of the joining </span><strong><span style="font-size:12px">1-kadamshopy </span></strong><span style="font-size:10px">Direct Seller to submit authentic documents and information, any discrepancy or any civil criminal liability artsing due to this regard would be the full and complete responsibility of the said joining </span><strong><span style="font-size:12px">1-kadamshopy </span></strong><span style="font-size:10px">Direct seller. The company shall not be responsible in this regard in anyway.</span></p>
+			</td>
+			<td style="text-align:right">&nbsp;</td>
+		</tr>
+	</tbody>
+</table>

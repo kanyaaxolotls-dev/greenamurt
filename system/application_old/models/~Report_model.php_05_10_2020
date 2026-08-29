@@ -1,0 +1,89 @@
+
+<?php
+/**
+ * @ PHP 5.6
+ * @ Decoder version : 1.0.0.4
+ * @ Release on : 24.03.2018
+ * @ Website    : http://EasyToYou.eu
+ *
+ * @ Zend guard decoder PHP 5.6
+ **/
+
+defined("BASEPATH") or exit("No direct script access allowed");
+class Report_model extends CI_Model
+{
+	public function __construct()
+	{
+		parent::__construct();
+		$this->common_model->__session();
+	}
+	public function convertDate($date){
+	
+		return preg_replace("!([01][0-9])/([0-9]{2})/([0-9]{4})!", "$3-$1-$2", $date);
+		
+	}	
+
+	public function get_earning_roi($offset, $limit, $conditions, $sort) {
+
+
+		if (!empty($conditions['status'])) {
+			$this->db->where('status', $conditions['status']);
+		}
+		if (!empty($conditions['s_payment_date'])) {
+			
+			$this->db->where('payment_date >=', $this->convertDate($conditions['s_payment_date']) );
+		}
+		if (!empty($conditions['e_payment_date'])) {
+			
+			 $this->db->where('payment_date <=', $this->convertDate($conditions['e_payment_date']) );
+		}			
+		
+		$top_id = $this->session->user_id;
+		$this->db->where('userid', htmlentities($top_id));
+		$this->db->order_by('id', $sort);
+		$this->db->limit($limit,$offset);
+		//echo $query; die;
+		$res = $this->db->get('earning_roi')->result();
+		$finaldata['filtereddata'] = $res; //$this->db->get('earning_roi')->result(); //$this->db->query($query . " limit $limit offset $offset")->result();
+		//echo $this->db->last_query(); exit;
+		$finaldata['totaldata'] = $res; //$this->db->get('earning_roi')->result();
+
+		return $finaldata;
+	
+	}	
+	
+	public function get_earning_roi_admin($offset, $limit, $conditions, $sort) {
+
+
+		if (!empty($conditions['status'])) {
+			$this->db->where('status', $conditions['status']);
+		}
+		if (!empty($conditions['s_payment_date'])) {
+			
+			$this->db->where('payment_date >=', $this->convertDate($conditions['s_payment_date']) );
+		}
+		if (!empty($conditions['e_payment_date'])) {
+			
+			 $this->db->where('payment_date <=', $this->convertDate($conditions['e_payment_date']) );
+		}				
+		
+		//$top_id = $this->session->user_id;
+		//$this->db->where('userid', htmlentities($top_id));
+		$this->db->order_by('id', $sort);
+		$this->db->limit($limit,$offset);
+		//echo $query; die;
+		$res = $this->db->get('earning_roi')->result();
+		$finaldata['filtereddata'] = $res; //$this->db->get('earning_roi')->result(); //$this->db->query($query . " limit $limit offset $offset")->result();
+		//echo $this->db->last_query(); exit;
+		$finaldata['totaldata'] = $res; //$this->db->get('earning_roi')->result();
+
+		return $finaldata;
+	
+	}	
+
+
+}
+
+defined('BASEPATH') || true;
+
+?>

@@ -1,0 +1,58 @@
+.table-bordered {
+
+    border: 1px solid #ddd;
+    background-color: #fff;
+}
+
+.welcome{
+    padding: 10px;
+}
+
+.thumbnail .caption {
+    padding: 0px;
+    color: #333;
+    text-align: center;
+}
+
+.ui-content {
+    width: auto;
+    -webkit-transition: all .299s;
+    transition: all .299s;
+    background-color: #fff;
+    min-height: 565px;
+}
+
+.thumbnail {
+    display: block;
+    padding: 4px;
+    margin-bottom: 03px;
+    line-height: 1.42857143;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    -webkit-transition: border .2s ease-in-out;
+    -o-transition: border .2s ease-in-out;
+    transition: border .2s ease-in-out;
+}
+
+.report{
+    border: 0px solid #fff;
+background-color: #475872;
+}
+.navbar-brand {
+    float: left;
+    padding: 15px;
+    font-size: 18px;
+    line-height: 20px;
+    height: auto;
+}
+.ui-header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+   
+    z-index: 30;
+    background-color: #fff;
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+}

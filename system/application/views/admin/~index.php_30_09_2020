@@ -1,0 +1,1381 @@
+<!--
+ 
+=========================================================
+* Argon Dashboard - v1.1.0
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/argon-dashboard
+* Copyright 2019 Creative Tim (https://www.creative-tim.com)
+* Licensed under MIT (https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md)
+
+* Coded by Creative Tim
+
+========================== ===============================
+ 
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. -->
+<?php
+if ($this->login->check_session() == FALSE) {
+    header('HTTP/1.0 404 Not Found', TRUE, 404);
+    exit('Page Not Found !');
+}
+?>
+ 
+
+<!DOCTYPE html>
+<html lang="en">
+  
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>
+    Admin Dashboard | <?php echo config_item('company_name') ?>
+  </title>
+  <!-- Favicon -->
+
+  <link href=" <?php echo base_url('axxets/assets/img/brand/favicon.png') ?>" rel="icon" type="image/png">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+  <!-- Icons -->
+
+  <link href="<?php echo base_url('axxets/assets/js/plugins/nucleo/css/nucleo.css') ?>" rel="stylesheet" />
+  <link href="<?php echo base_url('axxets/assets/js/plugins/@fortawesome/fontawesome-free/css/all.min.css')?>" rel="stylesheet" />
+  <!-- CSS Files -->
+  <link href="<?php echo base_url('axxets/admin/argon-dashboard.css')?>" rel="stylesheet" />
+  <script src="jquery.animated-bg.js"></script>
+  
+   <?php
+    if (!isset($this->session->designation)) {
+        $payout      = $this->db_model->sum('amount', 'earning');
+        $paid_payout = $this->db_model->sum('amount', 'withdraw_request', array('status' => 'Paid'));
+        if ($paid_payout == "") {
+            $paid_payout = 0;
+        }
+        $pending_payout = $this->db_model->sum('amount', 'withdraw_request', array('status' => 'Pending'));
+        if ($pending_payout == "") {
+            $pending_payout = 0;
+        }
+        $earnnings = $this->db_model->sum('topup', 'member');
+    }
+    ?>
+    
+</head>
+
+<body class="">
+  <nav class="navbar navbar-vertical fixed-left navbar-expand-md navbar-light bg-white" id="sidenav-main">
+    <div class="container-fluid">
+      <!-- Toggler -->
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#sidenav-collapse-main" aria-controls="sidenav-main" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- Brand -->
+      <a class="navbar-brand pt-0" href="<?php echo base_url('../index.php') ?>">
+        <img src="<?php echo base_url('uploads/logo.png') ?>" class="navbar-brand-img img-thumbnail" alt="...">
+
+      </a>
+      <!-- User -->
+      <ul class="nav align-items-center d-md-none">
+        <li class="nav-item dropdown">
+          <a class="nav-link nav-link-icon" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="ni ni-bell-55"></i>
+          </a>
+          <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-right" aria-labelledby="navbar-default_dropdown_1">
+            <a class="dropdown-item" href="#">Action</a>
+            <a class="dropdown-item" href="#">Another action</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Something else here</a>
+          </div>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <div class="media align-items-center">
+              <span class="avatar avatar-sm rounded-circle">
+                <img alt="Image placeholder" src="<?php echo base_url('axxets/assets/img/theme/team-1-800x800.jpg')?>
+">
+              </span>
+            </div>
+          </a>
+          <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-right">
+            <div class=" dropdown-header noti-title">
+              <h6 class="text-overflow m-0">Welcome!</h6>
+            </div>
+            <a href="<?php echo base_url('users/edit_user/1001')?>" class="dropdown-item">
+              <i class="ni ni-single-02"></i>
+              <span>My profile</span>
+            </a>
+            <a href="#" class="dropdown-item">
+              <i class="ni ni-settings-gear-65"></i>
+              <span>Settings</span> 
+            </a>
+            <a href="#" class="dropdown-item">
+              <i class="ni ni-calendar-grid-58"></i>
+              <span>Activity</span>
+            </a>
+            <a href="https://axolotls.in" class="dropdown-item">
+              <i class="ni ni-support-16"></i>
+              <span>Support</span>
+            </a>
+            <div class="dropdown-divider"></div>
+            <a href="<?php echo site_url('admin/logout') ?>" class="dropdown-item">
+              <i class="ni ni-user-run"></i>
+              <span>Logout</span>
+            </a>
+          </div>
+        </li>
+      </ul>
+      <!-- Collapse -->
+      <div class="collapse navbar-collapse" id="sidenav-collapse-main">
+        <!-- Collapse header -->
+        <div class="navbar-collapse-header d-md-none">
+          <div class="row">
+            <div class="col-6 collapse-brand">
+              <a href="./index.html">
+                <img src="<?php echo base_url('axxets/assets/img/brand/blue.png')?>">
+              </a>
+            </div>
+            <div class="col-6 collapse-close">
+              <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#sidenav-collapse-main" aria-controls="sidenav-main" aria-expanded="false" aria-label="Toggle sidenav">
+                <span></span>
+                <span></span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Form -->
+        <form class="mt-4 mb-3 d-md-none">
+          <div class="input-group input-group-rounded input-group-merge">
+            <input type="search" class="form-control form-control-rounded form-control-prepended" placeholder="Search" aria-label="Search">
+            <div class="input-group-prepend">
+              <div class="input-group-text">
+                <span class="fa fa-search"></span>
+              </div>
+            </div>
+          </div>
+        </form>
+        <!-- Navigation -->
+        <ul class="navbar-nav">
+
+          <li class="nav-item active"> 
+          <a class=" nav-link active " href="<?php echo site_url('admin/index')?>"> <i class="ni ni-tv-2 text-primary"></i> Dashboard
+            </a>
+          </li>
+
+          <li class="nav-item"> 
+              <a class="nav-link " data-toggle="collapse" href="#componentsExamples" aria-expanded="false" class="collapsed">
+              <i class="ni ni-tv-2 text-primary"></i> Member Managment<b class="caret"></b></a>
+                <div class="navbar-nav collapse" id="componentsExamples" aria-expanded="false" >
+                    <ul class="nav">
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('users/view-members') ?>">
+                          <i class="ni ni-planet text-blue"></i> View/Manage Members
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('users/search_user') ?>">
+                          <i class="ni ni-planet text-blue"></i> Find Members
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('users/blocked-members') ?>">
+                          <i class="ni ni-planet text-blue"></i>Black listed
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('users/latest-members') ?>">
+                          <i class="ni ni-planet text-blue"></i>Recent Members
+                        </a>
+                      </li>
+
+                       <?php if (config_item('enable_help_plan') !== "Yes") { ?>
+                                        <?php if (config_item('enable_topup') == "Yes") { ?>
+                                            <li class="nav-item">
+                                                <a href="<?php echo site_url('users/topup-member') ?>"
+                                                   class="nav-link "><i class="ni ni-planet text-blue"></i>TopUp Member
+                                                </a>
+                                            </li>
+                                        <?php }
+                      } ?>
+
+                  </ul>
+              </div>
+          </li>
+          <?php if (!isset($this->session->designation) || $this->session->designation['tree_view'] == "1") { ?>
+          <li class="nav-item"> 
+              <a class="nav-link " data-toggle="collapse" href="#treeview" aria-expanded="false" class="collapsed">
+              <i class="ni ni-tv-2 text-primary"></i> User Tree & Report<b class="caret"></b></a>
+                <div class="navbar-nav collapse" id="treeview" aria-expanded="false" >
+                    <ul class="nav">
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('tree/user-tree') ?>">
+                          <i class="ni ni-planet text-blue"></i>User Tree View
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('tree/referred-list') ?>">
+                          <i class="ni ni-planet text-blue"></i>Sponsored Members
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('tree/downline-report') ?>">
+                          <i class="ni ni-planet text-blue"></i>Downline Report
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('tree/add-new') ?>">
+                          <i class="ni ni-planet text-blue"></i>Create Member
+                        </a>
+                      </li>
+                      
+                  </ul>
+              </div>
+          </li>
+        <?php } ?>
+        <?php if (config_item('enable_help_plan') !== "Yes") { ?>
+         <li class="nav-item"> 
+              <a class="nav-link " data-toggle="collapse" href="#wallet" aria-expanded="false" class="collapsed">
+              <i class="ni ni-tv-2 text-primary"></i> E-Wallet<b class="caret"></b></a>
+                <div class="navbar-nav collapse" id="wallet" aria-expanded="false" >
+                    <ul class="nav">
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('wallet/manage-wallet-fund') ?>">
+                          <i class="ni ni-planet text-blue"></i>Manage Wallet Fund
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('wallet/manage_product_wallet_funds') ?>">
+                          <i class="ni ni-planet text-blue"></i>Manage Product Wallet
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('support/deposit_history') ?>">
+                          <i class="ni ni-planet text-blue"></i>Bank Deposit Request
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('wallet/transfer-fund') ?>">
+                          <i class="ni ni-planet text-blue"></i>Fund Transfer
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('wallet/wallet-transactions') ?>">
+                          <i class="ni ni-planet text-blue"></i>Wallet Statement
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('wallet/withdraw-fund') ?>">
+                          <i class="ni ni-planet text-blue"></i>Withdraw Fund
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('wallet/withdrawl-report') ?>">
+                          <i class="ni ni-planet text-blue"></i>Withdrawal Report
+                        </a>
+                      </li>
+                      
+                  </ul>
+              </div>
+          </li>
+          <?php }?>
+
+          <?php if ((!isset($this->session->designation) || $this->session->designation['epin'] == "1") && config_item('enable_epin') == "Yes") { ?>
+            <li class="nav-item"> 
+              <a class="nav-link " data-toggle="collapse" href="#epin" aria-expanded="false" class="collapsed">
+              <i class="ni ni-tv-2 text-primary"></i> E-Pin Section<b class="caret"></b></a>
+                <div class="navbar-nav collapse" id="epin" aria-expanded="false" >
+                    <ul class="nav">
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('admin/generate_epin') ?>">
+                          <i class="ni ni-planet text-blue"></i>Create E-Pin
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('admin/transfer_epin') ?>">
+                          <i class="ni ni-planet text-blue"></i>Transfer E-Pin's
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('admin/search_epin') ?>">
+                          <i class="ni ni-planet text-blue"></i>Find e-PIN
+                        </a>
+                      </li>
+                   
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('admin/unused_epin') ?>">
+                          <i class="ni ni-planet text-blue"></i>Active E-Pin's
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('admin/used_epin') ?>">
+                          <i class="ni ni-planet text-blue"></i>Inactive E-Pin's
+                        </a>
+                      </li>
+                  
+                  </ul>
+              </div>
+            </li>
+          <?php } ?>
+
+
+          <?php if (config_item('enable_help_plan') !== "Yes") { ?>
+          <?php if (!isset($this->session->designation) || $this->session->designation['earning_manage'] == "1") { ?>
+           <li class="nav-item"> 
+              <a class="nav-link " data-toggle="collapse" href="#payout" aria-expanded="false" class="collapsed">
+              <i class="ni ni-tv-2 text-primary"></i> Earning & Payout<b class="caret"></b></a>
+                <div class="navbar-nav collapse" id="payout" aria-expanded="false" >
+                    <ul class="nav">
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/view-earning') ?>">
+                          <i class="ni ni-planet text-blue"></i>View Earnings
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/search-earning') ?>">
+                          <i class="ni ni-planet text-blue"></i>Search Earnings
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/make-payment') ?>">
+                          <i class="ni ni-planet text-blue"></i>Make Payment
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/pan_wise_payout') ?>">
+                          <i class="ni ni-planet text-blue"></i>PAN WISE Payment
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/tax_panwise_report') ?>">
+                          <i class="ni ni-planet text-blue"></i>PAN wise tax report
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/hold-payments') ?>">
+                          <i class="ni ni-planet text-blue"></i>Hold Payments
+                        </a>
+                      </li>
+                       <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/search-payout') ?>">
+                          <i class="ni ni-planet text-blue"></i>Search Payout
+                        </a>
+                      </li>
+                       <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/tax-report') ?>">
+                          <i class="ni ni-planet text-blue"></i>Tax Report
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('cron/generate_payout') ?>"> 
+                          <i class="ni ni-planet text-blue"></i>Generate Payout
+                        </a>
+                      </li>
+                       <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/payall_gateway') ?>"> 
+                          <i class="ni ni-planet text-blue"></i>AutoPay
+                        </a>
+                      </li>
+                      <!--added by skt-->
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('apiusers/view_members') ?>"> 
+                          <i class="ni ni-planet text-blue"></i> Fetch app wallet
+                        </a>
+                      </li><!--ended by skt-->
+                  
+                  </ul>
+              </div>
+            </li>
+             <?php } }   ?>
+
+          <?php if (config_item('enable_reward') == "Yes") { ?>
+             <li class="nav-item"> 
+              <a class="nav-link " data-toggle="collapse" href="#reward" aria-expanded="false" class="collapsed">
+              <i class="ni ni-tv-2 text-primary"></i>Rewards Setting<b class="caret"></b></a>
+                <div class="navbar-nav collapse" id="reward" aria-expanded="false" >
+                    <ul class="nav">
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/pay-rewards') ?>">
+                          <i class="ni ni-planet text-blue"></i>Pay Rewards
+                        </a>
+                      </li>
+                      <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('income/reward-search-form') ?>">
+                          <i class="ni ni-planet text-blue"></i>Search Rewards
+                        </a>
+                      </li>
+                     
+                       <li class="nav-item">
+                        <a class="nav-link " href="<?php echo site_url('setting/reward-setting') ?>">
+                          <i class="ni ni-planet text-blue"></i>Reward Setting
+                        </a>
+                      </li>
+                    
+                  </ul> 
+              </div>
+            </li>
+          <?php } ?>
+
+          <?php if (config_item('enable_investment') == "Yes") { ?>
+             <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#investments" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Investments<b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="investments" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('investments/create_pack') ?>">
+                            <i class="ni ni-planet text-blue"></i>Create a New Pack
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('investments/manage_packs') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Packages
+                          </a>
+                        </li>
+                       
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('investments/approve_investments') ?>">
+                            <i class="ni ni-planet text-blue"></i>Approve Investments
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('investments/manage_investments') ?>">
+                            <i class="ni ni-planet text-blue"></i>Recent Investments
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('investments/search_investments') ?>">
+                            <i class="ni ni-planet text-blue"></i>Search Investments
+                          </a>
+                        </li>
+                      
+                    </ul>
+                </div>
+            </li>
+          <?php } ?>
+
+          <?php if (config_item('enable_help_plan') == "Yes") { ?>
+             <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#reward" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Manage Donations<b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="reward" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('donation/create_pack') ?>">
+                            <i class="ni ni-planet text-blue"></i>Create a New Pack
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('donation/manage_packs') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Packages
+                          </a>
+                        </li>
+                       
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('donation/manage_donations') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Donations
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('donation/upgrade_level') ?>">
+                            <i class="ni ni-planet text-blue"></i>Upgrade Levels
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('donation/search_donations') ?>">
+                            <i class="ni ni-planet text-blue"></i>Search Donations
+                          </a>
+                        </li>
+                      
+                    </ul>
+                </div>
+            </li>
+          <?php } ?>
+          
+          <?php if ((!isset($this->session->designation) || $this->session->designation['manage_poducts'] == "1") && config_item('enable_product') == "Yes") { ?>
+            <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#productorder" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Products & Services<b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="productorder" aria-expanded="false" >
+                      <ul class="nav">
+                         <?php if (!isset($this->session->designation) || $this->session->designation['manage_poducts'] == "1" || $this->session->designation['view_orders'] == "1") { ?>
+
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('admin/manage_cat') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Categories
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('product/add_product') ?>">
+                            <i class="ni ni-planet text-blue"></i>Add Product/Service
+                          </a>
+                        </li>
+                       
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('product/manage_products') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Products/Services
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('product/search-product') ?>">
+                            <i class="ni ni-planet text-blue"></i>Search Product/Services
+                          </a>
+                        </li>
+                        <?php } ?>
+                        <?php if (!isset($this->session->designation) || $this->session->designation['view_orders'] == "1") { ?>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('product/pending-orders') ?>">
+                            <i class="ni ni-planet text-blue"></i>Order Managment
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('product/pending_orders_report') ?>">
+                            <i class="ni ni-planet text-blue"></i>Pending orders
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('product/completed-orders') ?>">
+                            <i class="ni ni-planet text-blue"></i>Delivered Orders
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('product/customer_invoices') ?>">
+                            <i class="ni ni-planet text-blue"></i>Invoices
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('product/all-orders') ?>">
+                            <i class="ni ni-planet text-blue"></i>All Orders
+                          </a>
+                        </li>
+                        <?php } ?>
+                      
+                    </ul>
+                </div>
+            </li>
+
+         <?php } ?>
+          
+          <?php if ((!isset($this->session->designation) || $this->session->designation['coupon'] == "1") && config_item('enable_coupon') == "Yes") { ?>
+            <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#coupon" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Coupon Management<b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="coupon" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('coupon/manage-cat') ?>">
+                            <i class="ni ni-planet text-blue"></i>>Manage Categories
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('coupon/create-coupon') ?>">
+                            <i class="ni ni-planet text-blue"></i>Generate Coupons
+                          </a>
+                        </li>
+                       
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('coupon/manage-coupons') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Coupons
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('coupon/use-requests') ?>">
+                            <i class="ni ni-planet text-blue"></i>Coupon Use Requests
+                          </a>
+                        </li>
+                      
+                    </ul>
+                </div>
+            </li>
+
+          <?php } ?>
+
+          <?php if (!isset($this->session->designation) || $this->session->designation['staff'] == "1") { ?>
+            <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#employee" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Manage Employee<b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="employee" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('staff/designations') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Designations
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('staff/new-staff') ?>">
+                            <i class="ni ni-planet text-blue"></i>Add New Staff
+                          </a>
+                        </li>
+                       
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('staff/list-staffs') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Staffs
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('staff/pay-salary') ?>">
+                            <i class="ni ni-planet text-blue"></i>Pay Salary
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('staff/salary-report') ?>">
+                            <i class="ni ni-planet text-blue"></i>Salary Report
+                          </a>
+                        </li>
+                      
+                    </ul>
+                </div>
+            </li>
+          <?php } ?>
+
+          <?php if (config_item('enable_help_plan') !== "Yes") { ?>
+            <?php if (!isset($this->session->designation) || $this->session->designation['franchisee'] == "1") { ?>
+           <!--  <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#franchisee" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Franchisee <b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="franchisee" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('adm-franchisee/add-fran') ?>">
+                            <i class="ni ni-planet text-blue"></i>New Franchisee
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('adm-franchisee/stock-management') ?>">
+                            <i class="ni ni-planet text-blue"></i>Franchisee Stock Mangr
+                          </a>
+                        </li>
+                       
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('adm-franchisee/manage-fran') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Franchisee
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('adm-franchisee/vender_products') ?>">
+                            <i class="ni ni-planet text-blue"></i>vender_products
+                          </a>
+                        </li>
+                       
+                      
+                    </ul>
+                </div>
+            </li> -->
+          <?php } } ?>
+
+
+        <?php if (config_item('enable_help_plan') !== "Yes") { ?>
+        <?php if (!isset($this->session->designation) || $this->session->designation['invoice'] == "1") { ?>
+            <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#Accounting" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Accounting <b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="Accounting" aria-expanded="false" >
+                      <ul class="nav"> 
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('accounting/invoices') ?>">
+                            <i class="ni ni-planet text-blue"></i>Invoices
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('accounting/purchase') ?>">
+                            <i class="ni ni-planet text-blue"></i>Purchases
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('accounting/accounting') ?>">
+                            <i class="ni ni-planet text-blue"></i>P/L Sheet
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('accounting/transactionlogs') ?>">
+                            <i class="ni ni-planet text-blue"></i>Transaction Logs
+                          </a>
+                        </li>
+
+                         <?php if (!isset($this->session->designation) || $this->session->designation['expense'] == "1") { ?>
+                          <li class="nav-item">
+                            <a class="nav-link " href="<?php echo site_url('admin/expense') ?>">
+                              <i class="ni ni-planet text-blue"></i>Manage Expenses
+                            </a>
+                          </li>
+                          <?php } ?>
+                     
+                    </ul>
+                </div>
+            </li>
+
+
+        <?php } } ?>
+                        
+
+          <?php if (!isset($this->session->designation) || $this->session->designation['support'] == "1") { ?>
+            <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#support" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Support System <b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="support" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('ticket/unsolved') ?>">
+                            <i class="ni ni-planet text-blue"></i>Open Tickets
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('ticket/resolved') ?>">
+                            <i class="ni ni-planet text-blue"></i>Closed Tickets
+                          </a>
+                        </li>
+                       
+                    </ul>
+                </div>
+            </li>
+
+          <?php } ?>
+
+          <?php if (!isset($this->session->designation) && config_item('enable_ad_incm') == "Yes") { ?>
+             <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#adincome" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Advt Income <b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="adincome" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('ads/manage_ads') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Ads
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('ads/achievers') ?>">
+                            <i class="ni ni-planet text-blue"></i>Ad Browsers
+                          </a>
+                        </li>
+                       
+                    </ul>
+                </div>
+            </li>
+          <?php } ?>
+
+          <?php if (!isset($this->session->designation) && config_item('enable_survey') == "Yes") { ?>
+             <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#surveysys" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Survey Manager <b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="surveysys" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('survey/manage_survey') ?>">
+                            <i class="ni ni-planet text-blue"></i>Manage Surveys
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('survey/survey_report') ?>">
+                            <i class="ni ni-planet text-blue"></i>Surveys report
+                          </a>
+                        </li>
+                       
+                    </ul>
+                </div>
+            </li>
+            <?php } ?>
+
+
+          <?php if (!isset($this->session->designation) && config_item('enable_recharge') == "Yes") { ?>
+            <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#recharge" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Recharge Manager <b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="recharge" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('recharge/records') ?>">
+                            <i class="ni ni-planet text-blue"></i>Recharge Records
+                          </a>
+                        </li>
+                     
+                    </ul>
+                </div>
+            </li>
+
+          <?php } ?>
+
+           <?php if (!isset($this->session->designation)) { ?>
+
+           <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#news" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>News Management <b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="news" aria-expanded="false" >
+                      <ul class="nav">
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('news/add_news') ?>">
+                            <i class="ni ni-planet text-blue"></i>Add News
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('news/list_news') ?>">
+                            <i class="ni ni-planet text-blue"></i>List News
+                          </a>
+                        </li>
+                     
+                    </ul>
+                </div>
+            </li>
+          <?php } ?>
+
+          <li class="nav-item">
+            <a class="nav-link " href="<?php echo site_url('setting/export') ?>">
+              <i class="ni ni-pin-3 text-orange"></i> Export & Import
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link " href="<?php echo site_url('setting/marketing') ?>">
+              <i class="ni ni-single-02 text-yellow"></i>Marketing Tools
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link " href="<?php echo site_url('admin/logout') ?>">
+              <i class="ni ni-bullet-list-67 text-red"></i> Logout
+            </a>
+          </li>
+      
+          <?php if (!isset($this->session->designation) || $this->session->designation['b_setting'] == "1") { ?>
+             <li class="nav-item"> 
+                <a class="nav-link " data-toggle="collapse" href="#setting" aria-expanded="false" class="collapsed">
+                <i class="ni ni-tv-2 text-primary"></i>Main Settings<b class="caret"></b></a>
+                  <div class="navbar-nav collapse" id="setting" aria-expanded="false" >
+                      <ul class="nav"> 
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/common-setting') ?>">
+                            <i class="ni ni-planet text-blue"></i>Basic Setting
+                          </a>
+                        </li> 
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/plan-setting') ?>">
+                            <i class="ni ni-planet text-blue"></i>Plan Setting
+                          </a>
+                        </li> 
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/advance-setting') ?>">
+                            <i class="ni ni-planet text-blue"></i>Advance Setting
+                          </a>
+                        </li>
+                          <?php if (config_item('enable_help_plan') !== "Yes") { ?>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/payout-setting') ?>">
+                            <i class="ni ni-planet text-blue"></i>Payout Setting
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('income/flexible-income') ?>">
+                            <i class="ni ni-planet text-blue"></i>Flexible Income Setting
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('income/set-level-wise') ?>">
+                            <i class="ni ni-planet text-blue"></i>Level Income Setting
+                          </a>
+                        </li>
+                        
+                        <?php } ?>
+
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/rank-setting') ?>">
+                            <i class="ni ni-planet text-blue"></i>Rank Setting
+                          </a>
+                        </li>
+                        <?php if (config_item('enable_help_plan') !== "Yes") { ?>
+                        <?php if (config_item('fix_income') == 'Yes') { ?>
+                          <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/income-setting') ?>">
+                            <i class="ni ni-planet text-blue"></i>Site Income Setting
+                          </a>
+                        </li>
+                      <?php } if (config_item('enable_repurchase') == "Yes") { ?>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('income/gap-commission-setting') ?>">
+                            <i class="ni ni-planet text-blue"></i>Repurchase Gap Comm. Setting
+                          </a>
+                        </li>
+                        <?php }
+                        } ?>
+
+                         <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/payment-gateway') ?>">
+                            <i class="ni ni-planet text-blue"></i>Payment Gateways
+                          </a>
+                        </li>
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/welcome-letter') ?>">
+                            <i class="ni ni-planet text-blue"></i>Design Welcome Letter
+                          </a>
+                        </li>
+                         <li class="nav-item">
+                                <a href="<?php echo site_url('setting/export') ?>"
+                                   class="nav-link ">
+                                    <i class="fa fa-database"></i>
+                                    <span class="title">Export & Import</span>
+                                </a>
+                            </li>
+
+                        <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/clear-database') ?>">
+                            <i class="ni ni-planet text-blue"></i>Reset Database
+                          </a>
+                        </li>
+                          <li class="nav-item">
+                          <a class="nav-link " href="<?php echo site_url('setting/cms') ?>">
+                            <i class="ni ni-planet text-blue"></i>CMS - Design Your Site
+                          </a>
+                        </li>
+                          
+                    </ul>
+                </div>
+            </li>
+
+          <?php } ?>
+
+        </ul>
+        <!-- Divider -->
+        <hr class="my-3">
+        <!-- Heading -->
+        <h6 class="navbar-heading text-muted">Documentation</h6>
+        <!-- Navigation -->
+        <ul class="navbar-nav mb-md-3">
+          <li class="nav-item">
+            <a class="nav-link" href="https://demos.creative-tim.com/argon-dashboard/docs/getting-started/overview.html">
+              <i class="ni ni-spaceship"></i> Getting started
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://demos.creative-tim.com/argon-dashboard/docs/foundation/colors.html">
+              <i class="ni ni-palette"></i> Foundation
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://demos.creative-tim.com/argon-dashboard/docs/components/alerts.html">
+              <i class="ni ni-ui-04"></i> Components
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main-content">
+             
+          <!-- Navbar -->
+          <nav class="navbar navbar-top navbar-expand-md navbar-dark" id="navbar-main">
+            <div class="container-fluid">
+              <!-- Brand -->
+              <a class="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" href="<?php echo site_url('admin/index')?>">Dashboard</a>
+              <!-- Form -->
+               <?php if (!isset($this->session->designation) || $this->session->designation['user_manage'] == "1") { ?>
+                <form class="navbar-search navbar-search-dark form-inline mr-3 d-none d-md-flex ml-lg-auto" action="<?php echo site_url('users/search') ?>" method="POST">
+                  <div class="form-group mb-0">
+                    <div class="input-group input-group-alternative">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                      </div>
+                      <input class="form-control" placeholder="Search" type="text" name="userid" href="javascript:;">
+                    </div>
+                  </div>
+                </form>
+              <?php } ?>
+
+        <!-- User -->
+        <ul class="navbar-nav align-items-center d-none d-md-flex">
+          <?php if (!isset($this->session->designation) || $this->session->designation['manage_poducts'] == "1") { ?>
+            <li class="nav-item">
+               <a class="nav-link" href="<?php echo site_url('product/pending-orders') ?>">
+                  <button type="button" class="btn btn-danger">
+                    <span>Orders</span>
+                    <span class="badge badge-white">
+                      <?php echo $this->db_model->count_all('product_sale', array('status' => 'Processing')) ?>
+
+
+                    </span>
+                  </button>
+                </a>
+              <!--      <ul class="dropdown-menu">
+                     <a class="dropdown-item" href="#">Notification 1</a>
+                     <a class="dropdown-item" href="#">Notification 2</a>
+               </ul> -->
+            </li>
+          <?php } ?>
+          <li class="nav-item dropdown">
+            <a class="nav-link pr-0" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <div class="media align-items-center">
+                <span class="avatar avatar-sm rounded-circle">
+                  <img alt="Image placeholder" src="<?php echo base_url('axxets/assets/img/theme/team-4-800x800.jpg')?>">
+                </span>
+                <div class="media-body ml-2 d-none d-lg-block">
+                  <span class="mb-0 text-sm  font-weight-bold"><?php echo $this->session->name ?> </span>
+                </div>
+              </div>
+            </a>
+            <div class="dropdown-menu dropdown-menu-arrow dropdown-menu-right">
+              <div class=" dropdown-header noti-title">
+                <h6 class="text-overflow m-0">Welcome! <span style="color: red"><?php echo date('d/m/y h:i A', $this->session->last_login) ?></span></h6>
+              </div>
+              <a href="<?php echo base_url('users/edit_user/1001') ?>" class="dropdown-item">
+                <i class="ni ni-single-02"></i>
+                <span>My profile</span>
+              </a>
+              <a href="<?php echo site_url('admin/setting') ?>" class="dropdown-item">
+                <i class="ni ni-settings-gear-65"></i>
+                <span>Settings</span>
+              </a>
+              <a href="#" class="dropdown-item">
+                <i class="ni ni-calendar-grid-58"></i>
+                <span>Activity</span>
+              </a>
+              <a href="https://axolotls.in" class="dropdown-item" target="_blank">
+                <i class="ni ni-support-16"></i>
+                <span>Support</span> 
+              </a>
+              <div class="dropdown-divider"></div>
+              <a href="<?php echo site_url('admin/logout') ?>" class="dropdown-item">
+                <i class="ni ni-user-run"></i>
+                <span>Logout</span>
+              </a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <!-- End Navbar -->
+    <!-- Header -->
+    
+    <div class="header bg-gradient-primary pb-8 pt-5 pt-md-8">
+          <?php
+                echo validation_errors('<div class="alert alert-danger">', '</div>');
+                echo $this->session->flashdata('common_flash');
+                if (trim($layout) !== "") {
+                    require_once($layout);
+                } else if (isset($this->session->designation)) {
+
+                    echo '<h1 class="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" style="padding-left:4%"> Hi ' . $this->session->name . '</h1>';
+                } else { ?>
+                    <?php if (config_item('is_demo') == TRUE) {
+                       // echo '<div class="alert alert-danger">Please Pay your software development remaining balance to remove this banner !<br/> इस बैनर को हटाने के लिए कृपया अपनी शेष राशि का भुगतान करें !</div>';
+              } ?>
+      <div class="container-fluid">
+
+        <div class="header-body">
+
+          <!-- Card stats -->
+          <div class="row">
+            <div class="col-xl-3 col-lg-6">
+              <div class="card card-stats mb-4 mb-xl-0">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col">
+                      <h5 class="card-title text-uppercase text-muted mb-0">Total Sale</h5>
+                      <span class="h2 font-weight-bold mb-0"><?php if ($earnnings == "") {
+                                                $earnnings = 0; }echo $earnnings ?></span>
+                    </div>
+                    <div class="col-auto">
+                      <div class="icon icon-shape bg-danger text-white rounded-circle shadow">
+                        <i class="fas fa-chart-bar"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="mt-3 mb-0 text-muted text-sm">
+                    <span class="text-success mr-2"><i class="fa fa-arrow-up"></i> 3.48%</span>
+                    <span class="text-nowrap">Since last month</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+              <div class="card card-stats mb-4 mb-xl-0">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col">
+                      <h5 class="card-title text-uppercase text-muted mb-0">Distributors</h5>
+                      <span class="h2 font-weight-bold mb-0"><?php echo $this->db_model->count_all('member') ?></span>
+                    </div>
+                    <div class="col-auto">
+                      <div class="icon icon-shape bg-warning text-white rounded-circle shadow">
+                        <i class="fas fa-chart-pie"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="mt-3 mb-0 text-muted text-sm">
+                    <span class="text-danger mr-2"><i class="fas fa-arrow-down"></i> 3.48%</span>
+                    <span class="text-nowrap">Since last week</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+              <div class="card card-stats mb-4 mb-xl-0">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col">
+                      <h5 class="card-title text-uppercase text-muted mb-0">Payout</h5>
+                      <span class="h2 font-weight-bold mb-0"><?php if ($payout == "") {$payout = 0;}echo $payout ?></span>
+                    </div>
+                    <div class="col-auto">
+                      <div class="icon icon-shape bg-yellow text-white rounded-circle shadow">
+                        <i class="fas fa-users"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="mt-3 mb-0 text-muted text-sm">
+                    <span class="text-warning mr-2"><i class="fas fa-arrow-down"></i> 1.10%</span>
+                    <span class="text-nowrap">Since yesterday</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-3 col-lg-6">
+              <div class="card card-stats mb-4 mb-xl-0">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col">
+                      <h5 class="card-title text-uppercase text-muted mb-0">Sale</h5>
+                      <span class="h2 font-weight-bold mb-0"><?php $data = $this->db_model->sum('topup', 'member', array('join_time' => date('Y-m-d'))); if ($data == "") { $data = 0;}echo $data ?></span>
+                    </div>
+                    <div class="col-auto">
+                      <div class="icon icon-shape bg-info text-white rounded-circle shadow">
+                        <i class="fas fa-percent"></i>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="mt-3 mb-0 text-muted text-sm">
+                    <span class="text-success mr-2"><i class="fas fa-arrow-up"></i> 12%</span>
+                    <span class="text-nowrap">Since today</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid mt--7">
+
+      <div class="row">
+        <div class="col-xl-8 mb-5 mb-xl-0">
+          <div class="card bg-gradient-default shadow">
+            <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h6 class="text-uppercase text-light ls-1 mb-1">Overview</h6>
+                  <h2 class="text-white mb-0">Sales value</h2>
+                </div>
+                <div class="col">
+                  <ul class="nav nav-pills justify-content-end">
+                    <li class="nav-item mr-2 mr-md-0" data-toggle="chart" data-target="#chart-sales" data-update='{"data":{"datasets":[{"data":[0, 20, 10, 30, 15, 40, 20, 60, 60]}]}}' data-prefix="$" data-suffix="k">
+                      <a href="#" class="nav-link py-2 px-3 active" data-toggle="tab">
+                        <span class="d-none d-md-block">Month</span>
+                        <span class="d-md-none">M</span>
+                      </a>
+                    </li>
+                    <li class="nav-item" data-toggle="chart" data-target="#chart-sales" data-update='{"data":{"datasets":[{"data":[0, 20, 5, 25, 10, 30, 15, 40, 40]}]}}' data-prefix="$" data-suffix="k">
+                      <a href="#" class="nav-link py-2 px-3" data-toggle="tab">
+                        <span class="d-none d-md-block">Week</span>
+                        <span class="d-md-none">W</span>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Chart -->
+              <div class="chart">
+                <!-- Chart wrapper -->
+                <canvas id="chart-sales" class="chart-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-4">
+          <div class="card shadow">
+            <div class="card-header bg-transparent">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h6 class="text-uppercase text-muted ls-1 mb-1">Performance</h6>
+                  <h2 class="mb-0">Total orders</h2>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Chart -->
+              <div class="chart">
+                <canvas id="chart-orders" class="chart-canvas"></canvas>
+              </div>
+            </div>
+          </div>
+        </div> 
+      </div>
+
+      <div class="row mt-5">
+        <div class="col-xl-8 mb-5 mb-xl-0"> 
+          <div class="card shadow">
+            <div class="card-header border-0">
+              <div class="row align-items-center">
+                <div class="col">
+                  <h3 class="mb-0">Latest Distributors</h3>
+                </div>
+                <div class="col text-right">
+                  <a href="<?php echo site_url('users/view-members') ?>" class="btn btn-sm btn-primary">See all</a>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <!-- Projects table -->
+              <table class="table align-items-center table-flush">
+                <thead class="thead-light">
+                  <tr>
+                    <th scope="col">Direct Seller Id</th>
+                    <!-- <th scope="col">Id.</th> -->
+                    <th scope="col">Full Name</th>
+                    <th scope="col">Referal Id</th>
+                    <th scope="col">Contact No.</th>
+                    <th scope="col">Date</th>
+
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php
+                        $sn = 1;
+                        foreach ($members as $e) { ?>
+                           <tr>
+                              <!-- <td><?php //echo $sn++; ?></td> -->
+                              <th scope="row">
+                                <a href="<?php echo site_url('users/user_detail/' . $e['id']) ?>" target="_blank"><?php echo config_item('ID_EXT') . $e['id']; ?></a>
+                              </th>
+                              <td><?php echo $e['name']; ?></td>
+                              <td>
+                                <a href="<?php echo site_url('users/user_detail/' . $e['sponsor']) ?>"
+                                     target="_blank"><?php echo $e['sponsor'] ? config_item('ID_EXT') . $e['sponsor'] : ''; ?>
+                              </td>
+                              <td><?php echo $e['phone']; ?></td>
+                              <td><?php echo $e['join_time']; ?></td>
+                        <!--       <td><?php//echo($e['total_a'] + $e['total_b'] + $e['total_c'] + $e['total_d'] + $e['total_e']); ?></td> -->
+                             <!--  <td>
+                                <a href="<?php echo site_url('users/user_detail/' . $e['id']); ?>" class="btn-blue fa fa-eye"></a><a
+                                        href="<?php echo site_url('users/edit_user/' . $e['id']); ?>"
+                                        class="btn-green fa fa-pencil-square"></a>
+                                <a onclick="return confirm('Are you sure you want to delete this Member ?')"
+                                        href="<?php echo site_url('users/remove_member/' . $e['id']); ?>"
+                                         class="btn-red fa fa-minus-square"></a>
+                              </td> -->
+                           </tr>
+                  <?php } ?>
+
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-4">
+          <div class="card shadow">
+            <div class="card-header border-0">
+              <div class="row align-items-center"> 
+                <div class="col">
+                  <h3 class="mb-0">Buy Features</h3>
+                </div>
+                <div class="col text-right">
+                  <a href="#!" class="btn btn-sm btn-primary">See all</a>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <!-- Projects table -->
+              <table class="table align-items-center table-flush">
+                <thead class="thead-light">
+                  <tr>
+                     <th scope="col">Id</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Rank</th>
+                  </tr>
+                </thead>
+                <tbody>
+                 <?php
+                   $top_earning = $this->db_model->select_multi('userid', 'earning', array('amount>='=>'100'));
+                   foreach ($top_earning as $value) {
+                     $user_name = $this->db_model->select_multi('id,name,rank', 'member', array('id '=> $value));
+                  ?>
+                  <tr>
+                    <td>
+                      <?php
+                       echo $user_name->id;
+                      ?>
+                    </td>
+                      <td>
+                      <?php
+                       echo $user_name->name;
+                      ?>
+                    </td>
+                     <td>
+                      <?php
+                       echo $user_name->rank;
+                      ?>
+                    </td>
+
+                    
+                    <?php } ?>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      <?php } ?><!-- End of main body -->
+
+      </div>
+
+    </div>
+      <br>
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="row align-items-center justify-content-xl-between">
+          <div class="col-xl-6">
+            <div class="copyright text-center text-xl-left text-muted">
+              &copy; 2020 <a href="https://www.creative-tim.com" class="font-weight-bold ml-1" target="_blank"><?php echo config_item('company_name') ?></a>
+            </div>
+          </div>
+          <div class="col-xl-6">
+            <ul class="nav nav-footer justify-content-center justify-content-xl-end">
+              <li class="nav-item">
+                <a href="#" class="nav-link" target="_blank">Updates</a>
+              </li>
+              <li class="nav-item">
+                <a href="#" class="nav-link" target="_blank">How it Works</a>
+              </li>
+              <li class="nav-item">
+                <a href="#" class="nav-link" target="_blank">Help & Support</a>
+              </li>
+             <!--  <li class="nav-item">
+                <a href="https://github.com/creativetimofficial/argon-dashboard/blob/master/LICENSE.md" class="nav-link" target="_blank">MIT License</a>
+              </li> -->
+            </ul>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!--   Core   -->
+  <script src="<?php echo base_url('axxets/assets/js/plugins/jquery/dist/jquery.min.js')?>"></script>
+  <script src="<?php echo base_url('axxets/assets/js/plugins/bootstrap/dist/js/bootstrap.bundle.min.js')?>"></script>
+  <!--   Optional JS   -->
+  <script src="<?php echo base_url('axxets/assets/js/plugins/chart.js/dist/Chart.min.js')?>"></script>
+  <script src="<?php echo base_url('axxets/assets/js/plugins/chart.js/dist/Chart.extension.js')?>"></script>
+  <!--   Argon JS   -->
+  <script src="<?php echo base_url('axxets/assets/js/argon-dashboard.min.js?v=1.1.0')?>"></script>
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+   <script src="<?php echo base_url('axxets/assets/js/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js')?>"></script>
+  <script>
+    window.TrackJS &&
+      TrackJS.install({
+        token: "ee6fab19c5a04ac1a32a645abde4613a",
+        application: "argon-dashboard-free"
+      });
+  </script>
+  <script type="text/javascript">
+    $(document).ready(function(){
+      $('.animated-bg').animatedbg({
+        // options here
+      });
+    });
+
+  </script>
+</body> 
+
+</html>

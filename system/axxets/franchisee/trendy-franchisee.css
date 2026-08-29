@@ -1,0 +1,72 @@
+/* Franchisees dashboard */
+.navbar-cls-top {
+    background: #8700c3;
+    border-bottom: none;
+}
+
+.navright{
+
+    color: white;
+    padding: 5px 20px 0px 0px;
+    float: right;
+    font-size: 13px;
+
+}
+.navbar-header {
+background-color: transparent;
+
+}
+.sidebar-collapse > .nav > li > a {
+
+    padding: 5px 10px;
+
+}
+.fa-3x {
+
+    font-size: 2em;
+
+}
+.panel-default > .panel-heading {
+    color: #333;
+    background-color: #fff;
+    border-color: #ddd;
+}
+.homedash{
+	padding-top: 5px;
+margin-bottom: 5px;
+}
+#wrapper {
+    width: 100%;
+   
+}
+.sidebar-collapse .nav > li > a {
+    color: #fff;
+    background: #202020;
+    text-shadow: none;
+}
+.active-menu {
+    background-color: #202020 !important;
+}
+
+
+#page-wrapper {
+    margin: 0 0 0 240px;
+    padding: 14px 30px;
+    height: 100%;
+}
+.navbar {
+    position: relative;
+    min-height: 50px;
+    margin-bottom: 0px;
+    border: 1px solid transparent;
+        border-top-color: transparent;
+        border-right-color: transparent;
+        border-bottom-color: transparent;
+        border-left-color: transparent;
+}
+
+.navbar-side {
+    z-index: 1;
+    position: absolute;
+    width: 240px;
+}

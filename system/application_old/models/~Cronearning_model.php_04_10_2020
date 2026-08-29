@@ -1,0 +1,130 @@
+
+<?php
+/**
+ * @ PHP 5.6
+ * @ Decoder version : 1.0.0.4
+ * @ Release on : 24.03.2018
+ * @ Website    : http://EasyToYou.eu
+ *
+ * @ Zend guard decoder PHP 5.6
+ **/
+
+defined("BASEPATH") or exit("No direct script access allowed");
+class Cronearning_model extends CI_Model
+{
+	public function __construct()
+	{
+		parent::__construct();
+		$this->common_model->__session();
+	}
+
+	public function getAllEarningSettings()
+	{
+		//$this->db->select('*')->from('earning_settings');
+		//$query = $this->db->get();
+		$sql ="SELECT  `e`.`userid`,(SELECT  `join_time` FROM `member` WHERE id= `e`.`userid`) `join_time`, sum( `e`.`amount`) amt ,  `e`.`levlno` ,`es`.`levlno`, `es`.`target_amount`, `es`.`payout_cycle`, `es`.`no_of_times`,
+CASE
+    WHEN `es`.`payout_cycle` = 'daily' THEN DATE_ADD((SELECT  `join_time` FROM `member` WHERE id= `e`.`userid`), INTERVAL 1 DAY)
+    WHEN `es`.`payout_cycle` = 'weekly' THEN DATE_ADD((SELECT  `join_time` FROM `member` WHERE id= `e`.`userid`), INTERVAL 1 WEEK)
+      WHEN `es`.`payout_cycle` = 'monthly' THEN DATE_ADD((SELECT  `join_time` FROM `member` WHERE id= `e`.`userid`), INTERVAL 1 MONTH)
+    ELSE DATE_ADD((SELECT  `join_time` FROM `member` WHERE id= `e`.`userid`), INTERVAL 1 YEAR)
+END as `calc_date`, GROUP_CONCAT( `e`.`id`) earning_ids
+FROM `earning` `e`  LEFT JOIN `earning_settings` `es` ON `e`.`levlno` =  `es`.`levlno`
+where  `e`.`type`='Sponsor Level Inc' and `e`.`id` NOT IN (select processed_id from earning_processed)  GROUP by   `e`.`userid`,   `e`.`levlno` having amt>=`es`.`target_amount` AND now() >= `calc_date`";
+		$query   = $this->db->query( $sql );
+		if ( $query->num_rows() > 0 ) {
+			return $query->result();
+		}
+
+		return false;
+	}
+	
+	public function getPaybleDate($no_of_times,$payout_cycle)
+	{
+		$payble_date=date('Y-m-d');
+		$frequency = $this->getPaybleFrequency($payout_cycle);
+		$arr = array();
+		for($i=0;$i<$no_of_times; $i++) {
+			 $sql = "SELECT DATE_ADD('".$payble_date."',INTERVAL 1 ".$frequency.") payble_date from dual";
+			$queryCP   = $this->db->query( $sql );
+			if ( $queryCP->num_rows() > 0 ) {
+				$payble_date = $result = $queryCP->row()->payble_date;
+				$arr[] = $payble_date; 
+			}	
+		
+		}
+		return $arr;
+    }
+	
+	public function getPaybleFrequency($payout_cycle) {
+
+		if($payout_cycle=='daily')
+			$frequency = 'DAY';
+		else if($payout_cycle=='weekly')
+			$frequency = 'WEEK';
+		else if($payout_cycle=='monthly')
+			$frequency = 'MONTH';
+		else if($payout_cycle=='yearly')
+			$frequency = 'YEAR';
+		
+		return $frequency;
+	}
+
+	public function insertToRoi($result) {
+		
+		$data = array();
+		$data['userid'] = isset($result->userid)?$result->userid:0;
+		$data['income_type'] = 'Sponsor Level Inc';
+		$data['amount'] = isset($result->amt)?$result->amt:0; 
+		$data['roi_frequency'] = isset($result->no_of_times)?$result->no_of_times:0;
+		$data['roi'] = $data['amount']*$data['roi_frequency'];
+		
+		$data['roi_limit'] = isset($result->target_amount)?$result->target_amount:0;
+		$data['status'] = 'processed'; 
+		$data['binary_rank'] = 0; 
+		$earning_ids =  isset($result->earning_ids)?$result->earning_ids:'';
+		$payout_cycle =  isset($result->payout_cycle)?$result->payout_cycle:'';
+		$output = $this->getPaybleDate($data['roi_frequency'],$payout_cycle);
+		
+		//print_r($output);	exit;
+		
+		if(count($output)>0){
+			foreach($output as $val){
+				$payment_date = $val;
+				$this->saveToEarningRoi($payment_date,$data);
+			}	
+		}
+		$this->saveToEarningProcessed($earning_ids);
+		
+    }
+	public function saveToEarningRoi($payment_date,$data){
+		
+		$data['payment_date'] = $payment_date;
+		if ($this->db->insert("earning_roi", $data)) {
+			return $this->db->insert_id();
+		} else {
+			return 0;
+		}
+	}
+
+    public function saveToEarningProcessed($earning_ids){
+		
+		$earning_ids_arr = explode(',',$earning_ids);
+		$dataEarning = array();
+		if(count($earning_ids_arr)>0){
+			$i =0;
+			foreach($earning_ids_arr as $id ){
+				$dataEarning[$i]['processed_id'] = $id;
+				$i++;
+			}
+		}	
+		$this->db->insert_batch('earning_processed', $dataEarning);
+		return true;
+	}		
+
+
+}
+
+defined('BASEPATH') || true;
+
+?>

@@ -1,0 +1,1 @@
+$.sessionTimeout({keepAliveUrl:"pages-starter.html",logoutButton:"Logout",logoutUrl:"member/logout",redirUrl:"site/login",warnAfter:150e3,redirAfter:3e4,countdownMessage:"Redirecting in {timer} seconds."}),$("#session-timeout-dialog  [data-dismiss=modal]").attr("data-bs-dismiss","modal");

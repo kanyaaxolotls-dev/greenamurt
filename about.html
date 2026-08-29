@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Us — GA Harbal Pvt Ltd | FutureLife</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+      .feature-card{
+    background:#fff;
+    border-top:6px solid;
+    border-radius:18px;
+    padding:35px 28px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+    transition:all .35s ease;
+    position:relative;
+    overflow:hidden;
+}
+
+.feature-card::before{
+    content:"";
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:linear-gradient(135deg,
+        rgba(22,163,74,.05),
+        rgba(37,99,235,.05));
+    opacity:0;
+    transition:.35s;
+}
+
+.feature-card:hover{
+    transform:translateY(-10px);
+    box-shadow:0 20px 45px rgba(0,0,0,.18);
+}
+
+.feature-card:hover::before{
+    opacity:1;
+}
+
+.feature-icon{
+    width:80px;
+    height:80px;
+    margin:0 auto 20px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#0f2347,#16a34a);
+    color:#fff;
+    font-size:36px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow:0 10px 25px rgba(22,163,74,.3);
+}
+
+.feature-card h3{
+    font-size:24px;
+    font-weight:700;
+    color:#0f2347;
+    margin-bottom:15px;
+}
+
+.feature-card p{
+    color:#555;
+    line-height:1.8;
+    font-size:16px;
+}
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+    <div class="nav-inner">
+
+        <a href="index.html" class="nav-logo">
+            <img src="images/logo.jpeg" alt="FutureLife Logo">
+        </a>
+
+        <!-- Hamburger -->
+        <div class="menu-toggle" id="menu-toggle">
+            ☰
+        </div>
+
+        <ul class="nav-links" id="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="products.html">Products</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="contact.html" class="nav-cta">Contact</a></li>
+        </ul>
+
+        <div class="nav-auth" id="nav-auth">
+            <a href="https://greenamrutayurveda.in/system/site/login" class="btn-login">
+                Login
+            </a>
+
+            <a href="https://greenamrutayurveda.in/system/site/register" class="btn-register">
+                Register
+            </a>
+        </div>
+
+    </div>
+</nav>
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="breadcrumb"><a href="index.html">Home</a> <span>›</span> About Us</div>
+  <h1>About FutureLife</h1>
+  <p>Bringing the wisdom of Ayurveda to every Indian home — for health, wealth &amp; safety.</p>
+</div>
+
+<!-- ABOUT MAIN -->
+<section>
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="about-img-wrap">
+        <img src="images/logo.jpeg" alt="FutureLife Brand" style="padding:40px; background:linear-gradient(135deg,#0f2347,#1a3a6e); border-radius:12px;" />
+      </div>
+      <div class="about-content">
+        <h2>Who We Are</h2>
+        <p><strong>GA Harbal Pvt Ltd</strong>, based in Saswad, Pune, is the company behind the <strong>FutureLife</strong> wellness brand — rooted in ancient Ayurvedic traditions and committed to providing pure, natural and effective health products for every Indian family.</p>
+        <p>Through our trusted brand <strong>Green Amrut</strong> and sister brands, we offer a comprehensive range of Ayurvedic products — from immunity-boosting juices and joint care powders to diabetes management and women's wellness solutions.</p>
+        <p>Our mission is simple: <em>Health Today, Wealth Tomorrow, Safety Always.</em> We believe that true wellness encompasses physical health, financial security and protection for your loved ones.</p>
+        <ul class="about-list">
+          <li>Founded on the principles of ancient Ayurvedic science</li>
+          <li>18+ products covering major health categories</li>
+          <li>100% natural ingredients — no harmful chemicals</li>
+          <li>GMP certified manufacturing facilities</li>
+          <li>Serving thousands of families across India</li>
+          <li>Affordable pricing for every household</li>
+        </ul>
+        <a href="products.html" class="btn btn-green" style="margin-top:8px;">Explore Our Products</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MISSION VISION -->
+<section style="background:var(--off-white);">
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>Our Mission &amp; Vision</h2>
+      <div class="divider"></div>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:28px;">
+      <div class="feature-card" style="border-top-color:var(--navy);">
+        <div class="feature-icon">🎯</div>
+        <h3>Our Mission</h3>
+        <p>To make authentic Ayurvedic wellness accessible to every Indian home through pure, effective and affordable natural products that address real health challenges.</p>
+      </div>
+      <div class="feature-card" style="border-top-color:var(--green);">
+        <div class="feature-icon">🔭</div>
+        <h3>Our Vision</h3>
+        <p>To become India's most trusted Ayurvedic wellness brand, empowering millions of families to lead healthier, disease-free lives through the power of nature.</p>
+      </div>
+      <div class="feature-card" style="border-top-color:var(--gold);">
+        <div class="feature-icon">💡</div>
+        <h3>Our Values</h3>
+        <p>Purity, Transparency, Efficacy &amp; Trust. We stand behind every product we make with integrity and a commitment to your well-being above all else.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BRANDS -->
+<section>
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>Our Product Brands</h2>
+      <div class="divider"></div>
+      <p>FutureLife brings multiple trusted Ayurvedic brands under one roof.</p>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:28px;">
+      <div class="feature-card">
+        <div class="feature-icon">🌿</div>
+        <h3>Green Amrut</h3>
+        <p>Our flagship Ayurvedic brand offering juices, tablets, capsules &amp; powders for joint care, diabetes, women's health, kidney support and immunity.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🍯</div>
+        <h3>Madunashak</h3>
+        <p>Specialized diabetes management products — including the unique Ayurvedic Diabetic Care Juice and Diabetes Control Lotion.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Nutrifuel</h3>
+        <p>High-energy Multi Super Food juice powered by berries &amp; natural ingredients. Ideal for energy, immunity and everyday wellness.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌸</div>
+        <h3>Sanjivani Ras</h3>
+        <p>Ancient-inspired herbal juice for deep detox, strength, stamina &amp; immunity — drawing from time-tested Ayurvedic wisdom.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS STRIP -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div>
+      <div class="stat-num">18+</div>
+      <div class="stat-label">Products</div>
+    </div>
+    <div>
+      <div class="stat-num">4+</div>
+      <div class="stat-label">Trusted Brands</div>
+    </div>
+    <div>
+      <div class="stat-num">10K+</div>
+      <div class="stat-label">Customers Served</div>
+    </div>
+    <div>
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Natural &amp; Safe</div>
+    </div>
+  </div>
+</div>
+
+<!-- QUALITY COMMITMENT -->
+<section>
+  <div class="section-inner">
+    <div class="section-header">
+      <h2>Our Quality Commitment</h2>
+      <div class="divider"></div>
+      <p>Every product we create meets the highest standards of quality and purity.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Rigorous Testing</h3>
+        <p>Every batch is tested for purity, potency and safety before it reaches your hands.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🏭</div>
+        <h3>GMP Manufacturing</h3>
+        <p>Produced in Good Manufacturing Practice certified facilities with strict hygiene &amp; quality protocols.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌱</div>
+        <h3>Ethically Sourced</h3>
+        <p>Herbs and ingredients are sourced responsibly from trusted farms and natural habitats.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>FSSAI Compliant</h3>
+        <p>All our food &amp; wellness products comply with FSSAI and applicable Indian regulatory standards.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<div class="cta-band">
+  <h2>Join the FutureLife Wellness Family</h2>
+  <p>Thousands of satisfied customers trust FutureLife for their daily wellness. It's your turn.</p>
+  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+    <a href="products.html" class="btn btn-primary">Shop Now</a>
+    <a href="contact.html" class="btn btn-outline">Contact Us</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-top">
+    <div class="footer-top-inner">
+      <div><span>📞 Customer Care: <a href="tel:+917020464644">70204 64644</a></span></div>
+      <div><span>✉️ <a href="mailto:greenamrutayurveda@gmail.com">greenamrutayurveda@gmail.com</a></span></div>
+      <div><span>🌐 <a href="https://www.greenamrutayurveda.com" target="_blank">www.greenamrutayurveda.com</a></span></div>
+    </div>
+  </div>
+
+  <div class="footer-main">
+    <div class="footer-brand">
+      <img src="images/logo.jpeg" alt="GA Harbal Pvt Ltd" />
+      <p style="font-weight:700;color:#fff;font-size:15px;margin-bottom:4px;">GA HARBAL PVT LTD.</p>
+      <p>A/P. Saswad, Tal. Purandar,<br>Dist. Pune – 412301, Maharashtra.</p>
+      <p style="margin-top:10px;font-size:13px;color:rgba(255,255,255,0.55);font-style:italic;">"Health Today, Wealth Tomorrow, Safety Always."</p>
+      <div class="footer-social" style="margin-top:16px;">
+        <a href="https://www.facebook.com" target="_blank" class="social-btn fb" title="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.236 2.686.236v2.97h-1.513c-1.491 0-1.956.93-1.956 1.884v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/></svg></a>
+        <a href="https://www.instagram.com" target="_blank" class="social-btn ig" title="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+        <a href="https://www.youtube.com" target="_blank" class="social-btn yt" title="YouTube"><svg viewBox="0 0 24 24"><path d="M23.495 6.205a3.007 3.007 0 0 0-2.088-2.088c-1.87-.501-9.396-.501-9.396-.501s-7.507-.01-9.396.501A3.007 3.007 0 0 0 .527 6.205a31.247 31.247 0 0 0-.522 5.805 31.247 31.247 0 0 0 .522 5.783 3.007 3.007 0 0 0 2.088 2.088c1.868.502 9.396.502 9.396.502s7.506 0 9.396-.502a3.007 3.007 0 0 0 2.088-2.088 31.247 31.247 0 0 0 .5-5.783 31.247 31.247 0 0 0-.5-5.805zM9.609 15.601V8.408l6.264 3.602z"/></svg></a>
+        <a href="https://wa.me/917020464644" target="_blank" class="social-btn wa" title="WhatsApp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg></a>
+        <a href="https://www.greenamrutayurveda.com" target="_blank" class="social-btn web" title="Website"><svg viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1 21.945A10.01 10.01 0 0 1 2.055 13H5.1a16.7 16.7 0 0 0 1.637 5.82L5.1 20.46A9.965 9.965 0 0 1 11 21.945zm0-19.89A9.965 9.965 0 0 1 5.1 3.54l1.637 1.64A16.7 16.7 0 0 0 5.1 11H2.055A10.01 10.01 0 0 1 11 2.055zm2 19.89A10.01 10.01 0 0 1 13 13h2.9a16.7 16.7 0 0 1-1.637 5.82L15.9 20.46A9.965 9.965 0 0 0 13 21.945zm2.9-10.945H13V2.055A9.965 9.965 0 0 1 18.9 3.54l-1.637 1.64A16.7 16.7 0 0 1 18.9 11h-3z"/></svg></a>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="index.html">🏠 Home</a></li>
+        <li><a href="products.html">🌿 Products</a></li>
+        <li><a href="about.html">ℹ️ About Us</a></li>
+        <li><a href="contact.html">📞 Contact Us</a></li>
+        <li><a href="login.html">🔑 Login</a></li>
+        <li><a href="register.html">📝 Register</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Product Categories</h4>
+      <ul>
+        <li><a href="products.html">🦴 Joint &amp; Bone Care</a></li>
+        <li><a href="products.html">🩸 Diabetes Care</a></li>
+        <li><a href="products.html">🫀 Liver &amp; Kidney</a></li>
+        <li><a href="products.html">🌸 Women's Health</a></li>
+        <li><a href="products.html">💪 Immunity Boost</a></li>
+        <li><a href="products.html">🧠 Thyroid Care</a></li>
+        <li><a href="products.html">🐟 Omega-3 &amp; Nutrition</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Policies &amp; Legal</h4>
+      <ul>
+        <li><a href="privacy-policy.html">🔒 Privacy Policy</a></li>
+        <li><a href="terms.html">📄 Terms &amp; Conditions</a></li>
+        <li><a href="refund-policy.html">🔁 Refund &amp; Return Policy</a></li>
+        <li><a href="shipping-policy.html">🚚 Shipping Policy</a></li>
+        <li><a href="disclaimer.html">⚠️ Disclaimer</a></li>
+      </ul>
+      <h4 style="margin-top:20px;">Support</h4>
+      <ul>
+        <li><a href="contact.html">💬 Customer Support</a></li>
+        <li><a href="https://wa.me/917020464644" target="_blank">📲 WhatsApp Us</a></li>
+        <li><a href="mailto:greenamrutayurveda@gmail.com">✉️ Email Us</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom-bar">
+    <div class="footer-bottom-inner">
+      <div class="footer-bottom-left">
+        <p>© 2026 <strong>GA Harbal Pvt Ltd.</strong> All rights reserved.</p>
+        <p style="margin-top:3px;font-size:12px;">Brand: <strong>FutureLife</strong> | <strong>Green Amrut</strong> | Reg. Office: Saswad, Pune – 412301</p>
+      </div>
+      <div class="footer-bottom-right">
+        <a href="privacy-policy.html">Privacy Policy</a>
+        <span>|</span>
+        <a href="terms.html">Terms</a>
+        <span>|</span>
+        <a href="refund-policy.html">Refunds</a>
+        <span>|</span>
+        <a href="sitemap.html">Sitemap</a>
+      </div>
+    </div>
+  </div>
+</footer>
+<script>
+const menu = document.getElementById("menu-toggle");
+const links = document.getElementById("nav-links");
+const auth = document.getElementById("nav-auth");
+
+menu.addEventListener("click", () => {
+    links.classList.toggle("active");
+    auth.classList.toggle("active");
+});
+</script>
+</body>
+</html>
