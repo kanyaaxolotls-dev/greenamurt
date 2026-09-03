@@ -89,8 +89,11 @@ class Db_model extends CI_Model
     public function select_multi($data, $table, $where = "1=1")
     {
         $this->db->select($data)->from($table)->where($where)->order_by('id', 'DESC')->limit(1);
-        $result = $this->db->get()->row();
-        return $result;
+        $query = $this->db->get();
+        if ($query && is_object($query)) {
+            return $query->row();
+        }
+        return null;
     }
 
     public function update($data, $table, $where = "1=1")

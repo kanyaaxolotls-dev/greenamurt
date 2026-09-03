@@ -11,479 +11,119 @@ class Earning extends CI_Model
         $this->common_model->__session();
     }
 
+    public function get_package_ratio($packageid = 0, $userid = null)
+    {
+        $ratio = 1.0;
+        if ($userid) {
+            $member = $this->db_model->select_multi('*', 'member', array('id' => $userid));
+            if ($member) {
+                if (isset($member->plan_percentage) && (float)$member->plan_percentage > 0) {
+                    return ((float)$member->plan_percentage) / 100;
+                }
+                if (!$packageid && !empty($member->signup_package)) {
+                    $packageid = $member->signup_package;
+                }
+                if (!$packageid && !empty($member->join_package)) {
+                    $packageid = $member->join_package;
+                }
+            }
+        }
+
+        if ($packageid) {
+            $product = $this->db_model->select_multi('*', 'product', array('id' => $packageid));
+            if ($product) {
+                if (isset($product->plan_percentage) && (float)$product->plan_percentage > 0) {
+                    return ((float)$product->plan_percentage) / 100;
+                }
+                $prod_name_lower = isset($product->prod_name) ? strtolower($product->prod_name) : '';
+                if (strpos($prod_name_lower, '50%') !== false || strpos($prod_name_lower, '50 percent') !== false || strpos($prod_name_lower, 'half') !== false) {
+                    return 0.50;
+                }
+            }
+        }
+
+        return $ratio;
+    }
+
+    public function get_retail_profit($mrp, $dp = 0)
+    {
+        if (is_numeric($mrp) && $dp > 0) {
+            return (float)($mrp - $dp);
+        }
+        if (is_numeric($mrp)) {
+            $product = $this->db_model->select_multi('*', 'product', array('id' => $mrp));
+            if ($product) {
+                $mrp_val = floatval($product->prod_price);
+                $dp_val  = floatval($product->dealer_price);
+                if ($mrp_val > 0 && $dp_val > 0) {
+                    return $mrp_val - $dp_val;
+                }
+            }
+        }
+        return 0;
+    }
+
     public function pay_earning($userid, $ref_id, $income_name, $amount, $levlno = 0, $pair_match = 0, $secret = 0)
     {
-        $earning_ct = $this->db_model->sum('amount', 'earning', ['userid' => $userid, 'type' => 'Matching Income', 'date' => date('Y-m-d')]) + 0;
-        $pair_ct    = $this->db_model->count_all('pair_cuts', ['userid' => $userid, 'DATE(date)' => date('Y-m-d')]);
-        #$package    = $this->db_model->select('signup_package', 'member', ['id' => $userid]);
-        $package    = $this->db_model->select('join_package', 'member', ['id' => $userid]);
-        $sponsor    = $this->db_model->select('sponsor', 'member', ['id' => $userid]);
-        
-        if ($amount > 0 && $package != null) {
-    
-            // if ($income_name == 'Matching Income') {
-    
-            //     $deduct_amount = ($amount * 10) / 100;
-            //     $check = $this->db->get_where('earning_deduct', ['userid' => $userid, 'type' => $income_name])->row();
-            //     $final_amount = $amount;
-    
-            //     if ($check) {
-            //         $new_total = $check->amount + $deduct_amount;
-            //         if ($check->amount < 2000) {
-            //             if ($new_total > 2000) {
-            //                 $deduct_amount = 2000 - $check->amount;
-            //                 $new_total = 2000;
-            //             }
-    
-            //             $this->db->where('id', $check->id)->update('earning_deduct', [
-            //                 'amount' => $new_total,
-            //                 'date'   => date('Y-m-d')
-            //             ]);
-            //             $final_amount = $amount - $deduct_amount;
-            //         }
-            //     } else {
-            //         if ($deduct_amount > 2000) {
-            //             $deduct_amount = 2000;
-            //         }
-    
-            //         $this->db->insert('earning_deduct', [
-            //             'userid' => $userid,
-            //             'amount' => $deduct_amount,
-            //             'type'   => $income_name,
-            //             'date'   => date('Y-m-d')
-            //         ]);
-    
-            //         $final_amount = $amount - $deduct_amount;
-            //     }
-            // } else {
-            //     $final_amount = $amount;
-            // }
+        $earning_ct    = $this->db_model->sum('amount', 'earning', array('userid' => $userid, 'type' => 'Matching Income', 'date' => date('Y-m-d'))) + 0;
+        $pair_ct       = $this->db_model->count_all('pair_cuts', array('userid' => $userid,'DATE(date)' => date('Y-m-d')));
+        $member        = $this->db_model->select_multi('signup_package, status, topup, earning_freeze', 'member', array('id' => $userid));
+        $package       = $member ? $member->signup_package : null;
 
-            $final_amount = $amount;
-    
-            $data = [
-                'userid'     => $userid,
-                'amount'     => $final_amount,
-                'type'       => $income_name,
-                'ref_id'     => $ref_id,
-                'date'       => date('Y-m-d'),
-                'pair_match' => $pair_match,
-                'secret'     => $secret,
-                'levlno'     => $levlno,
-            ];
-            $this->db->insert('earning', $data);
-    
-        } else {
-            $data = [
+        $is_frozen = ($member && !empty($member->earning_freeze));
+        $is_active = ($member && $package != null && $member->topup > 0 && $member->status == 'Active');
+
+        if ($amount > 0 && $is_active && $is_frozen) {
+            $this->db->insert('laps_earning', array(
                 'userid' => $userid,
                 'amount' => $amount,
                 'type'   => $income_name,
-                'reason' => 'Member not activate',
-                'ref_id' => $ref_id,
-                'levlno' => $levlno,
-            ];
+                'reason' => 'Frozen',
+            ));
+            return TRUE;
+        }
+
+        if($amount > 0 and $is_active){
+            $data = array(
+                'userid'        => $userid,
+                'amount'        => $amount,
+                'type'          => $income_name,
+                'ref_id'        => $ref_id,
+                'date'          => date('Y-m-d'),
+                'pair_match'    => $pair_match,
+                'secret'        => $secret,
+                'levlno'        => $levlno,
+            );
+            $this->db->insert('earning', $data);
+
+            if($income_name == 'Matching Income'){
+                $this->process_lvl($userid, $amount);
+            }
+        } else{
+            if ($amount <= 0) {
+                $reason = 'Zero / invalid amount';
+            } elseif (!$member || $package == null) {
+                $reason = 'User not active (not activated)';
+            } elseif ($member->status != 'Active') {
+                $reason = 'User not active (status: ' . $member->status . ')';
+            } else {
+                $reason = 'User not active (no topup)';
+            }
+            $data = array(
+                'userid'        => $userid,
+                'amount'        => $amount,
+                'type'          => $income_name,
+                'reason'        => $reason,
+            );
             $this->db->insert('laps_earning', $data);
         }
+
         return TRUE;
     }
 
-    // public function process_binary($id, $data)
-    // {
-    //     $package    = $this->db_model->select('signup_package', 'member', array('id' => $id));
-    //     //$capping    = $this->db_model->select('capping', 'product', array('id' => $package)) ?? 1000000;
-    //     $matching   = $this->db_model->select('matching_income', 'product', array('id' => $package)) ?? 100;
-    //     $total_pair = $this->db_model->select('total_pairs', 'member', array('id' => $id));
-    //     $a_side     = $this->db_model->select('total_a_pv', 'member', array('id' => $id)) ?? 0;
-    //     $b_side     = $this->db_model->select('total_b_pv', 'member', array('id' => $id)) ?? 0;
-    //     $sponsor_count = $this->db_model->count_all('member', array('sponsor' => $id,'topup >' => 0));
-        
-    //     $rank = $this->db_model->select('rank', 'member', array('id' => $id));
-
-    //     switch (trim($rank)) {
-    //         case 'Silver Associate':
-    //             $capping = 3500;
-    //             break;
-
-    //         case 'Gold Associate':
-    //             $capping = 4000;
-    //             break;
-
-    //         case 'Platinum Associate':
-    //             $capping = 4500;
-    //             break;
-
-    //         case 'Ruby Associate':
-    //             $capping = 5000;
-    //             break;
-
-    //         default:
-    //             $capping = 3000; 
-    //             break;
-    //     }
-        
-    //     #$check      = FALSE;
-    //     #if($sponsor_count >= 2){
-    //         // if ($total_pair == 0 && $a_side != 0 && $b_side != 0) {
-    //         //     $array = array(
-    //         //         'total_pairs' => 1
-    //         //     );
-        
-    //         //     if ($a_side > $b_side && $b_side != 0) {
-    //         //         $array['paid_a_pv'] = 1;
-    //         //         $array['paid_b_pv'] = 1;
-    //         //         $check              = TRUE;
-    //         //     } elseif ($b_side > $a_side && $a_side != 0) {
-    //         //         $array['paid_a_pv'] = 1;
-    //         //         $array['paid_b_pv'] = 1;
-    //         //         $check              = TRUE;
-    //         //     } elseif ($b_side + $a_side >= 3 && $a_side > 0 && $b_side > 0) {
-    //         //         $array['paid_a_pv'] = 1;
-    //         //         $array['paid_b_pv'] = 1;
-    //         //         $check              = TRUE;
-    //         //     }
-        
-    //         //     if ($check) {
-    //         //         $this->db->where('id', $id);
-    //         //         $this->db->update('member', $array);
-    //         //         $this->pay_earning($id, '0000', 'Matching Income', $matching, 0, 1);
-    //         //     }
-    //         // }
-
-    //         $total_pair = $this->db_model->select('total_pairs', 'member', array('id' => $id));
-    //         $a_side     = $this->db_model->select('total_a_pv', 'member', array('id' => $id)) ?? 0;
-    //         $b_side     = $this->db_model->select('total_b_pv', 'member', array('id' => $id)) ?? 0;
-    //         $a_side_p   = $this->db_model->select('paid_a_pv', 'member', array('id' => $id));
-    //         $b_side_p   = $this->db_model->select('paid_b_pv', 'member', array('id' => $id));
-    //         $pair_match = floor(min(max(0, ($a_side - $a_side_p)), max(0, ($b_side - $b_side_p))) / 1);
-    //         $pair_max   = floor(max(($a_side - $a_side_p), ($b_side - $b_side_p)) / 1);
-
-    //         $available_left  = $a_side - $a_side_p;
-    //         $available_right = $b_side - $b_side_p;
-
-    //         if($available_left < 400 || $available_right < 400){
-    //             return; 
-    //         }
-
-    //         $pair_match = floor(min($available_left, $available_right) / 1);
-            
-    //         #if ($pair_match >= 1 and $total_pair > 0) {
-    //         if ($pair_match >= 1) 
-    //         {
-    //             #$pair_match_inc = $pair_match * $matching;
-    //             $pair_match_inc = $pair_match;
-    //             $earning_ct     = $this->db_model->sum('amount', 'earning', array('userid' => $id, 'type' => 'Matching Income', 'date' => date('Y-m-d'))) + 0;
-    //             $package        = $this->db_model->select('signup_package', 'member', array('id' => $id));
-    //             #$capping        = $this->db_model->select('capping', 'product', array('id' => $package)) ?? 10000;
-    //             if($pair_match_inc > $capping){
-    //                 $data = array(
-    //                     'userid'        => $id,
-    //                     'amount'        => $pair_match_inc - $capping,
-    //                     'type'          => 'Matching Income',
-    //                     'reason'        => 'Capping Reached',
-    //                 );
-    //                 $this->db->insert('laps_earning', $data);
-    //                 $pair_match_inc = $capping;
-                    
-    //             } else{
-    //                 $pair_match_inc = $pair_match_inc;
-    //             }
-
-    //         #
-    //             // 1 Sponcer Income Deduction (6%)
-    //             $sponsor_deduct = ($pair_match_inc * 6) / 100;
-    //             $this->db->insert('earning_deduct', [
-    //                 'userid' => $id,
-    //                 'amount' => $sponsor_deduct,
-    //                 'type'   => 'SPONSOR INCOME 6% DEDUCTION',
-    //                 'date'   =>  date('Y-m-d')
-    //             ]);
-
-    //             // 2 Reserve Fund Deduction (5%)
-    //             $reserve_deduct = ($pair_match_inc * 5) / 100;
-    //             $this->db->insert('earning_deduct', [
-    //                 'userid' => $id,
-    //                 'amount' => $reserve_deduct,
-    //                 'type'   => 'Reserve Fund 5%',
-    //                 'date'   =>  date('Y-m-d')
-    //             ]);
-                
-    //             // 3 Repurchase Fund Deduction (3%) And send in product wallet for use  purchase 
-    //             $repurchase_fund = ($pair_match_inc * 3) / 100;
-    //             $this->db->insert('earning_deduct', [
-    //                 'userid' => $id,
-    //                 'amount' => $repurchase_fund,
-    //                 'type'   => 'Repurchase Fund 3%',
-    //                 'date'   =>  date('Y-m-d')
-    //             ]);
-
-    //             $product_wallet = $this->db_model->select('balance', 'product_wallet', array('userid' => $id));
-
-    //             if ($product_wallet) {
-    //                 $new_balance = $product_wallet + $repurchase_fund;
-    //                 $this->db->set('balance', $new_balance)
-    //                         ->where('userid', $id)
-    //                         ->update('product_wallet');
-    //             } else {
-    //                 $this->db->insert('product_wallet', [
-    //                     'userid'  => $id,
-    //                     'balance' => $repurchase_fund,
-    //                 ]);
-    //             }
-
-    //             #
-
-    //             $final_amount = $pair_match_inc - ($sponsor_deduct + $reserve_deduct + $repurchase_fund);
-
-    //             $this->db->set('reserve_fund', 'reserve_fund + '.$reserve_deduct, FALSE)
-    //             ->where('id', $id)
-    //             ->update('member');
-    //             #print_r($this->db->last_query());die();
-
-    //         # 
-                
-    //             $reserve_fund = $this->db_model->select('reserve_fund', 'member', array('id' => $id));
-                
-    //             while ($reserve_fund >= 5000) {
-
-    //                 $new_rank = $rank;
-
-    //                 switch ($rank) {
-    //                     case 'Bronze Associate':
-    //                         $new_rank = 'Silver Associate';
-    //                         break;
-
-    //                     case 'Silver Associate':
-    //                         $new_rank = 'Gold Associate';
-    //                         break;
-
-    //                     case 'Gold Associate':
-    //                         $new_rank = 'Platinum Associate';
-    //                         break;
-
-    //                     case 'Platinum Associate':
-    //                         $new_rank = 'Ruby Associate';
-    //                         break;
-
-    //                     case 'Ruby Associate':
-    //                         $new_rank = 'Ruby Associate'; // Final Rank
-    //                         break;
-
-    //                     default:
-    //                         $new_rank = $rank;
-    //                         break;
-    //                 }
-
-    //                 $this->db->set('rank', $new_rank)
-    //                         ->where('id', $id)
-    //                         ->update('member');
-
-    //                 $this->db->set('reserve_fund', 'reserve_fund - 5000', FALSE)
-    //                         ->where('id', $id)
-    //                         ->update('member');
-
-    //                 $reserve_fund -= 5000;
-
-    //                 if ($new_rank == 'Ruby Associate') {
-    //                     $product_wallet = $this->db_model->select('balance', 'product_wallet', array('userid' => $id));
-
-    //                     if ($product_wallet) {
-    //                         $new_balance = $product_wallet + 5000;
-    //                         $this->db->set('balance', $new_balance)
-    //                                 ->where('userid', $id)
-    //                                 ->update('product_wallet');
-    //                     } 
-
-    //                     $this->db->insert('earning', [
-    //                         'userid'      => $id,
-    //                         'amount'      => 5000,
-    //                         'type'        => 'Reserve Fund Amount Deposited into Product Wallet',
-    //                         'date'        => date('Y-m-d'),
-    //                         'status'      => 'paid',
-    //                         'payout_date' => date('Y-m-d'),
-    //                     ]);
-    //                 }
-
-    //                 $rank = $new_rank;
-    //             }
-
-    //         #
-
-    //             $array = array(
-    //                 'paid_a_pv'   => $a_side_p   + $pair_match,
-    //                 'paid_b_pv'   => $b_side_p   + $pair_match,
-    //                 'total_pairs' => $total_pair + $pair_match,
-    //             );
-    //             $this->db->where('id', $id);
-    //             $this->db->update('member', $array);
-    //             $this->pay_earning($id, '', 'Matching Income', $final_amount, '', $pair_match);
-    //             #print_r($this->db->last_query());die();
-    //             #
-                
-    //                 // ----------- SPONSOR INCOME DISTRIBUTION ON MATCHING -------------
-    //                 $sponsor_id = $this->db_model->select('sponsor', 'member', array('id' => $id)); // Direct sponsor
-    //                 $pair_income = $pair_match_inc; // Total matching income
-    //                 $level = 1;
-
-    //                 while($sponsor_id && $level <= 5){
-                        
-    //                     // Check sponsor active direct users
-    //                     $direct_paid = $this->db_model->count_all('member', array('sponsor' => $sponsor_id, 'topup >' => 0));
-
-    //                     if($direct_paid >= 6){
-                            
-    //                         if($level == 1){
-    //                             $amount = $pair_income * 0.04;
-    //                         } elseif($level == 2){
-    //                             $amount = $pair_income * 0.01;
-    //                         } elseif($level == 3){
-    //                             $amount = $pair_income * 0.005;
-    //                         } elseif($level == 4){
-    //                             $amount = $pair_income * 0.0025;
-    //                         } elseif($level == 5){
-    //                             $amount = $pair_income * 0.0025;
-    //                         }
-
-    //                         // Pay sponsor income
-    //                         $this->pay_earning($sponsor_id, $id, 'Sponsor Income (Level '.$level.')', $amount, $level, $pair_match);
-    //                     }
-
-    //                     // Move to next sponsor
-    //                     $sponsor_id = $this->db_model->select('sponsor', 'member', array('id' => $sponsor_id));
-    //                     $level++;
-    //                 }
-
-
-    //             #
-    //         }
-    //     #}
-    // }
-    
-    public function process_binary($id, $data)
-{
-    // Fetch all member data at once to get power legs and package
-    $member = $this->db_model->select_multi('*', 'member', array('id' => $id));
-    $package_id = $member->signup_package;
-
-    // REQUIREMENT 6: Dynamic Capping from Product Table
-    $capping = $this->db_model->select('capping', 'product', array('id' => $package_id)) ?? 0;
-
-    // REQUIREMENT 7: Include Virtual Power Leg (Both Sides)
-    $a_side = ($member->total_a_pv + $member->self_power_a) ?? 0;
-    $b_side = ($member->total_b_pv + $member->self_power_b) ?? 0;
-    
-    $a_side_p = $member->paid_a_pv;
-    $b_side_p = $member->paid_b_pv;
-    $total_pair = $member->total_pairs;
-
-    $available_left  = $a_side - $a_side_p;
-    $available_right = $b_side - $b_side_p;
-
-    // You had a 400 PV minimum check, keeping it as per your logic
-    if($available_left < 400 || $available_right < 400){
-        return; 
-    }
-
-    $pair_match = floor(min($available_left, $available_right));
-    
-    if ($pair_match >= 1) 
-    {
-        // REQUIREMENT 2: Set Binary income 10% and rename to Self Matching Income
-        $pair_match_inc = $pair_match * 0.10; 
-
-        $earning_ct = $this->db_model->sum('amount', 'earning', array('userid' => $id, 'type' => 'Self Matching Income', 'date' => date('Y-m-d'))) + 0;
-
-        // Apply Product Table Capping
-        if($pair_match_inc > $capping && $capping > 0){
-            $laps_data = array(
-                'userid'        => $id,
-                'amount'        => $pair_match_inc - $capping,
-                'type'          => 'Self Matching Income',
-                'reason'        => 'Capping Reached',
-            );
-            $this->db->insert('laps_earning', $laps_data);
-            $pair_match_inc = $capping;
-        }
-
-        // Deductions Logic (Maintained from your original code)
-        $sponsor_deduct = ($pair_match_inc * 6) / 100;
-        $this->db->insert('earning_deduct', [
-            'userid' => $id,
-            'amount' => $sponsor_deduct,
-            'type'   => 'SPONSOR INCOME 6% DEDUCTION',
-            'date'   =>  date('Y-m-d')
-        ]);
-
-        $reserve_deduct = ($pair_match_inc * 5) / 100;
-        $this->db->insert('earning_deduct', [
-            'userid' => $id,
-            'amount' => $reserve_deduct,
-            'type'   => 'Reserve Fund 5%',
-            'date'   =>  date('Y-m-d')
-        ]);
-        
-        $repurchase_fund = ($pair_match_inc * 3) / 100;
-        $this->db->insert('earning_deduct', [
-            'userid' => $id,
-            'amount' => $repurchase_fund,
-            'type'   => 'Repurchase Fund 3%',
-            'date'   =>  date('Y-m-d')
-        ]);
-
-        // Update Product Wallet
-        $product_wallet = $this->db_model->select('balance', 'product_wallet', array('userid' => $id));
-        if ($product_wallet) {
-            $this->db->set('balance', 'balance + '.$repurchase_fund, FALSE)->where('userid', $id)->update('product_wallet');
-        } else {
-            $this->db->insert('product_wallet', ['userid' => $id, 'balance' => $repurchase_fund]);
-        }
-
-        $final_amount = $pair_match_inc - ($sponsor_deduct + $reserve_deduct + $repurchase_fund);
-
-        // Update Member Reserve Fund & Stats
-        $this->db->set('reserve_fund', 'reserve_fund + '.$reserve_deduct, FALSE)->where('id', $id)->update('member');
-
-        // Rank Upgrade Logic (Maintained while fund >= 5000)
-        $rank = $member->rank;
-        $reserve_fund = $this->db_model->select('reserve_fund', 'member', array('id' => $id));
-        while ($reserve_fund >= 5000) {
-            $new_rank = $rank;
-            if($rank == 'Member') $new_rank = 'Bronze Associate';
-            elseif($rank == 'Bronze Associate') $new_rank = 'Silver Associate';
-            elseif($rank == 'Silver Associate') $new_rank = 'Gold Associate';
-            elseif($rank == 'Gold Associate') $new_rank = 'Platinum Associate';
-            elseif($rank == 'Platinum Associate') $new_rank = 'Ruby Associate';
-
-            $this->db->set('rank', $new_rank)->where('id', $id)->update('member');
-            $this->db->set('reserve_fund', 'reserve_fund - 5000', FALSE)->where('id', $id)->update('member');
-            $reserve_fund -= 5000;
-            $rank = $new_rank;
-        }
-
-        // Final Update for matched PV
-        $array = array(
-            'paid_a_pv'   => $a_side_p   + $pair_match,
-            'paid_b_pv'   => $b_side_p   + $pair_match,
-            'total_pairs' => $total_pair + $pair_match,
-        );
-        $this->db->where('id', $id)->update('member', $array);
-
-        // REQUIREMENT 2: Renamed to Self Matching Income
-        $this->pay_earning($id, '', 'Self Matching Income', $final_amount, '', $pair_match);
-
-        // REQUIREMENT 4: Sponsor Income 10% (10% of the user's matching income)
-        $direct_sponsor = $member->sponsor;
-        if($direct_sponsor) {
-            $sponsor_bonus = $pair_match_inc * 0.10;
-            $this->pay_earning($direct_sponsor, $id, 'Sponsor Income', $sponsor_bonus);
-        }
-        
-        // (Note: Your original 5-level distribution code is removed as per the new 10% direct sponsor requirement)
-    }
-}
-
     public function process_lvl($userid, $amount){
         $lvl1_amt = (50 / 100) * $amount;
-        // $lvl2_amt = (50  / 100) * $amount;
+        $lvl2_amt = (50  / 100) * $amount;
         $amounts  = array($lvl1_amt, $lvl2_amt);
         $sponsor  = $this->db_model->select('sponsor', 'member', array('id' => $userid));
         $i        = 1;
@@ -499,182 +139,672 @@ class Earning extends CI_Model
                 $this->pay_earning($pay_gen_sponsor, $userid, 'Matching Sponsor Inc', $amount, $i);
             }
             $i++;
-        }   
+        }
     }
-    
+
+    public function is_eligible_for_booster($userid)
+    {
+        // Booster functionality is completely disabled in GreenAmrutAyurveda
+        return false;
+    }
+
+    public function process_booster_bonus($userid, $sponsor_id = 0, $package_id = 0)
+    {
+        // Booster functionality is completely disabled in GreenAmrutAyurveda
+        return false;
+    }
+
+    public function count_active_directs_by_leg($userid)
+    {
+        $user = $this->db_model->select_multi('A, B', 'member', array('id' => $userid));
+        if (!$user) {
+            return array('left' => 0, 'right' => 0);
+        }
+
+        $left_active = 0;
+        if (!empty($user->A) && $user->A !== '0') {
+            $left_active = $this->count_active_directs_in_subtree($user->A, $userid);
+        }
+
+        $right_active = 0;
+        if (!empty($user->B) && $user->B !== '0') {
+            $right_active = $this->count_active_directs_in_subtree($user->B, $userid);
+        }
+
+        return array('left' => $left_active, 'right' => $right_active);
+    }
+
+    private function count_active_directs_in_subtree($node_id, $sponsor_id)
+    {
+        $count = 0;
+        $node = $this->db_model->select_multi('id, sponsor, topup, mypv, status', 'member', array('id' => $node_id));
+        if ($node) {
+            $is_active = ($node->topup > 0 || $node->mypv > 0 || $node->status == 'Active');
+            if ($node->sponsor == $sponsor_id && $is_active) {
+                $count++;
+            }
+            
+            $children = $this->db->select('id')->from('member')->where('position', $node_id)->get()->result();
+            foreach ($children as $child) {
+                $count += $this->count_active_directs_in_subtree($child->id, $sponsor_id);
+            }
+        }
+        return $count;
+    }
+
+    public function _log_binary_entry($function_name, $id)
+    {
+        $log_file = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'payout_debug.log';
+        if (!is_dir(dirname($log_file))) {
+            @mkdir(dirname($log_file), 0777, true);
+        }
+        $entry = "========================================\n"
+               . "[BINARY DEBUG]\n"
+               . "TIME: " . date('Y-m-d H:i:s') . "\n"
+               . "FUNCTION ENTERED: {$function_name}\n"
+               . "USER ID: {$id}\n"
+               . "========================================\n\n";
+        @file_put_contents($log_file, $entry, FILE_APPEND);
+        @file_put_contents(dirname(dirname(dirname(__DIR__))) . DIRECTORY_SEPARATOR . 'payout_debug.log', $entry, FILE_APPEND);
+    }
+
+    public function process_binary($id, $data, $debug = false)
+    {
+        $this->_log_binary_entry('process_binary', $id);
+
+        $log_lines   = array();
+        $log_lines[] = "========================================";
+        $log_lines[] = "[BINARY DEBUG]";
+        $log_lines[] = "TIME: " . date('Y-m-d H:i:s');
+        $log_lines[] = "USER ID: {$id}";
+        $log_lines[] = "FUNCTION: process_binary";
+        $log_lines[] = "========================================";
+        $log_lines[] = "";
+
+        $member_data = $this->db_model->select_multi('*', 'member', array('id' => $id));
+        if (!$member_data) {
+            $log_lines[] = "FAIL: Member ID {$id} not found in member table.";
+            $this->_write_payout_log($log_lines);
+            return $debug ? $log_lines : false;
+        }
+
+        // 1. MEMBER INFORMATION
+        $log_lines[] = "MEMBER INFORMATION:";
+        $log_lines[] = "Member ID: " . $id;
+        $log_lines[] = "Member Name: " . ($member_data->name ?? 'N/A');
+        $log_lines[] = "Status: " . ($member_data->status ?? 'N/A');
+        $log_lines[] = "Rank: " . ($member_data->rank ?? 'Member');
+        $log_lines[] = "Topup: " . ($member_data->topup ?? 0);
+        $log_lines[] = "Package: " . ($member_data->signup_package ?? 'N/A');
+        $log_lines[] = "";
+
+        // 2. TREE / PV INFORMATION
+        $a_side      = (float) ($member_data->total_a_pv  ?? 0);
+        $b_side      = (float) ($member_data->total_b_pv  ?? 0);
+        $a_side_p    = (float) ($member_data->paid_a_pv   ?? 0);
+        $b_side_p    = (float) ($member_data->paid_b_pv   ?? 0);
+        $total_pair  = (int)   ($member_data->total_pairs ?? 0);
+        $available_a = max(0, $a_side - $a_side_p);
+        $available_b = max(0, $b_side - $b_side_p);
+        $fa          = floor($available_a);
+        $fb          = floor($available_b);
+
+        $log_lines[] = "TREE / PV INFORMATION:";
+        $log_lines[] = "Total Left PV: " . $a_side;
+        $log_lines[] = "Paid Left PV: " . $a_side_p;
+        $log_lines[] = "Available Left PV: " . $available_a;
+        $log_lines[] = "";
+        $log_lines[] = "Total Right PV: " . $b_side;
+        $log_lines[] = "Paid Right PV: " . $b_side_p;
+        $log_lines[] = "Available Right PV: " . $available_b;
+        $log_lines[] = "";
+        $log_lines[] = "Lifetime Paid Pairs: " . $total_pair;
+        $log_lines[] = "";
+
+        // 3. DIRECT SPONSOR INFORMATION (Informational ONLY)
+        $directs = $this->count_active_directs_by_leg($id);
+        $log_lines[] = "DIRECT SPONSOR INFORMATION:";
+        $log_lines[] = "Direct Left: " . $directs['left'];
+        $log_lines[] = "Direct Right: " . $directs['right'];
+        $log_lines[] = "(Informational ONLY - Does not block 2:1 / 1:2 PV matching)";
+        $log_lines[] = "";
+
+        // 4. PAIR CALCULATION (Strictly 2:1 OR 1:2)
+        $check_2_1_l = ($fa >= 2) ? "YES (Left = {$fa} >= 2)" : "NO (Left = {$fa} < 2)";
+        $check_2_1_r = ($fb >= 1) ? "YES (Right = {$fb} >= 1)" : "NO (Right = {$fb} < 1)";
+
+        $check_1_2_l = ($fa >= 1) ? "YES (Left = {$fa} >= 1)" : "NO (Left = {$fa} < 1)";
+        $check_1_2_r = ($fb >= 2) ? "YES (Right = {$fb} >= 2)" : "NO (Right = {$fb} < 2)";
+
+        $pairs          = 0;
+        $deduct_a       = 0;
+        $deduct_b       = 0;
+        $selected_ratio = "NONE";
+
+        if ($fa >= 2 && $fb >= 1 && $fa >= $fb) {
+            $selected_ratio = "2:1";
+            $pairs          = (int) min(floor($fa / 2), $fb);
+            $deduct_a       = $pairs * 2;
+            $deduct_b       = $pairs * 1;
+        } elseif ($fb >= 2 && $fa >= 1 && $fb > $fa) {
+            $selected_ratio = "1:2";
+            $pairs          = (int) min($fa, floor($fb / 2));
+            $deduct_a       = $pairs * 1;
+            $deduct_b       = $pairs * 2;
+        }
+
+        $log_lines[] = "PAIR CALCULATION:";
+        $log_lines[] = "BINARY RATIO CHECK:";
+        $log_lines[] = "Left Available: " . $available_a;
+        $log_lines[] = "Right Available: " . $available_b;
+        $log_lines[] = "";
+        $log_lines[] = "Checking 2:1:";
+        $log_lines[] = "Left >= 2? " . $check_2_1_l;
+        $log_lines[] = "Right >= 1? " . $check_2_1_r;
+        $log_lines[] = "";
+        $log_lines[] = "Checking 1:2:";
+        $log_lines[] = "Left >= 1? " . $check_1_2_l;
+        $log_lines[] = "Right >= 2? " . $check_1_2_r;
+        $log_lines[] = "";
+        $log_lines[] = "Selected Ratio:";
+        $log_lines[] = $selected_ratio;
+        $log_lines[] = "";
+        $log_lines[] = "Pairs Calculated: " . $pairs;
+        $log_lines[] = "Left PV To Consume: " . $deduct_a;
+        $log_lines[] = "Right PV To Consume: " . $deduct_b;
+        $top_id          = config_item('top_id') ? config_item('top_id') : '1001';
+        $is_root_company = ($id == $top_id || $id == '1001');
+        $is_active_topup = ((float)$member_data->topup > 0 || $is_root_company);
+
+        if ($pairs <= 0 || !$is_active_topup) {
+            if (!$is_active_topup) {
+                $log_lines[] = "TOPUP CHECK: FAILED (Topup = {$member_data->topup}, Needs > 0)";
+                $log_lines[] = "";
+            }
+            $log_lines[] = "FINAL RESULT = NO PAIR FORMED";
+            $log_lines[] = "Pairs Generated = 0";
+            $log_lines[] = "Payout Generated = 0";
+            $log_lines[] = "Left PV Remaining = " . $available_a;
+            $log_lines[] = "Right PV Remaining = " . $available_b;
+            $log_lines[] = "========================================\n";
+
+            $this->_write_payout_log($log_lines);
+            return $debug ? $log_lines : true;
+        }
+
+        // 5. PAYOUT CALCULATION (Configuration-Driven)
+        $pkg_id = (int)($member_data->signup_package ?? 0);
+        if ($pkg_id <= 0 && $is_root_company) {
+            $pkg_id = 1; // Default to primary product package for root company node
+        }
+        $prod = $this->db_model->select_multi('matching_income, capping, prod_price', 'product', array('id' => $pkg_id));
+        if (!$prod) {
+            $prod = $this->db->order_by('id', 'ASC')->get('product')->row();
+        }
+        $per_pair  = 0;
+        $cfg_val   = $prod ? ($prod->matching_income ?? 0) : 0;
+        if ($prod && isset($prod->matching_income) && (float)$prod->matching_income > 0) {
+            if ((float)$prod->matching_income <= 100 && isset($prod->prod_price) && (float)$prod->prod_price > 0) {
+                $per_pair = (float)$prod->prod_price * ((float)$prod->matching_income / 100.0);
+            } else {
+                $per_pair = (float)$prod->matching_income;
+            }
+        }
+        $daily_cap = ($prod && $prod->capping > 0) ? (float) $prod->capping : 0;
+
+        if ($per_pair <= 0) {
+            $log_lines[] = "--> PACKAGE CHECK FAILED: Package matching_income rate is 0 INR in product table.";
+            $log_lines[] = "FINAL RESULT = PAYOUT FAILED";
+            $log_lines[] = "========================================\n";
+            $this->_write_payout_log($log_lines);
+            return $debug ? $log_lines : false;
+        }
+
+        $cap_pairs        = ($daily_cap > 0 && $per_pair > 0) ? floor($daily_cap / $per_pair) : $pairs;
+        $paid_pairs_today = (int)$this->db_model->sum('pair_match', 'earning', array(
+            'userid' => $id,
+            'type'   => 'Matching Income',
+            'date'   => date('Y-m-d'),
+        ));
+
+        $remaining_cap = max(0, $cap_pairs - $paid_pairs_today);
+        $payable_pairs = min($pairs, $remaining_cap);
+        $flushed_pairs = $pairs - $payable_pairs;
+
+        $pay_amount = 0;
+        for ($i = 1; $i <= $payable_pairs; $i++) {
+            $lifetime_pair_no = $total_pair + $i;
+            if ($lifetime_pair_no % 5 === 0) {
+                $pay_amount += $per_pair * 0.5;
+            } else {
+                $pay_amount += $per_pair;
+            }
+        }
+
+        $log_lines[] = "PAYOUT CALCULATION:";
+        $log_lines[] = "BINARY PAYOUT CALCULATION:";
+        $log_lines[] = "Package ID: " . ($member_data->signup_package ?? 'N/A');
+        $log_lines[] = "Matching Income Configuration: " . $cfg_val;
+        $log_lines[] = "Payout Per Pair: " . $per_pair;
+        $log_lines[] = "Daily Cap: " . $daily_cap;
+        $log_lines[] = "Pairs Calculated: " . $pairs;
+        $log_lines[] = "Pairs Allowed By Cap: " . $cap_pairs;
+        $log_lines[] = "Payable Pairs: " . $payable_pairs;
+        $log_lines[] = "Total Payout: " . $pay_amount;
+        $log_lines[] = "";
+
+        // 6. DATABASE TRANSACTION
+        $log_lines[] = "DATABASE TRANSACTION:";
+        $log_lines[] = "[BINARY TRANSACTION]";
+        $log_lines[] = "BEGIN";
+        $log_lines[] = "";
+
+        $this->db->trans_begin();
+
+        $tx_ref           = "BIN-" . $id . "-" . date('YmdHis') . "-" . rand(1000, 9999);
+        $earning_id       = 0;
+        $earning_ok       = false;
+        $earning_err      = '';
+        $wallet_ok        = false;
+        $wallet_err       = '';
+        $cur_bal          = 0;
+        $new_bal          = 0;
+
+        if ($pay_amount > 0) {
+            // 1. EARNING INSERT
+            $earning_data = array(
+                'userid'     => $id,
+                'amount'     => $pay_amount,
+                'type'       => 'Matching Income',
+                'ref_id'     => '',
+                'date'       => date('Y-m-d'),
+                'pair_match' => $payable_pairs,
+                'secret'     => $tx_ref,
+                'status'     => 'Paid',
+            );
+            $earning_ok = $this->db->insert('earning', $earning_data);
+            $earning_id = $this->db->insert_id();
+            if (!$earning_ok) {
+                $db_err = $this->db->error();
+                $earning_err = $db_err['message'] ?? 'Earning insert failed';
+            }
+
+            // 2. WALLET CREDIT
+            $wallet_row = $this->db->get_where('wallet', array('userid' => $id))->row();
+            if ($wallet_row) {
+                $cur_bal = (float)$wallet_row->balance;
+                $new_bal = $cur_bal + $pay_amount;
+                $wallet_ok = $this->db->where('userid', $id)->update('wallet', array('balance' => $new_bal));
+            } else {
+                $cur_bal = 0;
+                $new_bal = $pay_amount;
+                $wallet_ok = $this->db->insert('wallet', array('userid' => $id, 'balance' => $new_bal));
+            }
+            if (!$wallet_ok) {
+                $db_err = $this->db->error();
+                $wallet_err = $db_err['message'] ?? 'Wallet credit failed';
+            }
+        } else {
+            $earning_ok = true;
+            $wallet_ok  = true;
+        }
+
+        // Flushed pairs to laps_earning (if daily cap exceeded)
+        if ($flushed_pairs > 0) {
+            $this->db->insert('laps_earning', array(
+                'userid' => $id,
+                'amount' => $flushed_pairs * $per_pair,
+                'type'   => 'Matching Income',
+                'reason' => 'Daily Flush Out (above ' . (int) $cap_pairs . ' pairs)',
+            ));
+        }
+
+        // 3. PV CONSUMPTION & 4. LIFETIME PAIR UPDATE
+        $new_paid_a = $a_side_p + $deduct_a;
+        $new_paid_b = $b_side_p + $deduct_b;
+        $new_pairs  = $total_pair + $payable_pairs;
+
+        $member_update_ok = $this->db->where('id', $id)->update('member', array(
+            'paid_a_pv'   => $new_paid_a,
+            'paid_b_pv'   => $new_paid_b,
+            'total_pairs' => $new_pairs,
+        ));
+        $member_err = '';
+        if (!$member_update_ok) {
+            $db_err = $this->db->error();
+            $member_err = $db_err['message'] ?? 'Member PV update failed';
+        }
+
+        // 5. TRANSACTION COMMIT OR ROLLBACK
+        if ($this->db->trans_status() === FALSE || !$earning_ok || !$wallet_ok || !$member_update_ok) {
+            $db_err = $this->db->error();
+            $this->db->trans_rollback();
+            $tx_committed = false;
+            $tx_error = $db_err['message'] ?? ($earning_err ?: ($wallet_err ?: ($member_err ?: 'Transaction query failed')));
+        } else {
+            $this->db->trans_commit();
+            $tx_committed = true;
+            if ($pay_amount > 0) {
+                $this->process_lvl($id, $pay_amount);
+            }
+        }
+
+        // Operation 1 Log
+        $log_lines[] = "1. EARNING INSERT";
+        $log_lines[] = "BINARY EARNING INSERT:";
+        if ($earning_ok && $tx_committed) {
+            $log_lines[] = "SUCCESS";
+            $log_lines[] = "Insert ID: " . $earning_id;
+            $log_lines[] = "User ID: " . $id;
+            $log_lines[] = "Amount: " . $pay_amount;
+            $log_lines[] = "Type: Matching Income";
+            $log_lines[] = "Pair Count: " . $payable_pairs;
+            $log_lines[] = "Transaction Reference: " . $tx_ref;
+        } else {
+            $log_lines[] = "FAILED";
+            $log_lines[] = "DATABASE ERROR:";
+            $log_lines[] = ($earning_err ?: ($tx_error ?? 'Transaction failed'));
+        }
+        $log_lines[] = "";
+
+        // Operation 2 Log
+        $log_lines[] = "2. WALLET CREDIT";
+        $log_lines[] = "WALLET CREDIT:";
+        if ($wallet_ok && $tx_committed) {
+            $log_lines[] = "SUCCESS";
+            $log_lines[] = "User ID: " . $id;
+            $log_lines[] = "Previous Balance: " . $cur_bal;
+            $log_lines[] = "Credit Amount: " . $pay_amount;
+            $log_lines[] = "New Balance: " . $new_bal;
+        } else {
+            $log_lines[] = "FAILED";
+            $log_lines[] = "DATABASE ERROR:";
+            $log_lines[] = ($wallet_err ?: ($tx_error ?? 'Transaction failed'));
+        }
+        $log_lines[] = "";
+
+        // Operation 3 Log
+        $log_lines[] = "3. PV CONSUMPTION";
+        $log_lines[] = "PV UPDATE:";
+        $log_lines[] = "Before Paid Left: " . $a_side_p;
+        $log_lines[] = "Before Paid Right: " . $b_side_p;
+        $log_lines[] = "Left PV Consumed: " . ($tx_committed ? $deduct_a : 0);
+        $log_lines[] = "Right PV Consumed: " . ($tx_committed ? $deduct_b : 0);
+        $log_lines[] = "After Paid Left: " . ($tx_committed ? $new_paid_a : $a_side_p);
+        $log_lines[] = "After Paid Right: " . ($tx_committed ? $new_paid_b : $b_side_p);
+        $log_lines[] = "";
+
+        // Operation 4 Log
+        $log_lines[] = "4. LIFETIME PAIR UPDATE";
+        $log_lines[] = "LIFETIME PAIR UPDATE:";
+        $log_lines[] = "Before: " . $total_pair;
+        $log_lines[] = "Added: " . ($tx_committed ? $payable_pairs : 0);
+        $log_lines[] = "After: " . ($tx_committed ? $new_pairs : $total_pair);
+        $log_lines[] = "";
+
+        // Operation 5 Log
+        $log_lines[] = "5. TRANSACTION";
+        $log_lines[] = "BINARY TRANSACTION:";
+        if ($tx_committed) {
+            $log_lines[] = "COMMITTED";
+        } else {
+            $log_lines[] = "ROLLED BACK";
+            $log_lines[] = "DATABASE ERROR:";
+            $log_lines[] = ($tx_error ?? 'Transaction failed');
+        }
+        $log_lines[] = "";
+
+        // Final Result Log
+        $left_rem  = $tx_committed ? ($available_a - $deduct_a) : $available_a;
+        $right_rem = $tx_committed ? ($available_b - $deduct_b) : $available_b;
+
+        if ($tx_committed && $payable_pairs > 0) {
+            $log_lines[] = "FINAL RESULT = PAYOUT GENERATED";
+        } elseif ($tx_committed) {
+            $log_lines[] = "FINAL RESULT = PAIRS CONSUMED (FLUSHED BY CAP)";
+        } else {
+            $log_lines[] = "FINAL RESULT = PAYOUT FAILED";
+        }
+        $log_lines[] = "Pairs Generated = " . ($tx_committed ? $payable_pairs : 0);
+        $log_lines[] = "Payout Generated = " . ($tx_committed ? $pay_amount : 0);
+        $log_lines[] = "Left PV Remaining = " . $left_rem;
+        $log_lines[] = "Right PV Remaining = " . $right_rem;
+        $log_lines[] = "========================================\n";
+
+        $this->_write_payout_log($log_lines);
+        return $debug ? $log_lines : $tx_committed;
+    }
+
+    private function _write_payout_log($lines)
+    {
+        $log_entry = implode("\n", $lines) . "\n";
+
+        // Guaranteed absolute path in system/application/logs/
+        $app_log_dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'logs';
+        if (!is_dir($app_log_dir)) {
+            @mkdir($app_log_dir, 0777, true);
+        }
+        $app_log_file = $app_log_dir . DIRECTORY_SEPARATOR . 'payout_debug.log';
+        $write_res = file_put_contents($app_log_file, $log_entry, FILE_APPEND);
+        if ($write_res === false) {
+            error_log("Failed to write to payout_debug.log at: " . $app_log_file);
+        }
+
+        // Also write to project root for convenient inspection
+        $root_log_file = dirname(dirname(dirname(__DIR__))) . DIRECTORY_SEPARATOR . 'payout_debug.log';
+        @file_put_contents($root_log_file, $log_entry, FILE_APPEND);
+
+        foreach ($lines as $l) {
+            log_message('error', $l);
+        }
+    }
+
+    public function reverse_invalid_binary()
+    {
+        $this->db->select('userid, SUM(pair_match) as pairs_to_revert, SUM(amount) as total_amount, status')
+                 ->from('earning')
+                 ->where_in('type', array('Matching Income'))
+                 ->group_by(array('userid', 'status'));
+        $earners = $this->db->get()->result();
+
+        $by_user = array();
+        foreach ($earners as $e) {
+            $uid = $e->userid;
+            if (!isset($by_user[$uid])) {
+                $by_user[$uid] = array('pairs' => 0, 'paid_amount' => 0);
+            }
+            $by_user[$uid]['pairs'] += (int) $e->pairs_to_revert;
+            if ($e->status === 'Paid') {
+                $by_user[$uid]['paid_amount'] += (float) $e->total_amount;
+            }
+        }
+
+        $reversed = array();
+        foreach ($by_user as $uid => $info) {
+            $directs = $this->count_active_directs_by_leg($uid);
+            if ($directs['left'] >= 1 && $directs['right'] >= 1) {
+                continue;
+            }
+
+            $pairs       = $info['pairs'];
+            $paid_amount = $info['paid_amount'];
+
+            $this->db->select('userid, SUM(amount) as total_amount')
+                     ->from('earning')
+                     ->where('ref_id', $uid)
+                     ->where('type', 'Matching Sponsor Inc')
+                     ->where('status', 'Paid')
+                     ->group_by('userid');
+            $upline_paid = $this->db->get()->result();
+
+            foreach ($upline_paid as $up) {
+                $cur = (float) $this->db_model->select('balance', 'wallet', array('userid' => $up->userid));
+                $new = max(0, $cur - (float) $up->total_amount);
+                $this->db->where('userid', $up->userid)->update('wallet', array('balance' => $new));
+            }
+
+            $this->db->where('ref_id', $uid)
+                     ->where('type', 'Matching Sponsor Inc')
+                     ->delete('earning');
+
+            $this->db->where('userid', $uid)
+                     ->where('type', 'Matching Income')
+                     ->delete('earning');
+
+            if ($paid_amount > 0) {
+                $cur = (float) $this->db_model->select('balance', 'wallet', array('userid' => $uid));
+                $new = max(0, $cur - $paid_amount);
+                $this->db->where('userid', $uid)->update('wallet', array('balance' => $new));
+            }
+
+            if ($pairs > 0) {
+                $member        = $this->db_model->select_multi('total_pairs, paid_a_pv, paid_b_pv', 'member', array('id' => $uid));
+                $current_total = (int) ($member->total_pairs ?? 0);
+
+                if ($current_total <= $pairs) {
+                    $this->db->where('id', $uid)
+                             ->update('member', array('paid_a_pv' => 0, 'paid_b_pv' => 0, 'total_pairs' => 0));
+                } else {
+                    $this->db->set('paid_a_pv',   'GREATEST(0, paid_a_pv   - ' . $pairs . ')', FALSE);
+                    $this->db->set('paid_b_pv',   'GREATEST(0, paid_b_pv   - ' . $pairs . ')', FALSE);
+                    $this->db->set('total_pairs', 'GREATEST(0, total_pairs - ' . $pairs . ')', FALSE);
+                    $this->db->where('id', $uid)->update('member');
+                }
+            }
+
+            $reversed[] = $uid;
+        }
+        return $reversed;
+    }
+
     public function process_binary_old($id, $data)
     {
-        // For 2:1 or 1:2
-        $total_pair = $this->db_model->select('total_pairs', 'member', array('id' => $id));
-        $a_side     = $this->db_model->select('total_a_pv', 'member', array('id' => $id)) ?? 0;
-        $b_side     = $this->db_model->select('total_b_pv', 'member', array('id' => $id)) ?? 0;
-        $check      = FALSE;
-        $package    = $this->db_model->select('signup_package', 'member', array('id' => $id));
-        $capping    = $this->db_model->select('capping', 'product', array('id' => $package)) ?? 1000000;
-        $matching   = $this->db_model->select('matching_income', 'product', array('id' => $package)) ?? 100;
-            
-        if ($total_pair == 0 && $a_side != 0 && $b_side != 0) {
-            $array = array(
-                'total_pairs' => 1
-            );
-    
-            if ($a_side > $b_side && $b_side != 0) {
-                $array['paid_a_pv'] = 1;
-                $array['paid_b_pv'] = 1;
-                $check              = TRUE;
-            } elseif ($b_side > $a_side && $a_side != 0) {
-                $array['paid_a_pv'] = 1;
-                $array['paid_b_pv'] = 1;
-                $check              = TRUE;
-            } elseif ($b_side + $a_side >= 3) {
-                $array['paid_a_pv'] = 1;
-                $array['paid_b_pv'] = 1;
-                $check              = TRUE;
-            }
-    
-            if ($check) {
-                $this->db->where('id', $id);
-                $this->db->update('member', $array);
-                $stat = $this->pay_earning($id, '0000', 'Matching Income', $matching, '', $total_pair);
-            }
-        }
-        
-        $member_data = $this->db_model->select_multi('*', 'member', array('id' => $id));
-        $a_side      = $member_data->total_a_pv ?? 0;
-        $b_side      = $member_data->total_b_pv ?? 0;
-        $a_side_team = $member_data->total_a ?? 0;
-        $b_side_team = $member_data->total_b ?? 0;
-        $a_side_p    = $member_data->paid_a_pv  ?? 0;
-        $b_side_p    = $member_data->paid_b_pv  ?? 0;
-        $total_pair  = $member_data->total_pairs  ?? 0;
-        $available_a = $a_side - $a_side_p;
-        $available_b = $b_side - $b_side_p;
-        $pair_match  = min(floor($available_a), floor($available_b));
-
-        $sponsor_count = $this->db_model->count_all('member', array('sponsor' => $id,'topup >' => 0));
-        if ($pair_match >= 1 and $sponsor_count >= 2 and $total_pair >= 1) {
-            $earning_ct     = $this->db_model->sum('amount', 'earning', array('userid' => $id, 'type' => 'Matching Income', 'date' => date('Y-m-d'))) + 0;
-            $pair_match_inc = $pair_match * $matching;
-            if($pair_match_inc > $capping){
-                $data = array(
-                    'userid'        => $id,
-                    'amount'        => $pair_match_inc - $capping,
-                    'type'          => 'Matching Income',
-                    'reason'        => 'Capping Reached',
-                );
-                $this->db->insert('laps_earning', $data);
-                $pair_match_inc = $capping;
-                
-            } else{
-                $pair_match_inc = $pair_match_inc;
-            }
-            $array = array(
-                'paid_a_pv'   => $a_side_p   + $pair_match,
-                'paid_b_pv'   => $b_side_p   + $pair_match,
-                'total_pairs' => $total_pair + $pair_match,
-            );
-            $this->db->where('id', $id);
-            $this->db->update('member', $array);
-            $this->pay_earning($id, '', 'Matching Income', $pair_match_inc, '', $pair_match);
-        }
+        $this->_log_binary_entry('process_binary_old', $id);
+        // Routed strictly to process_binary (2:1 or 1:2 ratio) to eliminate legacy 1:1 matching
+        return $this->process_binary($id, $data);
     }
 
     public function process_binary2($id, $data)
     {
-        $member_data    = $this->db_model->select_multi('*', 'member', array('id' => $id));
-        $binary_amt     = $this->db_model->select('matching_income', 'product', array('id' => $member_data->signup_package));
-        $total_pair     = $member_data->total_pairs;
-        $pair_match     = min(($member_data->total_a_pv - $member_data->paid_a_pv), ($member_data->total_b_pv - $member_data->paid_b_pv));
-        $pair_max       = max(($member_data->total_a_pv - $member_data->paid_a_pv), ($member_data->total_b_pv - $member_data->paid_b_pv));
-        $pair_match_inc = $binary_amt * floor($pair_match / 25);
-        // $pair_match_inc = (10 / 100) * $pair_match;
-        if($pair_match_inc > 0){
-            $member_data   = $this->db_model->select_multi('*', 'member', array('id' => $id));
-            $this->pay_earning($id, '', 'Matching Income', $pair_match_inc,'', $pair_match);
-            $array = array(
-                'paid_a_pv'        => $member_data->paid_a_pv   + $pair_match,
-                'paid_b_pv'        => $member_data->paid_b_pv   + $pair_match,
-                'total_pairs'      => $member_data->total_pairs + $pair_match,
-            );
-            $this->db->where('id', $id);
-            $this->db->update('member', $array);
-        }
+        $this->_log_binary_entry('process_binary2', $id);
+        // Routed strictly to process_binary (2:1 or 1:2 ratio) to eliminate legacy 1:1 matching
+        return $this->process_binary($id, $data);
     }
     
     public function reg_earning($userid, $sponsor, $packageid, $need_topup = TRUE, $qty = 1)
     {    
-        $get_topup = $this->db_model->select('topup', 'member', array('id' => $userid));
-        if ($need_topup == TRUE):
+        $get_topup = floatval($this->db_model->select('topup', 'member', array('id' => $userid)));
+        if ($need_topup == TRUE && $get_topup <= 0) {
+            return TRUE; // Only trigger referral earnings when member is topped up / activated
+        }
+        if ($need_topup == TRUE || $get_topup > 0):
+            $package_ratio = $this->get_package_ratio($packageid, $userid);
+            $prod          = $this->db_model->select_multi('*', 'product', array('id' => $packageid)); 
+
             ###############################################################
-            #
-            # Direct or Referal Income First
-            #
+            # Direct Sponsor Income (Configured % of Package Price - PDF 3)
             ##############################################################
             
-            $sponsor_count = $this->db_model->count_all('member', array('sponsor' => $sponsor,'topup >' => 0));
-            $data          = $this->db_model->select_multi('*', 'product', array('id' => $packageid)); 
-            if ($data->direct_income > "0.00" && trim($sponsor) !== '') { 
-                $levlno = '0';
-                $this->pay_earning($sponsor, $userid, 'Direct Sponsor Commission', $data->direct_income * $qty,$levlno);
+            if ($prod && isset($prod->prod_price) && floatval($prod->prod_price) > 0 && trim($sponsor) !== '') { 
+                $check_dup = $this->db_model->count_all('earning', array(
+                    'userid' => $sponsor,
+                    'ref_id' => $userid,
+                    'type'   => 'Direct Sponsor Commission'
+                ));
+                if ($check_dup <= 0) {
+                    $direct_pct  = (isset($prod->direct_income) && floatval($prod->direct_income) > 0)
+                        ? floatval($prod->direct_income)
+                        : 0;
+                    if ($direct_pct > 0) {
+                        $direct_rate = ($direct_pct <= 100) ? (floatval($prod->prod_price) * ($direct_pct / 100.0)) : $direct_pct;
+                        $direct_amt  = ($direct_rate * $qty) * $package_ratio;
+                        if ($direct_amt > 0) {
+                            $this->pay_earning($sponsor, $userid, 'Direct Sponsor Commission', $direct_amt, 0);
+                        }
+                    }
+                }
             } 
             
-             $prod = $this->db_model->select_multi('*', 'product', array('id' => $packageid));
-    
-            // REQUIREMENT 3: Set direct referral bonus 50% of Dealer Price
-            $direct_bonus = $prod->dealer_price * 0.50; 
-            
-            if ($direct_bonus > 0 && trim($sponsor) !== '') { 
-                $this->pay_earning($sponsor, $userid, 'Direct Referral Bonus', $direct_bonus, 0);
+            ###############################################################
+            # Direct Referral Bonus: 1st Level (Configured % - PDF 4 & 5)
+            ##############################################################
+
+            if ($prod && isset($prod->prod_price) && floatval($prod->prod_price) > 0 && trim($sponsor) !== '') {
+                $check_dup_drb1 = $this->db_model->count_all('earning', array(
+                    'userid' => $sponsor,
+                    'ref_id' => $userid,
+                    'type'   => 'Direct Referral Bonus',
+                    'levlno' => 1
+                ));
+                if ($check_dup_drb1 <= 0) {
+                    $drb_l1_pct = 0;
+                    if (isset($prod->level_income) && trim($prod->level_income) !== '') {
+                        $levels = explode(',', $prod->level_income);
+                        $drb_l1_pct = floatval(trim($levels[0] ?? 0));
+                    }
+                    if ($drb_l1_pct > 0) {
+                        $direct_bonus = (floatval($prod->prod_price) * ($drb_l1_pct / 100.0) * $qty) * $package_ratio; 
+                        if ($direct_bonus > 0) { 
+                            $this->pay_earning($sponsor, $userid, 'Direct Referral Bonus', $direct_bonus, 1);
+                        }
+                    }
+                }
             }
             
             ###############################################################
-            #
-            # Sponsor Level Income First
-            #
+            # Direct Referral Bonus: 2nd Level (Configured % - PDF 4 & 6)
             ##############################################################
             
-            if (trim($data->sponser_level_inc) !== "") {              
-                $ex1 = explode(',', $data->sponser_level_inc);
-                $i   = 1;
-                foreach ($ex1 as $e1) {                    
-                    $e1 = trim($e1);
-                    if ($i == 0) {
-                        $pay_gen_sponsor = $sponsor;
-                    } else {                     
-                        $pay_gen_sponsor =  $this->find_sp_level_sponsor($userid, $i);
+            $lvl2_sponsor = $this->find_sp_level_sponsor($userid, 2);
+            if ($lvl2_sponsor > 0 && $prod && isset($prod->prod_price) && floatval($prod->prod_price) > 0) {
+                $check_dup_drb2 = $this->db_model->count_all('earning', array(
+                    'userid' => $lvl2_sponsor,
+                    'ref_id' => $userid,
+                    'type'   => 'Direct Referral Bonus (Level 2)',
+                    'levlno' => 2
+                ));
+                if ($check_dup_drb2 <= 0) {
+                    $drb_l2_pct = 0;
+                    if (isset($prod->level_income) && trim($prod->level_income) !== '') {
+                        $levels = explode(',', $prod->level_income);
+                        $drb_l2_pct = floatval(trim($levels[1] ?? 0));
                     }
-                    if ($pay_gen_sponsor > 0 && $e1 > 0) {  
-                        $data_count = $this->db_model->count_all('member', array('sponsor' => $pay_gen_sponsor));
-                        $e1 = $e1 * $qty;
-                        $this->pay_earning($pay_gen_sponsor, $userid, 'Sponsor Level Inc', $e1, $i);    
+                    if ($drb_l2_pct > 0) {
+                        $lvl2_bonus = (floatval($prod->prod_price) * ($drb_l2_pct / 100.0) * $qty) * $package_ratio;
+                        if ($lvl2_bonus > 0) {
+                            $this->pay_earning($lvl2_sponsor, $userid, 'Direct Referral Bonus (Level 2)', $lvl2_bonus, 2);
+                        }
                     }
-                    $i++;
-                }
-            }          
-                
-            ###############################################################
-            #
-            # Level Income First
-            #
-            ##############################################################
-            
-            if (trim($data->level_income) !== "") {
-                $ex = explode(',', $data->level_income);               
-                $i  = 1;
-                foreach ($ex as $e) {                    
-                    $e = trim($e);
-                    if ($i == 0) {
-                       $pay_sponsor = $sponsor;
-                    } else {
-                       $pay_sponsor = $this->find_level_sponsor($userid, $i);                       
-                    }            
-                    if ($pay_sponsor > 0 && $e > 0) {
-                        $e1 = $e1 * $qty;
-                        $this->pay_earning($pay_sponsor, $userid, 'Level Income',$amt , $i); 
-                    } 
-                    $i++;
                 }
             } 
+
+            ###############################################################
+            # Sponsor Level Income (Configured in sponser_level_inc)
+            ##############################################################
+            if (isset($prod->sponser_level_inc) && trim($prod->sponser_level_inc) !== '') {
+                $ex1 = explode(',', $prod->sponser_level_inc);
+                $i   = 1;
+                foreach ($ex1 as $e1) {
+                    $e1 = trim($e1);
+                    $pay_gen_sponsor = ($i == 1) ? $sponsor : $this->find_sp_level_sponsor($userid, $i);
+                    if ($pay_gen_sponsor > 0 && floatval($e1) > 0) {
+                        $check_dup_sli = $this->db_model->count_all('earning', array(
+                            'userid' => $pay_gen_sponsor,
+                            'ref_id' => $userid,
+                            'type'   => 'Sponsor Level Inc',
+                            'levlno' => $i
+                        ));
+                        if ($check_dup_sli <= 0) {
+                            $rate_sli = (floatval($e1) <= 100) ? (floatval($prod->prod_price) * (floatval($e1) / 100.0)) : floatval($e1);
+                            $amt_sli  = ($rate_sli * $qty) * $package_ratio;
+                            if ($amt_sli > 0) {
+                                $this->pay_earning($pay_gen_sponsor, $userid, 'Sponsor Level Inc', $amt_sli, $i);
+                            }
+                        }
+                    }
+                    $i++;
+                }
+            }
 
             ###############################################################
             #
@@ -1088,6 +1218,7 @@ public function family_fund($data){
     
     public function process_binary_old_old($id, $data)
     {
+        $this->_log_binary_entry('process_binary_old_old', $id);
         $total_pair    = $this->db_model->select('paid_pairs', 'member', array('id' => $id));
         $a_side        = $this->db_model->select('tree_a', 'member', array('id' => $id));
         $b_side        = $this->db_model->select('tree_b', 'member', array('id' => $id));
@@ -1115,7 +1246,7 @@ public function family_fund($data){
             if($check){
                 $this->db->where('id', $id);
                 $this->db->update('member', $array);
-                $stat =  $this->pay_earning($id, '0000', 'Booster Matching Income',100,'',$total_pair);
+                // Booster Matching Income disabled - Booster = ZERO
             }
         }
 
@@ -1142,7 +1273,7 @@ public function family_fund($data){
             while($i < $pair_match){
                 $i++;
                 if($pair_match > 0 and $pair_max > 0 ){
-                    $this->pay_earning($id, '', 'Booster Matching Income',100,'',$pair_match);
+                    // Booster Matching Income disabled - Booster = ZERO
                 }
             }
         }
@@ -1151,6 +1282,7 @@ public function family_fund($data){
     
     public function process_binary3($id, $data)
     {
+        $this->_log_binary_entry('process_binary3', $id);
         $total_pair    = $this->db_model->select('re_paid_pairs', 'member', array('id' => $id));
         $a_side        = $this->db_model->select('re_tree_a', 'member', array('id' => $id));
         $b_side        = $this->db_model->select('re_tree_b', 'member', array('id' => $id));

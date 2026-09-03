@@ -443,23 +443,81 @@ public function upgrade(){
             $this->load->view('admin/index', $data);
         }
         else {
-            $epin_value = $this->input->post('amt');;
+            $epin_value = $this->input->post('amt');
             $userid = $this->common_model->filter($this->input->post('userid'));
-            $data   = array(
-                'topup' => $epin_value,
-            );
+            
+            $user_data = $this->db_model->select_multi('id, signup_package, mypv, topup, status', 'member', array('id' => $userid));
+            if (!$user_data) {
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">User ID not found.</div>');
+                redirect(site_url('users/topup-member'));
+                return;
+            }
 
+            // Duplicate protection: prevent multiple activations for already active user with same topup
+            $existing_sale = $this->db_model->select_multi('id, orderid', 'product_sale', array('userid' => $userid, 'type' => 'topup'));
+            if ($existing_sale && $user_data->topup > 0) {
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">User ID is already activated (Order #' . $existing_sale->orderid . ').</div>');
+                redirect(site_url('users/topup-member'));
+                return;
+            }
+
+            $pkg_id = !empty($user_data->signup_package) ? $user_data->signup_package : 1;
+            $prod_pv = 0;
+            $prod_data = $this->db_model->select_multi('pv, prod_price', 'product', array('id' => $pkg_id));
+            if ($prod_data) {
+                $prod_pv = $prod_data->pv;
+            }
+
+            // 1. Order ID Generation & Order Creation
+            $max_row = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+            $orderid = ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
+
+            $sale_data = array(
+                'product_id'  => $pkg_id,
+                'userid'      => $userid,
+                'cost'        => $epin_value,
+                'date'        => date('Y-m-d'),
+                'order_by'    => 'Admin',
+                'orderid'     => $orderid,
+                'pv'          => $prod_pv,
+                'type'        => 'topup',
+                'epin_amount' => $epin_value,
+                'status'      => 'Processing',
+            );
+            $this->db->insert('product_sale', $sale_data);
+
+            $item_data = array(
+                'product_id' => $pkg_id,
+                'order_id'   => $orderid,
+                'cost'       => $epin_value,
+            );
+            $this->db->insert('product_item_sale', $item_data);
+
+            // 2. Member Activation Update
+            $member_data = array(
+                'topup'           => $epin_value,
+                'signup_package'  => $pkg_id,
+                'mypv'            => (isset($user_data->mypv) && $user_data->mypv > 0) ? ($user_data->mypv + $prod_pv) : $prod_pv,
+                'activation_date' => date('Y-m-d'),
+                'status'          => 'Active',
+            );
             $this->db->where('id', $userid);
-            $this->db->update('member', $data);
+            $this->db->update('member', $member_data);
+
+            // 3. MLM / Payout Processing
             $this->load->model('earning');
             if (config_item('fix_income') == "Yes" && $epin_value > 0 && config_item('give_income_on_topup') == "Yes") {
                 $this->earning->fix_income($userid, $this->db_model->select('sponsor', 'member', array('id' => $userid)), $epin_value);
+                $this->earning->repurchase($orderid);
             }
             else if (config_item('fix_income') !== "Yes" && $epin_value > 0 && config_item('give_income_on_topup') == "Yes") {
-                $this->earning->reg_earning($userid, $this->db_model->select('sponsor', 'member', array('id' => $userid)), $this->db_model->select('signup_package', 'member', array('id' => $userid)));
+                $this->earning->reg_earning($userid, $this->db_model->select('sponsor', 'member', array('id' => $userid)), $pkg_id);
+                $this->earning->repurchase($orderid);
             }
 
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully Top-uped User account.</div>');
+            $this->earning->update_legs();
+
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully Top-uped User account. Order #' . $orderid . ' created.</div>');
             redirect(site_url('users/topup-member'));
         }
 

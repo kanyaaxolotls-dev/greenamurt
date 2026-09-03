@@ -124,6 +124,9 @@ class Shop extends CI_Controller
             $this->db->update('product_wallet', $data);
         }
         if ($cart = $this->cart->contents()) {
+            $max_row_shop = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+            $gen_orderid_shop = ($max_row_shop && $max_row_shop->maxid > 0) ? ($max_row_shop->maxid + 1) : 1001;
+
             foreach ($cart as $item):
 
                 $array = array(
@@ -132,6 +135,7 @@ class Shop extends CI_Controller
                     'qty'        => $item['qty'],
                     'cost'       => $item['price'],
                     'date'       => date('Y-m-d'),
+                    'orderid'    => $gen_orderid_shop,
                 );
 
                 $this->db->insert('product_sale', $array);

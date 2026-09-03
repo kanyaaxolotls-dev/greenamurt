@@ -1099,12 +1099,12 @@ public function pend_orders()
 
     public function epin_activation_by_member() 
     {
-        $userinfo    = $this->db_model->select_multi('max(orderid) as id', 'product_sale');
-        $akid        = $userinfo->id + 1;
-        $orderid     = $akid;
+        $max_row     = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+        $orderid     = ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
+
         $idd         =  $this->input->post('user_id');
         preg_match('/\d+/', $idd, $matches);
-        $number      = $matches[0];
+        $number      = isset($matches[0]) ? $matches[0] : 0;
         $user_id     = $number;
         $sp_o        = $this->db_model->select('sponsor', 'member', array('id' => $user_id));
         $status2     = $this->db_model->count_all('member', array('sponsor' => $sp_o,'topup >' => 0));
@@ -1118,17 +1118,41 @@ public function pend_orders()
         $prod_data   =  $this->db_model->select_multi('*', 'product', array('id' => $this->input->post('signup_package')));  
         $epin_value  = $this->db_model->select('amount', 'epin', array('epin'   => trim($this->input->post('epin')),'status' => 'Un-used',));
         $find_user   = $this->db_model->select('id', 'member', array('id' => $user_id));
-        $al_active   = $this->db_model->select('signup_package', 'member', array('id' => $user_id));
+        $al_active   = $this->db_model->select('topup', 'member', array('id' => $user_id));
         $epin        = $this->input->post('epin');
 
-        if($find_user != NULL and $al_active == NULL or $al_active < 0){
-           if($epin_value == $prod_data->dealer_price or $epin_value == 0) {
+        if($find_user != NULL and ($al_active == NULL or $al_active <= 0)){
+           if($prod_data && ($epin_value == $prod_data->dealer_price or $epin_value == 0)) {
                if($epin_value != 0){
                    $prod_pv = $prod_data->pv;
                } else{
                    $prod_pv = 0;
                }    
                $mypv = $this->db_model->select('mypv', 'member', array('id' => $user_id));
+
+               // 1. Order Creation & Order ID Generation (Saved FIRST)
+               $sale_data = array(
+                   'product_id'  => $prod_data->id,
+                   'userid'      => $user_id,
+                   'cost'        => $prod_data->dealer_price,
+                   'date'        => date('Y-m-d'),
+                   'order_by'    => 'Member',
+                   'orderid'     => $orderid,
+                   'pv'          => $prod_data->pv,
+                   'type'        => 'topup',
+                   'epin_amount' => $epin_value,
+                   'status'      => 'Processing',
+               );
+               $this->db->insert('product_sale', $sale_data);
+
+               $item_data = array(
+                   'product_id' => $prod_data->id,
+                   'order_id'   => $orderid,
+                   'cost'       => $prod_data->dealer_price,
+               );
+               $this->db->insert('product_item_sale', $item_data);
+
+               // 2. Member Activation Update
                $data = array(
                    'topup'           => $prod_data->dealer_price,
                    'signup_package'  => $prod_data->id,
@@ -1136,13 +1160,12 @@ public function pend_orders()
                    'mypv'            => $mypv + $prod_pv,
                    'activation_date' => date('Y-m-d'),
                    'status2'         => $status2,
+                   'status'          => 'Active',
                );
-
-                
                $this->db->where('id', $user_id);
                $this->db->update('member', $data);
 
-               // chanage epin status
+               // Change epin status
                $data = array(
                    'status'    => 'Used',
                    'used_by'   => $user_id,
@@ -1151,44 +1174,23 @@ public function pend_orders()
                $this->db->where('epin', $epin);
                $this->db->update('epin', $data);
 
+               // 3. MLM / Payout Processing
                $this->load->model('earning'); 
                if($epin_value != 0){
                 $this->earning->reg_earning($user_id, $this->db_model->select('sponsor', 'member', array('id' => $user_id)), $prod_data->id);
+                $this->earning->repurchase($orderid);
                }
-               /* First purchse earning on topup */
-               $data = array(
-                   'product_id' => $prod_data->id,
-                   'userid'     => $user_id,
-                   'cost'       => $prod_data->dealer_price,
-                   'date'       => date('Y-m-d'),
-                   'order_by'   => 'Member',
-                   'orderid'    => $orderid,
-                   'pv'         => $prod_data->pv,
-                   'type'        => 'topup',
-                   'epin_amount' => $epin_value,
-               );
-               $this->db->insert('product_sale', $data);
+               $this->earning->update_legs();
 
-               // Insert into product item table
-               $data = array(
-                   'product_id' => $prod_data->id,
-                   'order_id'   => $orderid,
-                   'cost'       => $prod_data->dealer_price,
-               );
-               $this->db->insert('product_item_sale', $data);
-            // $this->earning->repurchase($orderid);
-            if($this->db_model->count_all('member') <= 100){
-                $this->earning->update_legs();
-            }
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated your account.</div>');
-            redirect(site_url('admin/zero_epin'));
+             $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated account. Order #' . $orderid . ' created.</div>');
+             redirect(site_url('admin/zero_epin'));
+         }
+         else{
+             $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Epin and Package Amount Not Matched.</div>');
+             redirect(site_url('admin/zero_epin')); 
+         }
         }
-        else{
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Epin and Package Amount Not Matched.</div>');
-            redirect(site_url('admin/zero_epin')); 
-        }
-        }
-        elseif($al_active!=NULL or $al_active > 0){
+        elseif($al_active!=NULL and $al_active > 0){
             $this->session->set_flashdata('common_flash', '<div class="alert alert-danger"> Userid Already Activated.</div>');
             redirect(site_url('admin/zero_epin'));
         }

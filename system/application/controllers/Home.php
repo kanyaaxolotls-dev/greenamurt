@@ -352,8 +352,8 @@ class Home extends CI_Controller {
         $paymentMethod  = $this->input->post('payment');
         $note           = $this->input->post('note');
         $total          = $this->input->post('total');
-        $userinfo       = $this->db_model->select_multi('max(orderid) as orderid', 'product_sale');
-        $orderid        = $userinfo->orderid + 1;
+        $max_row_home   = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+        $orderid        = ($max_row_home && $max_row_home->maxid > 0) ? ($max_row_home->maxid + 1) : 1001;
         $cart_items     = $this->session->userdata('cart_data');
         if($paymentMethod == 'cod'){
             foreach ($cart_items as $product_id => $data) {

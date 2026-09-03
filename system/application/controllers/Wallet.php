@@ -676,29 +676,59 @@ class Wallet extends CI_Controller
 
                             }
                         }
-                }else if(0 < $count_binary_income && $payout_type=='binary'){
-                
+                }else if($payout_type=='binary'){
+                    // 1. Refresh tree legs to ensure accurate PV
+                    $this->load->model('earning');
+                    $this->earning->update_legs();
 
-                    $this->db->select('id, userid,type,amount')->where('status', 'Pending');
-                    $data = $this->db->get('earning')->result();
+                    // 2. Execute binary matching evaluation across all members
+                    $top_id = config_item('top_id') ? config_item('top_id') : '1001';
+                    $this->db->select('*')->from('member')
+                             ->group_start()
+                                 ->where('topup >', '0')
+                                 ->or_where('id', $top_id)
+                             ->group_end()
+                             ->where('total_a_pv >', 0)
+                             ->where('total_b_pv >', 0);
+                    $data = $this->db->get()->result();
+
+                    foreach ($data as $result) {
+                        $this->earning->process_binary($result->id, array());
+                    }
+
+                    // 3. Transfer any pending matching earnings to wallet
+                    $this->db->select('id, userid,type,amount')->where('status', 'Pending')->where('type', 'Matching Income');
+                    $pending_list = $this->db->get('earning')->result();
                    
-                    foreach ($data as $e) {
-                    
-                            $cur_balance = $this->db_model->select('balance', 'wallet', array('userid' => $e->userid));
-                            $matching_total = $this->db_model->sum('amount', 'earning', array('userid' => $e->userid,'status'=>'Pending'));
+                    foreach ($pending_list as $e) {
+                        $cur_balance = (float)$this->db_model->select('balance', 'wallet', array('userid' => $e->userid));
+                        $this->db->where('userid', $e->userid)->update('wallet', array('balance' => $cur_balance + (float)$e->amount));
+                        $this->db->where('id', $e->id)->update('earning', array('status' => 'Paid'));
+                    }
 
-                            if($matching_total>0){
-                                $data = array('balance' => $cur_balance + $e->amount);  
-                                 $this->db->where('userid', $e->userid);
-                                $this->db->update('wallet', $data);
-                               
-                                $data = array('status' => 'Paid');
-                                $this->db->where('id', $e->id);
-                                $this->db->update('earning', $data); 
-
-                            }
+                    // 4. Generate withdrawal requests for the Un-Paid list
+                    $this->db->select('userid, balance')->from('wallet')->where('balance >', 0);
+                    $wallets = $this->db->get()->result_array();
+                    foreach ($wallets as $wal) {
+                        $w_uid = $wal['userid'];
+                        $w_bal = (float)$wal['balance'];
+                        if ($w_bal > 0) {
+                            $this->db->where('userid', $w_uid)->update('wallet', array('balance' => 0));
+                            $this->db->insert('withdraw_request', array(
+                                'userid'    => $w_uid,
+                                'amount'    => $w_bal,
+                                'date'      => date('Y-m-d'),
+                                'paid_date' => date('Y-m-d'),
+                                'status'    => 'Paid',
+                                'tid'       => 'PAY-' . date('Ymd') . '-' . $w_uid,
+                                'tax'       => ($w_bal * config_item('payout_tax') / 100),
+                            ));
                         }
-             }else{
+                    }
+
+                    $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Binary Matching Payout Evaluated and Populated to Paid List Successfully.</div>');
+                    redirect(site_url('income/withdraws_list/Paid'));
+              }else{
 
                
              }

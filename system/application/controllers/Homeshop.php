@@ -119,6 +119,9 @@ class Homeshop extends CI_Controller
             $this->db->update('product_wallet', $data);
         }
         if ($cart = $this->cart->contents()) {
+            $max_row_hshop = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+            $gen_orderid_hshop = ($max_row_hshop && $max_row_hshop->maxid > 0) ? ($max_row_hshop->maxid + 1) : 1001;
+
             foreach ($cart as $item):
 
                 $array = array(
@@ -127,6 +130,7 @@ class Homeshop extends CI_Controller
                     'qty'        => $item['qty'],
                     'cost'       => $item['price'],
                     'date'       => date('Y-m-d'),
+                    'orderid'    => $gen_orderid_hshop,
                 );
 
               //var_dump($array);die();
@@ -357,11 +361,15 @@ class Homeshop extends CI_Controller
                 ## Prevent Join product : Makes entry in product sale table if join product and free registration is set
                 ########################## AIT: 13/04/2019 ########################
                 if (config_item('prevent_join_product_entry') == "Yes") {
+                    $max_row_hreg = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+                    $gen_orderid_hreg = ($max_row_hreg && $max_row_hreg->maxid > 0) ? ($max_row_hreg->maxid + 1) : 1001;
+
                     $array = array(
                         'product_id' => $this->session->userdata('_product_'),
                         'userid'     => $this->session->userdata('_user_id_'),
                         'cost'       => $product_detail->prod_price,
                         'date'       => date('Y-m-d'),
+                        'orderid'    => $gen_orderid_hreg,
                     );
                     
                     $this->db->insert('product_sale', $array);

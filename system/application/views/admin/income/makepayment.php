@@ -108,10 +108,12 @@
                                 $bank_data   = $this->db_model->select_multi('*', 'member_profile', array('userid' => $e->userid));
                                 $user_data   = $this->db_model->select_multi('*', 'member', array('id' => $e->userid));
                                 
-                                // Calculate charges
-                                $admin_charge_amount = ($e->amount * config_item('admin_charges')) / 100;
-                                $tds_amount = ($e->amount * config_item('payout_tax')) / 100;
-                                $main_amount = $e->amount - $admin_charge_amount - $tds_amount;
+                                // Calculate charges dynamically from configuration
+                                $admin_pct = floatval(config_item('admin_charges'));
+                                $tds_pct   = floatval(config_item('payout_tax'));
+                                $admin_charge_amount = round(($e->amount * $admin_pct) / 100.0, 2);
+                                $tds_amount          = round(($e->amount * $tds_pct) / 100.0, 2);
+                                $main_amount         = round($e->amount - $admin_charge_amount - $tds_amount, 2);
                                 
                                 // Update totals
                                 $totalAmount += $main_amount;
@@ -125,22 +127,22 @@
                             </td>
                             <?php } ?>
                             <td><?php echo $sn++; ?></td>
-                            <td><?php echo  config_item('ID_EXT') . $bank_data->userid ?></td>
-                            <td><?php echo !empty($bank_data->aadhar_no) ? $bank_data->aadhar_no : '<span style="color: red;">Not Provided</span>'; ?></td>
-                            <td><?php echo $user_data->name ?></td>
-                            <td><?php echo $user_data->phone ?></td>
-                            <td><?php echo config_item('currency') . $e->amount ?></td>
+                            <td><?php echo config_item('ID_EXT') . (!empty($bank_data->userid) ? $bank_data->userid : $e->userid); ?></td>
+                            <td><?php echo (!empty($bank_data->aadhar_no)) ? $bank_data->aadhar_no : '<span style="color: red;">Not Provided</span>'; ?></td>
+                            <td><?php echo !empty($user_data->name) ? $user_data->name : 'N/A'; ?></td>
+                            <td><?php echo !empty($user_data->phone) ? $user_data->phone : 'N/A'; ?></td>
+                            <td><?php echo config_item('currency') . $e->amount; ?></td>
                             <?php if(config_item('admin_charges') > 0){ ?>
-                            <td><?php echo config_item('currency') . number_format($admin_charge_amount, 2) ?></td>
+                            <td><?php echo config_item('currency') . number_format($admin_charge_amount, 2); ?></td>
                             <?php } ?>
-                            <td><?php echo config_item('currency') . number_format($tds_amount, 2) ?></td>
-                            <td><?php echo config_item('currency') . number_format($main_amount, 2) ?></td>
-                            <td><?php echo !empty($bank_data->bank_name) ? $bank_data->bank_name : '<span style="color: red;">Not Provided</span>'; ?></td>
-                            <td><?php echo !empty($bank_data->bank_ac_no) ? $bank_data->bank_ac_no : '<span style="color: red;">Not Provided</span>'; ?></td>
-                            <td><?php echo !empty($bank_data->bank_ifsc) ? $bank_data->bank_ifsc : '<span style="color: red;">Not Provided</span>'; ?></td>
-                            <td><?php echo !empty($bank_data->bank_branch) ? $bank_data->bank_branch : '<span style="color: red;">Not Provided</span>'; ?></td>
+                            <td><?php echo config_item('currency') . number_format($tds_amount, 2); ?></td>
+                            <td><?php echo config_item('currency') . number_format($main_amount, 2); ?></td>
+                            <td><?php echo (!empty($bank_data->bank_name)) ? $bank_data->bank_name : '<span style="color: red;">Not Provided</span>'; ?></td>
+                            <td><?php echo (!empty($bank_data->bank_ac_no)) ? $bank_data->bank_ac_no : '<span style="color: red;">Not Provided</span>'; ?></td>
+                            <td><?php echo (!empty($bank_data->bank_ifsc)) ? $bank_data->bank_ifsc : '<span style="color: red;">Not Provided</span>'; ?></td>
+                            <td><?php echo (!empty($bank_data->bank_branch)) ? $bank_data->bank_branch : '<span style="color: red;">Not Provided</span>'; ?></td>
                             <?php if($typee == 'Paid' or empty($typee) or $typee == NULL or $typee == 'All'){ ?>
-                            <td><?php echo $e->tid ?></td>
+                            <td><?php echo !empty($e->tid) ? $e->tid : 'N/A'; ?></td>
                             <?php } ?>
                             <td><?php echo $e->date ?></td>
                             <td>

@@ -1,0 +1,189 @@
+<div class="col">
+    <div class="card bg-secondary shadow">  
+        <div class="card-header bg-white border-0"> 
+        <div class="row align-items-center">
+            <div class="col-8">
+                  <h3 class="mb-0"><?php echo $title;?></h3>
+            </div>
+        <div class="col-4 text-right"> 
+            <a href="<?php echo site_url('admin/index')?>" class="btn btn-sm btn-primary">Home</a>
+        </div>
+    </div>
+</div> 
+<div class="card-body">
+
+<?php echo form_open() ?>
+
+ <h6 class="heading-small text-muted mb-4"><img src="https://img.icons8.com/color/48/000000/paypal.png">Paypal Setting</h6>
+
+<div class="row">
+    <div class="col-sm-6">
+        <input type="checkbox" value="Yes"
+               name="enable_paypal" <?php if (config_item('enable_paypal') == "Yes") echo 'checked'; ?>> Enable Paypal ?
+        <label>Paypal Currency (All product prices will be using this currency)</label>
+        <select name="paypal_currency" class="form-control">
+            <option selected
+                    value="<?php echo set_value('paypal_currency', config_item('paypal_currency')) ?>"><?php echo set_value('paypal_currency', config_item('paypal_currency')) ?></option>
+            <option>INR</option>
+            <option>AUD</option>
+            <option>BRL</option>
+            <option>CAD</option>
+            <option>DKK</option>
+            <option>EUR</option>
+            <option>HKD</option>
+            <option>HUF</option>
+            <option>ILS</option>
+            <option>JPY</option>
+            <option>MYR</option>
+            <option>MXN</option>
+            <option>NOK</option>
+            <option>NZD</option>
+            <option>PHP</option>
+            <option>PLN</option>
+            <option>GBP</option>
+            <option>RUB</option>
+            <option>SGD</option>
+            <option>SEK</option>
+            <option>CHF</option>
+            <option>TWD</option>
+            <option>THB</option>
+            <option>USD</option>
+        </select>
+    </div>
+    <div class="col-sm-6">
+        <br/>
+        <label>(Paypal Email Address)</label>
+        <input type="text" value="<?php echo set_value('paypal_email', config_item('paypal_email')) ?>"
+               placeholder="Paypal Email ID" class="form-control" name="paypal_email">
+    </div>
+</div>
+
+<br>
+
+ <h6 class="heading-small text-muted mb-4"><img src="https://im-cdn.com/assets/images/logo-transparent.87adb9ba0179.png" height="30"> Setting (Need Instamojo Account ? Contact Us)</h6>
+
+<div class="row">
+    <div class="col-sm-12">
+        <input type="checkbox" value="Yes" 
+               name="enable_instamojo" <?php if (config_item('enable_instamojo') == "Yes") echo 'checked'; ?>> Enable
+        Instamojo
+        ?
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Private API Key</label>
+                <input value="<?php echo set_value('instamojo_api_key', config_item('instamojo_api_key')) ?>"
+                       type="text" placeholder="Private API Key" class="form-control" name="instamojo_api_key">
+            </div>
+            <div class="col-sm-6">
+                <label>Private Auth Token</label>
+                <input type="text" value="<?php echo set_value('instamojo_auth', config_item('instamojo_auth')) ?>"
+                       placeholder="Private Auth Token" class="form-control" name="instamojo_auth">
+            </div>
+            <div class="col-sm-6">
+                <label>Private Salt</label>
+                <input type="text" value="<?php echo set_value('instamojo_salt', config_item('instamojo_salt')) ?>"
+                       placeholder="Private Salt" class="form-control" name="instamojo_salt">
+            </div>
+        </div>
+    </div>
+</div>
+
+<br>
+<h6 class="heading-small text-muted mb-4"><img src="http://www.makeintern.com/admin/uploaded_files/employer_company_logo/payumoney08.png" height="30"> Setting (Need payumoney Account ? Contact Us) PayuMoney Setting</h6>
+
+<div class="row">
+    <div class="col-sm-12">
+        <input type="checkbox" value="Yes"
+               name="enable_payumoney" <?php if (config_item('enable_payumoney') == "Yes") echo 'checked'; ?>> Enable
+        PayuMoney
+        ?
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Merchant key</label>
+                <input type="text" value="<?php echo set_value('payumoney_key', config_item('payumoney_key')) ?>"
+                       placeholder="Merchant key" class="form-control" name="payumoney_key">
+            </div>
+            <div class="col-sm-6">
+                <label>Merchant Salt</label>
+                <input type="text" value="<?php echo set_value('payumoney_salt', config_item('payumoney_salt')) ?>"
+                       placeholder="Private Auth Token" class="form-control" name="payumoney_salt">
+            </div>
+        </div>
+    </div>
+</div>
+
+<br>
+<h6 class="heading-small text-muted mb-4"><img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Paytm_logo.png" height="30"> Setting (Need Paytm Account ? Contact Us) Paytm Setting</h6>
+<hr>
+<div class="row">
+    <div class="col-sm-12">
+        <input type="checkbox" value="Yes"
+               name="enable_paytm" <?php if (config_item('enable_paytm') == "Yes") echo 'checked'; ?>> Enable
+        Paytm 
+        ?
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Merchant key</label>
+                <input type="text" value="<?php echo set_value('PAYTM_MERCHANT_KEY', config_item('PAYTM_MERCHANT_KEY')) ?>"
+                       placeholder="Merchant key" class="form-control" name="PAYTM_MERCHANT_KEY">
+            </div>
+            <div class="col-sm-6">
+                <label>Merchant Id</label>
+                <input type="text" value="<?php echo set_value('PAYTM_MERCHANT_MID', config_item('PAYTM_MERCHANT_MID')) ?>"
+                       placeholder="PAYTM MERCHANT MID" class="form-control" name="PAYTM_MERCHANT_MID">
+            </div>
+        </div>
+    </div>
+</div>
+
+<br>
+<h6 class="heading-small text-muted mb-4"><img src="https://cdn.razorpay.com/logo.svg" height="30">Razorpay Setting</h6>
+<hr>
+<div class="row">
+    <div class="col-sm-12">
+       
+        <div class="row">
+            <div class="col-sm-6">
+                <label>Key Id</label>
+                <input type="text" value="<?php echo set_value('RAZOR_KEY_ID', config_item('RAZOR_KEY_ID')) ?>"
+                       placeholder="RAZOR KEY ID" class="form-control" name="RAZOR_KEY_ID">
+            </div>
+            <div class="col-sm-6">
+                <label>Key Secret</label>
+                <input type="text" value="<?php echo set_value('RAZOR_KEY_SECRET', config_item('RAZOR_KEY_SECRET')) ?>"
+                       placeholder="RAZOR KEY SECRET" class="form-control" name="RAZOR_KEY_SECRET">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- <p>&nbsp;</p>
+<div class="alert alert-info">Block.io (BITCOIN, DOGECOIN, OR LITECOIN)</div>
+<div class="row">
+    <div class="col-sm-12">
+        <input type="checkbox" value="Yes"
+               name="enable_block_io" <?php if (config_item('enable_block_io') == "Yes") echo 'checked'; ?>> Enable
+        Block.io
+        ?
+        <div class="row">
+            <div class="col-sm-6">
+                <label>API KEY FOR BITCOIN, DOGECOIN, OR LITECOIN</label>
+                <input type="text" value="<?php echo set_value('api_key', config_item('api_key')) ?>"
+                       placeholder="API key" class="form-control" name="api_key">
+            </div>
+            <div class="col-sm-6">
+                <label>Secret PIN</label>
+                <input type="password" value="<?php echo set_value('secret_pin', config_item('secret_pin')) ?>"
+                       placeholder="Secret PIN" class="form-control" name="secret_pin">
+            </div>
+        </div>
+    </div>
+</div> -->
+<div class="col-sm-6"><br/>
+    <input type="submit" class="btn btn-success" value="Update" onclick="this.value='Updating..'">
+</div>
+<?php echo form_close() ?>
+</div>
+</div>
+</div>

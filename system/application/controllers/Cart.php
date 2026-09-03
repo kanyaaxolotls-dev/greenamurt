@@ -462,6 +462,10 @@ public function pre_checkout()
 
     public function walletPaymentProcess($o_id, $userid, $wallet, $selected_franchisee_id) 
     {
+        if (empty($o_id) || $o_id == 0) {
+            $max_row = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+            $o_id = ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
+        }
         $this->load->model('earning');
 		$get_balance = $this->db_model->select('balance', $wallet, array('userid' => $this->session->user_id));
 		$wallet_prod = $this->db_model->select('balance', 'product_wallet', array('userid' => $this->session->user_id));
@@ -694,31 +698,29 @@ public function pre_checkout()
 		$this->razorpay->processPayment($orderData);
 	 }	 
 
-    function checkout($o_id)
+    function checkout($o_id = 0)
     {
         $selected_franchisee_id = $this->input->post('franchisee_id');
 
 		$paymentmethod = $this->input->post('paymentmethod');
 		$userid        = $this->input->post('userid');
 		$check_user    = $this->db_model->count_all('member', array('id' => $userid));
-		$check_eligibl = $this->db_model->count_all('product_sale', array('userid' => $userid, 'product_id' => 2));
-// 		echo "<pre>";
-// 		print_r($this->input->post());
-// 		echo "</pre>";
-// 		die;
+
 		if ($check_user == 0) {
 			$this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Invalid userid</div>');
 			redirect('cart/pre_checkout');
+            return;
 		}
+
+        if (empty($o_id) || $o_id == 0) {
+            $max_row = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+            $o_id = ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
+        }
 		
-// 		if ($check_eligibl == 0) {
-// 			$this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Activate your id first by pakcage 2 of 6400 to purchase this item</div>');
-// 			redirect('cart/pre_checkout');
-// 		}
-		
-		if (empty($paymentmethod) || empty($o_id) ) {
-			$this->session->set_flashdata('common_flash', '<div class="alert alert-success">The payment method / Order # was missing</div>');
+		if (empty($paymentmethod)) {
+			$this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Please select a payment method</div>');
 			redirect('cart/pre_checkout');
+            return;
 		}
 		
 		if($paymentmethod =='wallet' or $paymentmethod =='product_wallet'){

@@ -1,0 +1,30 @@
+<?php
+    include ('head.php');
+?>
+    <!-- Body Content -->
+    <div id="page-content">
+        <!-- Page Title -->
+        <div class="page section-header text-center">
+            <div class="page-title">
+                <div class="wrapper"><h1 class="page-title">Category empty Page</h1></div>
+            </div>
+        </div>
+        <!-- End Page Title -->
+
+        <div class="container">
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-sm-12 text-center empty-page mb-5">
+                    <i class="icon an an-life-ring"></i>
+                    <h2>Category is empty!</h2>
+                    <p class="mb-3 pb-1">There are no products matching the selection.</p>
+                    <a href="<?php echo base_url('home') ?>" class="btn btn-primary">continue shopping</a>
+                </div>
+                <!-- End Main Content -->
+            </div>
+        </div>
+    </div>
+    <!-- End Body Content -->
+<?php
+    include ('footer.php');
+?>

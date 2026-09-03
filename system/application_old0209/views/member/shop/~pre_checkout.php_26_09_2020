@@ -1,0 +1,108 @@
+
+    <div class="card bg-secondary shadow">   
+        <div class="card-header border-0"> 
+                <div class="row align-items-center">
+                    <div class="col-7">
+                          <h4 class="mb-0"><?php echo $title ?></h4>
+                    </div>
+                <div class="col-5"> 
+                     <a href="<?php echo site_url('cart/new-purchase')?>" class="btn btn-sm btn-primary">Back to Shop</a>
+                </div>
+            </div>
+        </div>
+    <div class="card-body"> 
+    <?php if ($this->cart->contents()) { ?><?php echo form_open('cart/update'); ?>
+       
+           <div class="table-responsive">
+                  <table class="table align-items-center table-flush">
+                    <thead class="thead-light">
+
+                <tr> 
+                    <th>Select</th>
+                    <th>QTY</th>
+                    <th>Item Description</th>
+                    <th style="text-align:right">Item Price</th>
+                    <th style="text-align:right">GST</th>
+                    <th style="text-align:right">Sub-Total</th>
+                </tr>
+            </thead>
+                <?php $i = 1; ?>
+ 
+                <?php foreach ($this->cart->contents() as $items): ?>
+
+                    <?php echo form_hidden('rowid[]', $items['rowid']); ?>
+
+                    <tr>
+                        <td style="width: 60px;"><?php echo form_submit('', 'Update your qty'); ?></td>
+
+                        <td style="width: 100px;"><?php echo form_input(array('name'      => 'qty[]]',
+                                                        'value'     => $items['qty'],
+                                                        'maxlength' => '3',
+                                                        'size'      => '1',
+                                                        'class'     =>'form-control',
+                                                        'type'      =>'number',
+                                                        'width'     =>'100%',
+                                                  )); ?>
+                                                      
+                                                       
+                                                  </td>
+                        <td> 
+                            <?php echo $items['name']; ?>
+
+                            <?php if ($this->cart->has_options($items['rowid']) == TRUE) : ?>
+
+                                <p>
+                                    <?php foreach ($this->cart->product_options($items['rowid']) as $option_name => $option_value): ?>
+
+                                        <strong><?php echo $option_name; ?>:</strong> <?php echo $option_value; ?><br/>
+
+                                    <?php endforeach; ?>
+                                </p>
+
+                            <?php endif; ?>
+
+                        </td>
+                        <td style="text-align:right"><?php echo config_item('currency') . $this->cart->format_number($items['price']); ?></td>
+                        <td style="text-align:right"><?php echo config_item('currency') . $this->cart->format_number($items['qty']*$items['gst']); ?></td> 
+                        <?php echo $items['gst'];?>
+                        <td style="text-align:right"><?php echo config_item('currency') . $this->cart->format_number($items['subtotal']+$items['qty']*$items['gst']); ?></td>
+                    </tr>
+ 
+                    <?php $i++; ?>
+
+                <?php endforeach; ?>
+
+                <tr>
+                    <td colspan="4"></td>
+                    <td class="right" style="text-align: right;"><strong>Total</strong></td>
+                    <td class="right"  style="text-align: right;"><?php echo config_item('currency') . $this->cart->format_number($this->cart->total()+$items['qty']*$items['gst']); ?></td>
+                </tr>
+
+            </table>
+            <hr>
+             <?php 
+               $maxid = 0;
+                $row = $this->db->query('SELECT MAX(orderid) AS `maxid` FROM `product_sale`')->row();
+                if ($row) {
+                    $maxid = $row->maxid; 
+                    $o_id = $maxid + 1 ;
+                }
+                // $o_id = rand(1000000, 9999999);
+               
+              ?> 
+            <div style="text-align:right">
+            <a href="<?php echo site_url('cart/new-purchase') ?>" class="btn btn-danger btn-sm">Shop More Products &rarr;</a>
+            <a href="<?php echo site_url('cart/checkout/'.$o_id) ?>" class="btn btn-success btn-sm">Checkout &rarr;</a>
+            </div>
+        </div>
+        <?php echo form_close();
+    } 
+    else {
+
+        echo '<h3 align="center" style="color:red"> <i class="fa fa-frown-o" aria-hidden="true"></i> You have no item in your cart</h3>';?>
+         <a href="<?php echo site_url('cart/new-purchase') ?>" class="btn btn-success btn-block"><i class="fas fa-cart-arrow-down"></i> Shop More Products &rarr;</a>
+     <?php } ?>
+   
+</div>
+</div>
+</div></div>

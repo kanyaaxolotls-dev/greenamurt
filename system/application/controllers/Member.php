@@ -73,7 +73,13 @@ class Member extends CI_Controller
 	{
 		$this->load->model('earning');
 		$this->earning->update_legs();
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Pair Updated</div>');
+		
+		$members = $this->db->get('member')->result();
+		foreach ($members as $m) {
+			$this->earning->process_binary($m->id, array());
+		}
+
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Pair & Payout Updated Successfully</div>');
         redirect(site_url('tree/my-tree'));
 	}
 	
@@ -1196,12 +1202,8 @@ public function certificate() {
     }
 
     public function get_top_ordid(){
-
-        $this->db->select_max('id');
-        $query  = $this->db->get('product_sale');
-        $orderid  = $query->row_array();
-
-        return $dd['orderid'] + 1;
+        $max_row = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+        return ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
     }
 
     public function activation()
@@ -1214,9 +1216,8 @@ public function certificate() {
         else{
             $status2 = 2;
         }
-        $userinfo     = $this->db_model->select_multi('max(orderid) as id', 'product_sale');
-        $akid         = $userinfo->id + 1;
-        $orderid      = $akid;
+        $max_row      = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+        $orderid      = ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
         $paymethod    = $this->input->post('paymethod');
         $prod_data    = $this->db_model->select_multi('*', 'product', array('id' => $this->input->post('signup_package')));
         $wallet_data  = $this->db_model->select_multi('*', 'wallet', array('userid' => $this->session->user_id));
@@ -1231,12 +1232,39 @@ public function certificate() {
         else if($paymethod == "epin" && $epin > 0) {  
             if($epin_data != NULL and $epin_data->status == 'Un-used'){
                 
+                // 1. Order Creation & Order ID Generation (Saved FIRST)
+                if (config_item('prevent_join_product_entry') != "No") {
+                    $sale_data = array(
+                        'product_id'  => $prod_data->id,
+                        'userid'      => $this->session->user_id,
+                        'cost'        => $epin_data->amount,
+                        'date'        => date('Y-m-d'),
+                        'order_by'    => 'Member',
+                        'orderid'     => $orderid,
+                        'pv'          => $prod_data->pv,
+                        'type'        => 'topup',
+                        'epin_amount' => $epin_data->amount,
+                        'status'      => 'Processing',
+                    );
+                    $this->db->insert('product_sale', $sale_data);
+                    
+                    $item_data = array(
+                        'product_id' => $prod_data->id,
+                        'order_id'   => $orderid,
+                        'cost'       => $epin,
+                    );
+                    $this->db->insert('product_item_sale', $item_data);
+                }
+
+                // 2. Member Activation Update
                 $data = array(
                     'topup'           => $epin_data->amount,
                     'signup_package'  => $prod_data->id,
                     'epin'            => $epin,
                     'activation_date' => date('Y-m-d'),
                     'status2'         => $status2,
+                    'status'          => 'Active',
+                    'mypv'            => $prod_data->pv,
                 );
                 $this->db->where('id', $this->session->user_id);
                 $this->db->update('member', $data);
@@ -1249,6 +1277,7 @@ public function certificate() {
                 $this->db->where('epin', $epin);
                 $this->db->update('epin', $data);
                 
+                // 3. MLM / Payout Processing
                 $this->load->model('earning'); 
                 if (config_item('fix_income') == "Yes" && $epin > 0 && config_item('give_income_on_topup') == "Yes") {
                     $this->earning->fix_income($this->session->user_id, $this->db_model->select('sponsor', 'member', array('id' => $this->session->user_id)),$epin);
@@ -1259,27 +1288,9 @@ public function certificate() {
                     $this->earning->repurchase($orderid);
                     $this->earning->update_legs();
                 } 
-                
-                 if (config_item('prevent_join_product_entry') != "No") {
-                            $data = array(
-                                'product_id' => $prod_data->id,
-                                'userid'     => $this->session->user_id,
-                                'cost'       => $epin_data->amount,
-                                'date'       => date('Y-m-d'),
-                                'order_by'   => 'Member',
-                                'orderid'    =>$orderid,
-                            );
-                            $this->db->insert('product_sale', $data);
-                            
-                            $data = array(
-                                'product_id' => $prod_data->id,
-                                'order_id' =>$orderid,
-                                'cost'       => $epin,
-                            );
-                            $this->db->insert('product_item_sale', $data);
-                        }
                   
-                $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated your account.</div>');
+                $this->earning->update_legs();
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated your account. Order #' . $orderid . ' created.</div>');
                 redirect(site_url('member'));
                 }
                 else{
@@ -1289,13 +1300,40 @@ public function certificate() {
         }
         
         else if($wallet_data->balance > 0 && $paymethod=="wallet" && $epin == $prod_data->prod_price){
-              $wallet_balance = $wallet_data ->balance - $epin;
+                $wallet_balance = $wallet_data->balance - $epin;
+
+                // 1. Order Creation & Order ID Generation (Saved FIRST)
+                if (config_item('prevent_join_product_entry') != "No") {
+                    $sale_data = array(
+                        'product_id'  => $prod_data->id,
+                        'userid'      => $this->session->user_id,
+                        'cost'        => $epin,
+                        'date'        => date('Y-m-d'), 
+                        'order_by'    => 'Member',
+                        'orderid'     => $orderid,
+                        'pv'          => $prod_data->pv,
+                        'type'        => 'topup',
+                        'status'      => 'Processing',
+                    );
+                    $this->db->insert('product_sale', $sale_data);
+
+                    $item_data = array(
+                        'product_id' => $prod_data->id,
+                        'cost'       => $epin,
+                        'order_id'   => $orderid,
+                    ); 
+                    $this->db->insert('product_item_sale', $item_data);
+                }
+
+                // 2. Member Activation Update
                 $data = array(
-                    'topup' => $epin,
-                    'signup_package'=> $prod_data->id,
-                    'epin'  =>'Wallet',
+                    'topup'           => $epin,
+                    'signup_package'  => $prod_data->id,
+                    'epin'            => 'Wallet',
                     'activation_date' => date('Y-m-d'),
                     'status2'         => $status2,
+                    'status'          => 'Active',
+                    'mypv'            => $prod_data->pv,
                 );
                 $this->db->where('id', $this->session->user_id);
                 $this->db->update('member', $data);
@@ -1306,6 +1344,7 @@ public function certificate() {
                 $this->db->where('userid', $this->session->user_id);
                 $this->db->update('wallet', $data);
                 
+                // 3. MLM / Payout Processing
                 $this->load->model('earning'); 
                 if (config_item('fix_income') == "Yes" && $epin > 0 && config_item('give_income_on_topup') == "Yes") {
                     $this->earning->fix_income($this->session->user_id, $this->db_model->select('sponsor', 'member', array('id' => $this->session->user_id)),$epin);
@@ -1317,26 +1356,8 @@ public function certificate() {
                     $this->earning->update_legs();
                 }
 
-                  if (config_item('prevent_join_product_entry') != "No") {
-                            $data = array(
-                                'product_id' => $prod_data->id,
-                                'userid'     => $this->session->user_id,
-                                'cost'       => $epin,
-                                'date'       => date('Y-m-d'), 
-                                'order_by'   => 'Member',
-                                'orderid'    =>$orderid,
-                            );
-                            $this->db->insert('product_sale', $data);
-
-                            // Insert into product item table
-                             $data = array(
-                                 'product_id' => $prod_data->id,
-                                 'cost'       => $epin,
-                                'order_id' =>$orderid,
-                             ); 
-                             $this->db->insert('product_item_sale', $data);
-                    }
-                $this->session->set_flashdata('common_flash', '<div  id="alert-message" class="alert alert-success">Order placed Successfully</div>');
+                $this->earning->update_legs();
+                $this->session->set_flashdata('common_flash', '<div id="alert-message" class="alert alert-success">Order placed successfully. Order #' . $orderid . ' created.</div>');
                 redirect(site_url('member'));
         }else{
               $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Somthing is wrong !</div>');
@@ -1511,7 +1532,7 @@ public function certificate() {
             $data = array( 
                 'topup' => $epin_value,
                 'signup_package'=>$signup_package,
-                'mypv'=>$package_cost->pv,
+                'mypv'=> ($user_mypv > 0) ? ($user_mypv + $package_cost->pv) : $package_cost->pv,
                 'epin'=>$sign_package_epin,
                 'activation_date' =>$activation_date,
                 'my_business'=>$package_cost->matching_income,
@@ -1542,19 +1563,21 @@ public function certificate() {
 
             /* First purchse earning on topup */
            // var_dump(config_item('prevent_join_product_entry') == "Yes");
-              if (config_item('prevent_join_product_entry') == "Yes") {
-                        $data1 = array(
-                            'product_id' => $signup_package,
-                            'userid'     => $this->session->user_id,
-                            'cost'       => $epin_value,
-                            'date'       => date('Y-m-d'),
-                        );
-                        $this->db->insert('product_sale', $data1);
-                    }
-                else
-                 {   $this->db->where('userid', $this->session->user_id);
-                     $this->db->update('product_sale', $data1); 
-                
+                $max_row_topup = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+                $gen_orderid_topup = ($max_row_topup && $max_row_topup->maxid > 0) ? ($max_row_topup->maxid + 1) : 1001;
+
+                $data1 = array(
+                    'product_id' => $signup_package,
+                    'userid'     => $this->session->user_id,
+                    'cost'       => $epin_value,
+                    'date'       => date('Y-m-d'),
+                    'orderid'    => $gen_orderid_topup,
+                );
+                if (config_item('prevent_join_product_entry') == "Yes") {
+                    $this->db->insert('product_sale', $data1);
+                } else {
+                    $this->db->where('userid', $this->session->user_id);
+                    $this->db->update('product_sale', $data1); 
                 } 
 
                 // PRODUCT WALLET TOPUP
@@ -1581,6 +1604,8 @@ public function certificate() {
              
 
             
+            $this->earning->update_legs();
+
             $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully Top-uped your account.</div>');
             redirect(site_url('member')); 
 
@@ -1622,16 +1647,20 @@ public function certificate() {
                     $this->db->update('member', $data1); 
 
 
+                    $max_row_wtopup = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+                    $gen_orderid_wtopup = ($max_row_wtopup && $max_row_wtopup->maxid > 0) ? ($max_row_wtopup->maxid + 1) : 1001;
+
                     $data2 = array(
                             'product_id' => $signup_package,
                             'userid'     => $this->session->user_id,
                             'cost'       => $package_cost->prod_price,
                             'date'       => date('Y-m-d'),
+                            'orderid'    => $gen_orderid_wtopup,
                     );
                     
                     $this->db->insert('product_sale', $data2);
                    
-                    if (config_item('fix_income') !== "Yes" && $user_mypv > 0 && config_item('give_income_on_topup') == "Yes") {
+                    if (config_item('fix_income') !== "Yes" && config_item('give_income_on_topup') == "Yes") {
     
                         $this->earning->reg_earning($this->session->user_id, $this->db_model->select('sponsor', 'member', array('id' => $this->session->user_id)), $this->db_model->select('signup_package', 'member', array('id' => $this->session->user_id)));
                     }
@@ -1645,6 +1674,8 @@ public function certificate() {
                     $this->db->update('member',$type); 
                     }
                    
+                    $this->earning->update_legs();
+
                     $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully Top-uped your account.</div>');
                         redirect(site_url('member'));
                     }
@@ -2441,40 +2472,60 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
         ]);
     
         if($status == 'Pass') {
-            // --- START AUTOMATIC ACTIVATION ---
+            // --- START AUTOMATIC ACTIVATION & SWARANGWELLNESS BUSINESS ENGINE ---
             $user_id = $this->session->user_id;
-    
-            // 1. Calculate status2 (Binary Leg Logic)
-            $sp_o    = $this->db_model->select('sponsor', 'member', array('id' => $user_id));
-            $count   = $this->db_model->count_all('member', array('sponsor' => $sp_o, 'topup >' => 0));
-            $status2 = ($count >= 2) ? 3 : 2;
-    
-            // 2. Get the global active topup requirement from your setting
-            $ak_global = $this->db_model->select_multi('*', 'global_setting', array('id' => 1));
-            $activation_amount = $ak_global->active_topup;
-    
-            // 3. Update Member Table
-            $member_update = array(
-                'topup'           => $activation_amount,
-                'activation_date' => date('Y-m-d'),
-                'status2'         => $status2,
-                'status'          => 'Active' 
-            );
-            $this->db->where('id', $user_id)->update('member', $member_update);
-    
-            // 4. Insert into Product Sale (This makes the dashboard "Inactive" turn into "Active")
-            $sale_data = array(
-                'product_id' => 0, // 0 indicates activated via Quiz
-                'userid'     => $user_id,
-                'cost'       => $activation_amount,
-                'date'       => date('Y-m-d'),
-                'order_by'   => 'Quiz System'
-            );
-            $this->db->insert('product_sale', $sale_data);
-    
-            // 5. Update Binary Legs
-            $this->load->model('earning');
-            $this->earning->update_legs();
+
+            if (TRUE) {
+                // 1. Calculate status2 (Binary Leg Logic)
+                $sp_o    = $this->db_model->select('sponsor', 'member', array('id' => $user_id));
+                $count   = $this->db_model->count_all('member', array('sponsor' => $sp_o, 'topup >' => 0));
+                $status2 = ($count >= 2) ? 3 : 2;
+
+                // 2. Get active topup requirement & package ID
+                $ak_global = $this->db_model->select_multi('*', 'global_setting', array('id' => 1));
+                $activation_amount = ($ak_global && isset($ak_global->active_topup)) ? $ak_global->active_topup : 0;
+                $package_id = $this->db_model->select('signup_package', 'member', array('id' => $user_id));
+                if (empty($package_id)) {
+                    $package_id = 1; // Default activation package
+                }
+
+                // 3. Update Member Table to Active
+                $member_update = array(
+                    'topup'           => $activation_amount,
+                    'signup_package'  => $package_id,
+                    'activation_date' => date('Y-m-d'),
+                    'status2'         => $status2,
+                    'status'          => 'Active' 
+                );
+                $this->db->where('id', $user_id)->update('member', $member_update);
+
+                // 4. Generate next Order ID and create activation order
+                $max_row_quiz = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+                $gen_orderid_quiz = ($max_row_quiz && isset($max_row_quiz->maxid) && $max_row_quiz->maxid > 0) ? ($max_row_quiz->maxid + 1) : 1001;
+
+                $sale_data = array(
+                    'product_id' => $package_id,
+                    'userid'     => $user_id,
+                    'cost'       => $activation_amount,
+                    'date'       => date('Y-m-d'),
+                    'order_by'   => 'Quiz System',
+                    'orderid'    => $gen_orderid_quiz,
+                    'status'     => 'Processing',
+                );
+                $this->db->insert('product_sale', $sale_data);
+
+                $item_data = array(
+                    'product_id' => $package_id,
+                    'order_id'   => $gen_orderid_quiz,
+                    'cost'       => $activation_amount,
+                );
+                $this->db->insert('product_item_sale', $item_data);
+
+                // 5. Trigger SwarangWellness Business Engine (Earning, Leg Updates, MLM)
+                $this->load->model('earning');
+                $this->earning->reg_earning($user_id, $sp_o, $package_id, TRUE, 1);
+                $this->earning->update_legs();
+            }
             // --- END AUTOMATIC ACTIVATION ---
     
             $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Congratulations! You passed and your account is now ACTIVE.</div>');
@@ -2486,19 +2537,11 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
     }
 
     public function epin_activation_by_member() {
-        
-        // $trans_pass = $this->db_model->select('trans_password', 'member', array('id' => $this->session->user_id));
-        // if($this->input->post('trans_password') != $trans_pass){
-        //     $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Incorrect Transaction Password</div>');
-        //     redirect('member/unused-epin');
-        // }
-        
-        $userinfo    = $this->db_model->select_multi('max(orderid) as id', 'product_sale');
-        $akid        = $userinfo->id + 1;
-        $orderid     = $akid;
+        $max_row     = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+        $orderid     = ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
         $idd         =  $this->input->post('user_id');
         preg_match('/\d+/', $idd, $matches);
-        $number      = $matches[0];
+        $number      = isset($matches[0]) ? $matches[0] : 0;
         $user_id     = $number;
         $sp_o        = $this->db_model->select('sponsor', 'member', array('id' => $user_id));
         $status2     = $this->db_model->count_all('member', array('sponsor' => $sp_o,'topup >' => 0));
@@ -2508,26 +2551,45 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
         else{
             $status2 = 2;
         }
-        #echo "";print_r($_POST);die();
+
         $prod_data   =  $this->db_model->select_multi('*', 'product', array('id' => $this->input->post('signup_package')));  
         $epin_value  = $this->db_model->select('amount', 'epin', array('epin'   => trim($this->input->post('epin')),'status' => 'Un-used',));
         $find_user   = $this->db_model->select('id', 'member', array('id' => $user_id));
-        $al_active   = $this->db_model->select('signup_package', 'member', array('id' => $user_id));
-        #$al_active   = $this->db_model->select('join_package', 'member', array('id' => $user_id));
+        $al_active   = $this->db_model->select('topup', 'member', array('id' => $user_id));
         $epin        = $this->input->post('epin');
 
-        // echo "e pin value ".$epin_value."<br>"."prod data dealer price ".$prod_data->dealer_price."<br>".
-        //      "find user ".$find_user."<br>".
-        //      "al active ".$al_active."<br>";die();
-
-        if($find_user != NULL and $al_active == NULL or $al_active < 0){
-           if($epin_value == $prod_data->dealer_price or $epin_value == 0) {
+        if($find_user != NULL and ($al_active == NULL or $al_active <= 0)){
+           if($prod_data && ($epin_value == $prod_data->dealer_price or $epin_value == 0)) {
                if($epin_value != 0){
                    $prod_pv = $prod_data->pv;
                } else{
                    $prod_pv = 0;
                }    
                $mypv = $this->db_model->select('mypv', 'member', array('id' => $user_id));
+
+               // 1. Order Creation & Order ID Generation (Saved FIRST)
+               $sale_data = array(
+                   'product_id'  => $prod_data->id,
+                   'userid'      => $user_id,
+                   'cost'        => $prod_data->dealer_price,
+                   'date'        => date('Y-m-d'),
+                   'order_by'    => 'Member',
+                   'orderid'     => $orderid,
+                   'pv'          => $prod_data->pv,
+                   'type'        => 'topup',
+                   'epin_amount' => $epin_value,
+                   'status'      => 'Processing',
+               );
+               $this->db->insert('product_sale', $sale_data);
+
+               $item_data = array(
+                   'product_id' => $prod_data->id,
+                   'order_id'   => $orderid,
+                   'cost'       => $prod_data->dealer_price,
+               );
+               $this->db->insert('product_item_sale', $item_data);
+
+               // 2. Member Activation Update
                $data = array(
                    'topup'           => $prod_data->dealer_price,
                    'signup_package'  => $prod_data->id,
@@ -2535,11 +2597,12 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
                    'mypv'            => $mypv + $prod_pv,
                    'activation_date' => date('Y-m-d'),
                    'status2'         => $status2,
+                   'status'          => 'Active',
                );
                $this->db->where('id', $user_id);
                $this->db->update('member', $data);
 
-               // chanage epin status
+               // Change epin status
                $data = array(
                    'status'    => 'Used',
                    'used_by'   => $user_id,
@@ -2548,44 +2611,24 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
                $this->db->where('epin', $epin);
                $this->db->update('epin', $data);
 
+               // 3. MLM / Payout Processing
                $this->load->model('earning'); 
                if($epin_value != 0){
                 $this->earning->reg_earning($user_id, $this->db_model->select('sponsor', 'member', array('id' => $user_id)), $prod_data->id);
+                $this->earning->repurchase($orderid);
                }
-               /* First purchse earning on topup */
-               $data = array(
-                   'product_id' => $prod_data->id,
-                   'userid'     => $user_id,
-                   'cost'       => $prod_data->dealer_price,
-                   'date'       => date('Y-m-d'),
-                   'order_by'   => 'Member',
-                   'orderid'    => $orderid,
-                   'pv'         => $prod_data->pv,
-                   'type'         => 'topup',
-                   'epin_amount'         => $epin_value,
-               );
-               $this->db->insert('product_sale', $data);
 
-               // Insert into product item table
-               $data = array(
-                   'product_id' => $prod_data->id,
-                   'order_id'   => $orderid,
-                   'cost'       => $prod_data->dealer_price,
-               );
-               $this->db->insert('product_item_sale', $data);
-            // $this->earning->repurchase($orderid);
-            if($this->db_model->count_all('member') <= 100){
-                $this->earning->update_legs();
-            }
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated your account.</div>');
-            redirect(site_url('member/unused-epin'));
+               $this->earning->update_legs();
+
+               $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated your account. Order #' . $orderid . ' created.</div>');
+               redirect(site_url('member/unused-epin'));
+           }
+           else{
+               $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Epin and Package Amount Not Matched.</div>');
+               redirect(site_url('member/unused-epin')); 
+           }
         }
-        else{
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Epin and Package Amount Not Matched.</div>');
-            redirect(site_url('member/unused-epin')); 
-        }
-        }
-        elseif($al_active!=NULL or $al_active > 0){
+        elseif($al_active!=NULL and $al_active > 0){
             $this->session->set_flashdata('common_flash', '<div class="alert alert-danger"> Userid Already Activated.</div>');
             redirect(site_url('member/unused-epin'));
         }

@@ -54,8 +54,46 @@ class Income extends CI_Controller
 
     public function withdraws_list($type = 'All')
     {
+        // Auto-sync: If viewing Paid list and withdraw_request has no Paid records, populate from Paid earnings
+        if ($type == 'Paid' || $type == 'All') {
+            $count_paid_wr = $this->db->where('status', 'Paid')->count_all_results('withdraw_request');
+            if ($count_paid_wr == 0) {
+                $paid_earnings = $this->db->select('userid, sum(amount) as total_amt, date')
+                                          ->from('earning')
+                                          ->where('status', 'Paid')
+                                          ->group_by('userid, date')
+                                          ->get()->result();
+                foreach ($paid_earnings as $pe) {
+                    if ((float)$pe->total_amt > 0) {
+                        $this->db->insert('withdraw_request', array(
+                            'userid'    => $pe->userid,
+                            'amount'    => (float)$pe->total_amt,
+                            'date'      => $pe->date,
+                            'paid_date' => $pe->date,
+                            'status'    => 'Paid',
+                            'tid'       => 'PAY-' . date('Ymd', strtotime($pe->date)) . '-' . $pe->userid,
+                            'tax'       => round((float)$pe->total_amt * (float)config_item('payout_tax') / 100.0, 2),
+                        ));
+                    }
+                }
+            }
+        }
+
         if ($type == 'All') {
             $this->db->select('*');
+        } elseif ($type == 'Un-Paid') {
+            $this->db->select('*')->group_start()
+                     ->where('status', 'Un-Paid')
+                     ->or_where('status', 'unpaid')
+                     ->or_where('status', 'Pending')
+                     ->or_where('status', '')
+                     ->or_where('status IS NULL', null, false)
+                     ->group_end();
+        } elseif ($type == 'Paid') {
+            $this->db->select('*')->group_start()
+                     ->where('status', 'Paid')
+                     ->or_where('status', 'paid')
+                     ->group_end();
         } else {
             $this->db->select('*')->where('status', $type);
         }

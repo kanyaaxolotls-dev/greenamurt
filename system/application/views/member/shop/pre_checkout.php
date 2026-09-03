@@ -88,7 +88,7 @@
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title mb-4">Payment Method</h5>
-                <form action="<?php echo site_url('cart/checkout/'.$items['o_id']) ?>" method="post" name="razorpayform">
+                <form action="<?php echo site_url('cart/checkout') ?>" method="post" name="razorpayform">
                     <div class=" mb-3">
                         <label class="form-check-label mb-2" for="userid">Userid [ <span id="spn_res" style="color: red;"><?= $this->db_model->select('name', 'member', array('id' => $this->session->user_id)) ?></span> ]</label>
                         <input class="form-control" oninput="get_user_name('#sponsor', '#spn_res')" type="text" name="userid" id="sponsor" value="<?= $this->session->user_id ?>" placeholder="Enter userid">
