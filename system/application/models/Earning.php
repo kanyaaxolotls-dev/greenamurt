@@ -312,8 +312,8 @@ class Earning extends CI_Model
         $log_lines[] = "Pairs Calculated: " . $pairs;
         $log_lines[] = "Left PV To Consume: " . $deduct_a;
         $log_lines[] = "Right PV To Consume: " . $deduct_b;
-        $top_id          = config_item('top_id') ? config_item('top_id') : '1001';
-        $is_root_company = ($id == $top_id || $id == '1001');
+        $top_id          = config_item('top_id');
+        $is_root_company = (!empty($top_id) && $id == $top_id);
         $is_active_topup = ((float)$member_data->topup > 0 || $is_root_company);
 
         if ($pairs <= 0 || !$is_active_topup) {
@@ -334,10 +334,10 @@ class Earning extends CI_Model
 
         // 5. PAYOUT CALCULATION (Configuration-Driven)
         $pkg_id = (int)($member_data->signup_package ?? 0);
-        if ($pkg_id <= 0 && $is_root_company) {
-            $pkg_id = 1; // Default to primary product package for root company node
+        $prod   = null;
+        if ($pkg_id > 0) {
+            $prod = $this->db_model->select_multi('matching_income, capping, prod_price', 'product', array('id' => $pkg_id));
         }
-        $prod = $this->db_model->select_multi('matching_income, capping, prod_price', 'product', array('id' => $pkg_id));
         if (!$prod) {
             $prod = $this->db->order_by('id', 'ASC')->get('product')->row();
         }

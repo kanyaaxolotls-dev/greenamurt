@@ -1,0 +1,2429 @@
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:37:53
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:37:53
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 0.00
+Package: N/A
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+TOPUP CHECK: FAILED (Topup = 0.00, Needs > 0)
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 2
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:42:07
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:42:07
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: N/A
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+--> PACKAGE CHECK FAILED: Package matching_income rate is 0 INR in product table.
+FINAL RESULT = PAYOUT FAILED
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:42:16
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:42:16
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: N/A
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+--> PACKAGE CHECK FAILED: Package matching_income rate is 0 INR in product table.
+FINAL RESULT = PAYOUT FAILED
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:42:23
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:42:23
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: N/A
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+--> PACKAGE CHECK FAILED: Package matching_income rate is 0 INR in product table.
+FINAL RESULT = PAYOUT FAILED
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:42:29
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:42:29
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: N/A
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+--> PACKAGE CHECK FAILED: Package matching_income rate is 0 INR in product table.
+FINAL RESULT = PAYOUT FAILED
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:43:37
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:43:37
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: N/A
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+--> PACKAGE CHECK FAILED: Package matching_income rate is 0 INR in product table.
+FINAL RESULT = PAYOUT FAILED
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:49:25
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:49:25
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: 1
+Matching Income Configuration: 890.00
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 1
+User ID: 1001
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-1001-20260903014925-6349
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 1001
+Previous Balance: 0
+Credit Amount: 890
+New Balance: 890
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 0
+Before Paid Right: 0
+Left PV Consumed: 2
+Right PV Consumed: 1
+After Paid Left: 2
+After Paid Right: 1
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 0
+Added: 1
+After: 1
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:50:13
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:50:13
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 2
+Available Left PV: 0
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:50:53
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:50:53
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 2
+Available Left PV: 0
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:51:00
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:51:00
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 2
+Available Left PV: 0
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:51:09
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 01:51:09
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 2
+Available Left PV: 0
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:01:37
+FUNCTION ENTERED: process_binary
+USER ID: 222572
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:01:37
+USER ID: 222572
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 222572
+Member Name: t1
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: 1
+Matching Income Configuration: 890.00
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 2
+User ID: 222572
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-222572-20260903020137-6713
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 222572
+Previous Balance: 0
+Credit Amount: 890
+New Balance: 890
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 0
+Before Paid Right: 0
+Left PV Consumed: 2
+Right PV Consumed: 1
+After Paid Left: 2
+After Paid Right: 1
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 0
+Added: 1
+After: 1
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:02:02
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:02:02
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Bronze Associate
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 4
+Paid Left PV: 2
+Available Left PV: 2
+
+Total Right PV: 3
+Paid Right PV: 1
+Available Right PV: 2
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 4
+Direct Right: 3
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 2
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 2 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? YES (Right = 2 >= 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: 1
+Matching Income Configuration: 890.00
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 3
+User ID: 1001
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-1001-20260903020202-3269
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 1001
+Previous Balance: 890
+Credit Amount: 890
+New Balance: 1780
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 2
+Before Paid Right: 1
+Left PV Consumed: 2
+Right PV Consumed: 1
+After Paid Left: 4
+After Paid Right: 2
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 1
+Added: 1
+After: 2
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 0
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:02:02
+FUNCTION ENTERED: process_binary
+USER ID: 222572
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:02:02
+USER ID: 222572
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 222572
+Member Name: t1
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 2
+Available Left PV: 0
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:02:02
+FUNCTION ENTERED: process_binary
+USER ID: 487347
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:02:02
+USER ID: 487347
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 487347
+Member Name: t2
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:05:32
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:05:32
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Bronze Associate
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 4
+Paid Left PV: 4
+Available Left PV: 0
+
+Total Right PV: 3
+Paid Right PV: 2
+Available Right PV: 1
+
+Lifetime Paid Pairs: 2
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 4
+Direct Right: 3
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:05:32
+FUNCTION ENTERED: process_binary
+USER ID: 222572
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:05:32
+USER ID: 222572
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 222572
+Member Name: t1
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 2
+Available Left PV: 0
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:05:32
+FUNCTION ENTERED: process_binary
+USER ID: 487347
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:05:32
+USER ID: 487347
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 487347
+Member Name: t2
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:22:55
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:22:55
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Bronze Associate
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 6
+Paid Left PV: 4
+Available Left PV: 2
+
+Total Right PV: 3
+Paid Right PV: 2
+Available Right PV: 1
+
+Lifetime Paid Pairs: 2
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 6
+Direct Right: 3
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: 1
+Matching Income Configuration: 890.00
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 4
+User ID: 1001
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-1001-20260903022255-1664
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 1001
+Previous Balance: 1780
+Credit Amount: 890
+New Balance: 2670
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 4
+Before Paid Right: 2
+Left PV Consumed: 2
+Right PV Consumed: 1
+After Paid Left: 6
+After Paid Right: 3
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 2
+Added: 1
+After: 3
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:22:55
+FUNCTION ENTERED: process_binary
+USER ID: 164438
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:22:55
+USER ID: 164438
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 164438
+Member Name: t3
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:22:55
+FUNCTION ENTERED: process_binary
+USER ID: 222572
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:22:55
+USER ID: 222572
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 222572
+Member Name: t1
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 3
+Paid Left PV: 2
+Available Left PV: 1
+
+Total Right PV: 2
+Paid Right PV: 1
+Available Right PV: 1
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:22:55
+FUNCTION ENTERED: process_binary
+USER ID: 487347
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:22:55
+USER ID: 487347
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 487347
+Member Name: t2
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:37:37
+FUNCTION ENTERED: process_binary
+USER ID: 222572
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 02:37:37
+USER ID: 222572
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 222572
+Member Name: t1
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 3
+Paid Left PV: 2
+Available Left PV: 1
+
+Total Right PV: 2
+Paid Right PV: 1
+Available Right PV: 1
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:30:43
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:30:43
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Bronze Associate
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 6
+Paid Left PV: 6
+Available Left PV: 0
+
+Total Right PV: 3
+Paid Right PV: 3
+Available Right PV: 0
+
+Lifetime Paid Pairs: 3
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 6
+Direct Right: 3
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:30:43
+FUNCTION ENTERED: process_binary
+USER ID: 164438
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:30:43
+USER ID: 164438
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 164438
+Member Name: t3
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:30:43
+FUNCTION ENTERED: process_binary
+USER ID: 222572
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:30:43
+USER ID: 222572
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 222572
+Member Name: t1
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 3
+Paid Left PV: 2
+Available Left PV: 1
+
+Total Right PV: 2
+Paid Right PV: 1
+Available Right PV: 1
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:30:43
+FUNCTION ENTERED: process_binary
+USER ID: 487347
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:30:43
+USER ID: 487347
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 487347
+Member Name: t2
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:32:46
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:32:46
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Bronze Associate
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 6
+Paid Left PV: 6
+Available Left PV: 0
+
+Total Right PV: 3
+Paid Right PV: 3
+Available Right PV: 0
+
+Lifetime Paid Pairs: 3
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 6
+Direct Right: 3
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:32:46
+FUNCTION ENTERED: process_binary
+USER ID: 164438
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:32:46
+USER ID: 164438
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 164438
+Member Name: t3
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:32:46
+FUNCTION ENTERED: process_binary
+USER ID: 222572
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:32:46
+USER ID: 222572
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 222572
+Member Name: t1
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 3
+Paid Left PV: 2
+Available Left PV: 1
+
+Total Right PV: 2
+Paid Right PV: 1
+Available Right PV: 1
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:32:46
+FUNCTION ENTERED: process_binary
+USER ID: 487347
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:32:46
+USER ID: 487347
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 487347
+Member Name: t2
+Status: Active
+Rank: Member
+Topup: 1.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 0
+Direct Right: 0
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+NONE
+
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 1
+Right PV Remaining = 1
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:48:10
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 10:48:10
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 0.00
+Package: N/A
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: N/A
+Matching Income Configuration: 890.00
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 1
+User ID: 1001
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-1001-20260903104810-8883
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 1001
+Previous Balance: 0
+Credit Amount: 890
+New Balance: 890
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 0
+Before Paid Right: 0
+Left PV Consumed: 2
+Right PV Consumed: 1
+After Paid Left: 2
+After Paid Right: 1
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 0
+Added: 1
+After: 1
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 11:03:06
+FUNCTION ENTERED: process_binary
+USER ID: 1001
+========================================
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-03 11:03:06
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 0.00
+Package: N/A
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 0
+Available Left PV: 2
+
+Total Right PV: 1
+Paid Right PV: 0
+Available Right PV: 1
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 2
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 2
+Right Available: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 2 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 2 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio:
+2:1
+
+Pairs Calculated: 1
+Left PV To Consume: 2
+Right PV To Consume: 1
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: N/A
+Matching Income Configuration: 890.00
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 1
+User ID: 1001
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-1001-20260903110306-8669
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 1001
+Previous Balance: 0
+Credit Amount: 890
+New Balance: 890
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 0
+Before Paid Right: 0
+Left PV Consumed: 2
+Right PV Consumed: 1
+After Paid Left: 2
+After Paid Right: 1
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 0
+Added: 1
+After: 1
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+

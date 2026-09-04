@@ -16,24 +16,95 @@ class Income extends CI_Controller
         $this->load->library('pagination');
     }
 
+    public function fran_payout($type = 'All')
+    {
+        if ($type == 'All') {
+            $this->db->select('*');
+        } else {
+            $this->db->select('*')->where('status', $type);
+        }
+        $this->db->from('fran_withdraw_request');
+        $this->db->order_by('id', 'DESC');
+    
+        $query = $this->db->get();
+        if (!$query) {
+            $error = $this->db->error();
+            echo 'Database error: ' . $error['message'];
+            return;
+        }
+    
+        $data['data']       = $query->result();
+        $data['title']      = 'Franchisee Payout Requests';
+        $data['breadcrumb'] = $type . ' Payments';
+        $data['layout']     = 'franchisee/payout.php';
+        $this->load->view('admin/index', $data);
+    }
+    
+    public function update_payout_new()
+    {
+        redirect('cron/newcron2');
+    }
+
+    public function fran_pay() 
+    {
+        $payid    = $this->input->post('payid');
+        $tdetail  = $this->input->post('tdetail');
+
+        $data = array(
+            'status'    => 'Paid',
+            'paid_date' => date('Y-m-d'),
+            'tid'       => $tdetail
+        );
+        $this->db->where('id', $payid);
+        $this->db->update('fran_withdraw_request', $data);
+
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Marked as Paid successfully.</div>');
+        redirect('income/fran_payout');
+    }
+    
+    public function fran_hold($id)
+    {
+        $data = array(
+            'status' => 'Hold',
+        );
+        $this->db->where('id', $id);
+        $this->db->update('fran_withdraw_request', $data);
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Hold the payment  successfully.</div>');
+        redirect('income/fran_payout');
+    }
+
+    public function fran_unhold($id)
+    {
+        $data = array(
+            'status' => 'Un-Paid',
+        );
+        $this->db->where('id', $id);
+        $this->db->update('fran_withdraw_request', $data);
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Un-Hold the payment  successfully.</div>');
+        redirect('income/fran_payout');
+    }
+
     public function process_payouts()
     {
         $selected_ids = $this->input->post('selected_ids');
         $status       = $this->input->post('status');
+        #echo "<pre>";print_r($_POST);die();
         if ($selected_ids) {
             $id_array = explode(',', $selected_ids);
             foreach ($id_array as $id) {
                 $amount  = $this->db_model->select_multi('userid,amount', 'withdraw_request', array('id' => $id));
+                $total_deduction_rate = (float)config_item('admin_charges') + (float)config_item('payout_tax');
                 $data = array(
                     'status'    => $status,
                     'paid_date' => date('Y-m-d'),
                     'tid'       => '',
-                    'tax'       => ($amount->amount * config_item('payout_tax') / 100),
+                    'tax'       => ($amount->amount * $total_deduction_rate / 100),
                 );
                 $this->db->where('id', $id);
-                $this->db->update('withdraw_request', $data);
+                $result = $this->db->update('withdraw_request', $data);
         
                 if($status == 'Paid'){
+                #if($result && $this->db->affected_rows() > 0){
                     $data = array(
                         'userid'     => $amount->userid,
                         'amount'     => $amount->amount,
@@ -54,76 +125,23 @@ class Income extends CI_Controller
 
     public function withdraws_list($type = 'All')
     {
-        // Auto-sync: If viewing Paid list and withdraw_request has no Paid records, populate from Paid earnings
-        if ($type == 'Paid' || $type == 'All') {
-            $count_paid_wr = $this->db->where('status', 'Paid')->count_all_results('withdraw_request');
-            if ($count_paid_wr == 0) {
-                $paid_earnings = $this->db->select('userid, sum(amount) as total_amt, date')
-                                          ->from('earning')
-                                          ->where('status', 'Paid')
-                                          ->group_by('userid, date')
-                                          ->get()->result();
-                foreach ($paid_earnings as $pe) {
-                    if ((float)$pe->total_amt > 0) {
-                        $this->db->insert('withdraw_request', array(
-                            'userid'    => $pe->userid,
-                            'amount'    => (float)$pe->total_amt,
-                            'date'      => $pe->date,
-                            'paid_date' => $pe->date,
-                            'status'    => 'Paid',
-                            'tid'       => 'PAY-' . date('Ymd', strtotime($pe->date)) . '-' . $pe->userid,
-                            'tax'       => round((float)$pe->total_amt * (float)config_item('payout_tax') / 100.0, 2),
-                        ));
-                    }
-                }
-            }
-        }
+        $from_date = trim($this->input->post('from_date') ?? '');
+        $to_date   = trim($this->input->post('to_date') ?? '');
 
-        if ($type == 'All') {
-            $this->db->select('*');
-        } elseif ($type == 'Un-Paid') {
-            $this->db->select('*')->group_start()
-                     ->where('status', 'Un-Paid')
-                     ->or_where('status', 'unpaid')
-                     ->or_where('status', 'Pending')
-                     ->or_where('status', '')
-                     ->or_where('status IS NULL', null, false)
-                     ->group_end();
-        } elseif ($type == 'Paid') {
-            $this->db->select('*')->group_start()
-                     ->where('status', 'Paid')
-                     ->or_where('status', 'paid')
-                     ->group_end();
-        } else {
-            $this->db->select('*')->where('status', $type);
+        $this->db->select('*');
+        if ($type != 'All' && !empty($type)) {
+            $this->db->where('status', $type);
         }
-        
-        if (!empty($this->input->post('from_date'))) {
-            $from_date = date('Y-m-d 00:00:00', strtotime($this->input->post('from_date')));
+        if (!empty($from_date)) {
             $this->db->where('date >=', $from_date);
         }
-        
-        if (!empty($this->input->post('to_date'))) {
-            $to_date = date('Y-m-d 23:59:59', strtotime($this->input->post('to_date')));
+        if (!empty($to_date)) {
             $this->db->where('date <=', $to_date);
         }
-        
-        if (!empty($this->input->post('adhar_no'))) {
-            $adhar_no = $this->input->post('adhar_no');
-            $this->db->where('pan_no', $adhar_no);
-        }
-        
-        if (!empty($this->input->post('fname'))) {
-            $fname = $this->input->post('fname');
-            $this->db->where('fname', $fname);
-        }
-        
         $this->db->from('withdraw_request');
-        #$this->db->group_by('userid, date');
         $this->db->order_by('id', 'DESC');
     
         $query = $this->db->get();
-        #print_r($this->db->last_query());die();
         if (!$query) {
             $error = $this->db->error();
             echo 'Database error: ' . $error['message'];
@@ -131,66 +149,14 @@ class Income extends CI_Controller
         }
     
         $data['data']       = $query->result();
-        $data['title']      = $type . ' Payout Requests';
+        $data['title']      = 'Payout Requests';
         $data['breadcrumb'] = $type . ' Payments';
         $data['typee']      = $type;
         $data['layout']     = 'income/makepayment.php';
         $this->load->view('admin/index', $data);
     }
 
-    public function update_payout_new(){
-        $this->update_adhar();
-        $cname     = config_item('company_name');
-        $web       = $_SERVER['HTTP_HOST'];
-        $user_ip   = $_SERVER['REMOTE_ADDR'];  
-        $today_1am = date('Y-m-d 01:00:00');
-        
-        $this->db->select('userid, status, SUM(amount) AS total_balance');
-        $this->db->from('earning');
-        $this->db->where('status', 'Pending');
-        $this->db->where('date <=', $today_1am);  
-        $this->db->group_by(['userid', 'status']);
-        $groups = $this->db->get()->result_array();
-
-        foreach ($groups as $grp) {
-            $this->db->where('userid', $grp['userid']);
-            $this->db->where('status', $grp['status']);
-            $this->db->update('earning', ['status' => 'Paid']);
     
-            $withdraw_data = array(
-                'userid' => $grp['userid'],
-                'amount' => $grp['total_balance'],
-                'date'   => date('Y-m-d'),
-            );
-            $this->db->insert('withdraw_request', $withdraw_data);
-    
-            $log_data = array(
-                'userid' => $this->session->admin_id,   
-                'log'    => json_encode($withdraw_data),   
-                'type'   => 'Admin',
-                'ip'     => $user_ip,   
-            );
-            $this->db->insert('logs', $log_data);
-        }
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Payout successfully added..</div>');
-        $referrer = $_SERVER['HTTP_REFERER'] ? $_SERVER['HTTP_REFERER'] : site_url('income/withdraws_list'); 
-        redirect($referrer);
-    }
-
-    public function update_adhar(){
-        $datta = $this->db->select('*')->from('withdraw_request')->get()->result();
-        foreach($datta as $tr){
-            $bank_data   = $this->db_model->select_multi('*', 'member_profile', array('userid' => $tr->userid));
-            $memb_data   = $this->db_model->select_multi('*', 'member', array('id' => $tr->userid));
-            $adhar_no    = $bank_data->aadhar_no ?? NULL;
-            $fname       = $memb_data->name ?? NULL;
-			$data = array('pan_no' => $adhar_no, 'fname' => $fname);
-			$this->db->where('id', $tr->id);
-			$this->db->update('withdraw_request', $data);
-        }
-        return true;
-    }
-
     public function pay_cycle() {
         $pay_type   = $this->input->post('pay_type') ?? NULL;
         $start_date = $this->input->post('sdate') ?? NULL;
@@ -218,7 +184,6 @@ class Income extends CI_Controller
         $this->load->view('admin/index', $data);
     }
     
-    /* Autopool endpoint commented out
     public function autopool_one(){
         $config['base_url']   = site_url('income/autopool_one');
         $config['per_page']   = 100;
@@ -236,7 +201,6 @@ class Income extends CI_Controller
         $data['layout']     = 'income/autopool_one.php';
         $this->load->view('admin/index', $data);
     }
-    */
     public function pay_earning()
 {
     $this->db->select('id, userid, amount, type, ref_id, date, pair_match,levlno')->from('earning')->where('type','sponsor inc')->order_by('date', 'DESC')
@@ -261,7 +225,6 @@ public function pay_post_earning()//in process
     redirect('income/pay_earning');
 }
 
-    /* Autopool endpoints commented out
     public function autopool_two(){
         $config['base_url']   = site_url('income/autopool_two');
         $config['per_page']   = 100;
@@ -299,7 +262,6 @@ public function pay_post_earning()//in process
 
 
     }
-    */
     public function sponsor_income(){
     $config['base_url']   = site_url('income/sponsor_income');
     $config['per_page']   = 100;
@@ -318,7 +280,6 @@ public function pay_post_earning()//in process
     $this->load->view('admin/index', $data);   
 }
 
-/* Autopool endpoints commented out
 public function autopool_four(){
         $config['base_url']   = site_url('income/autopool_four');
         $config['per_page']   = 100;
@@ -395,14 +356,12 @@ public function autopool_four(){
         $data['layout']     = 'income/autopool_seven.php';
         $this->load->view('admin/index', $data);
     }
-    */
 
     public function view_earning() 
     {
         $type       = $this->input->post('type');
         $start_date = $this->input->post('start_date');
         $end_date   = $this->input->post('end_date');
-    
         if (!empty($type)) {
             $this->db->where('type', $type);
         }
@@ -416,19 +375,15 @@ public function autopool_four(){
         $data['type']       = $type ?? '';
         $data['start_date'] = $start_date ?? '';
         $data['end_date']   = $end_date ?? '';
-    
-        $this->db->select('*, userid, DATE(date) as date, SUM(amount) as total_amount')
-                 ->from('earning')
-                 ->group_by(['type', 'userid', 'ref_id', 'DATE(date)'])
-                 ->having('SUM(amount) >', 0);  
-    
+        $this->db->select('*, userid, DATE(date) as date, SUM(amount) as total_amount')->from('earning')->group_by(['type', 'userid', 'DATE(date)']);
         $data['earning']    = $this->db->get()->result_array();
         $data['title']      = 'Earnings';
         $data['breadcrumb'] = 'View Earnings';
         $data['layout']     = 'income/view_earning.php';
-    
         $this->load->view('admin/index', $data);
     }
+
+  
     
     public function daily_earning() 
     {
@@ -551,7 +506,15 @@ public function autopool_four(){
 
         $this->db->select('id, userid, amount, type, ref_id, date, pair_match')->from('earning');
         if ($income_name !== "All") {
-            $this->db->where('type', $this->input->post('income_name'));
+            if ($income_name == 'Active Bonus') {
+                $this->db->where_in('type', array('Active Bonus', 'Referral Reward', 'Direct Income'));
+            } elseif ($income_name == 'Team Bonus') {
+                $this->db->where_in('type', array('Team Bonus', 'Matching Income'));
+            } elseif ($income_name == 'Active Sponsor Bonus') {
+                $this->db->where_in('type', array('Active Sponsor Bonus', 'Matching Sponsor Inc', 'Sponsor Income'));
+            } else {
+                $this->db->where('type', $income_name);
+            }
         }
         if (trim($userid) !== "") {
             $this->db->where('userid', $userid);
@@ -765,43 +728,10 @@ public function autopool_four(){
              $this->common_model->mail($email, $sub, $msg);
             } 
 
+       // $this->common_model->mail($user_data->email, 'Payout Generated', 'Hi, ' . $user_data->name . ', Your payout of ' . config_item('currency') . $amount->amount . ' has been generated and paid. Please check your account. <hr/>--' . config_item('company_name'));
 
         $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Marked as Paid successfully.</div>');
-        redirect($_SERVER['HTTP_REFERER']);
-    }
-
-    public function pay_ajax()
-    {
-        $payid   = $this->input->post('id');      
-        $tdetail = $this->input->post('detail');  
-    
-        $amount  = $this->db_model->select_multi('userid,amount', 'withdraw_request', array('id' => $payid));
-    
-        if (!$amount) {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid request ID']);
-            return;
-        }
-    
-        $data = array(
-            'status'    => 'Paid',
-            'paid_date' => date('Y-m-d'),
-            'tid'       => $tdetail,
-            'tax'       => ($amount->amount * config_item('payout_tax') / 100),
-        );
-        $this->db->where('id', $payid)->update('withdraw_request', $data);
-    
-        $tax_data = array(
-            'userid'     => $amount->userid,
-            'amount'     => $amount->amount,
-            'payout_id'  => $payid,
-            'tax_amount' => ($amount->amount * config_item('payout_tax') / 100),
-            'tax_percnt' => config_item('payout_tax'),
-            'date'       => date('Y-m-d'),
-        );
-        $this->db->insert('tax_report', $tax_data);
-    
-        echo json_encode(['status' => 'success', 'message' => 'Marked as Paid successfully.']);
-        exit;
+        redirect('income/make_payment');
     }
 
    public function user_data()
@@ -987,35 +917,15 @@ public function autopool_four(){
         redirect('income/pay-rewards');
     }
 
-    public function hold()
+    public function hold($id)
     {
-        $id          = $this->input->post('holdid');
-        $hold_reason = $this->input->post('hold_reason');
-    
         $data = array(
-            'status'      => 'Hold',
-            'hold_reason' => $hold_reason,
+            'status' => 'Hold',
         );
         $this->db->where('id', $id);
         $this->db->update('withdraw_request', $data);
-    
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Payment put on Hold successfully.</div>');
-        redirect($_SERVER['HTTP_REFERER']);
-    }
-
-
-    public function hold_ajax()
-    {
-        $id     = $this->input->post('id');
-        $reason = $this->input->post('reason');
-    
-        $this->db->where('id', $id);
-        $this->db->update('withdraw_request', [
-            'status'      => 'Hold',
-            'hold_reason' => $reason
-        ]);
-    
-        echo json_encode(['status' => 'success', 'message' => 'Payment put on Hold successfully.']);
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Hold the payment  successfully.</div>');
+        redirect('income/make_payment');
     }
 
     public function unhold($id)

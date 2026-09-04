@@ -1,29 +1,40 @@
 <?php
+    $calc_total_inc = isset($total_income) ? $total_income : ($this->db_model->sum('amount', 'earning', array('userid' => $this->session->user_id)) + 0);
+
+    $calc_sponsor_b = isset($direct_sponsor_income) ? $direct_sponsor_income : (
+        $this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->group_start()->where_in('type', array('Direct Sponsor Income', 'Direct Sponsor Commission', 'Active Bonus', 'Referral Reward', 'Direct Income', 'Referral Income'))->group_end()->get()->row()->amount + 0
+    );
+
+    $calc_team_b = isset($matching) ? $matching : (
+        $this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->group_start()->where_in('type', array('Team Bonus', 'Matching Income', 'Matching'))->group_end()->get()->row()->amount + 0
+    );
+
+    $calc_matching_sp = isset($sp_level_income2) ? $sp_level_income2 : (
+        $this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->group_start()->where_in('type', array('Active Sponsor Bonus', 'Matching Sponsor Inc', 'Sponsor Income', 'Sponsor Level Inc'))->group_end()->get()->row()->amount + 0
+    );
+
+    $calc_today_sp = isset($today_sponsor_income) ? $today_sponsor_income : (
+        $this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->where('date', date('Y-m-d'))->group_start()->where_in('type', array('Direct Sponsor Income', 'Direct Sponsor Commission'))->group_end()->get()->row()->amount + 0
+    );
+
     $sections = [
-        'My Incomes' => [
-            ['title' => 'Today Matching Income', 'value' => $today_matching],
-            ['title' => 'Total Matching Income', 'value' => $matching],
-            ['title' => 'Today Sponsor Income', 'value' => $this->db_model->sum('amount', 'earning', ['type' => 'Direct Sponsor Commission', 'userid' => $this->session->user_id,'date' => date('Y-m-d')])],
-            ['title' => 'Total Sponsor Income', 'value' => $this->db_model->sum('amount', 'earning', ['type' => 'Direct Sponsor Commission', 'userid' => $this->session->user_id])],
-        ],
-        /* Re-purchase & Royalty incomes section commented out
-        'Re-purchase' => [
-            ['title' => 'Monthly Repurchase Income', 'value' => $monthly_repurchase_inc],
-            ['title' => 'Total Repurchase Income', 'value' => $total_repurchase_inc],
-            ['title' => 'Monthly Royalty Income', 'value' => $monthly_royalty_inc],
-            ['title' => 'Total Royalty Income', 'value' => $total_royalty_inc],
-        ],
-        */
-        'Balance Pairs' => [
-            ['title' => 'Balance Left PV', 'value' => ($detail->total_a_pv - $detail->paid_a_pv)],
-            ['title' => 'Balance Right PV', 'value' => ($detail->total_b_pv - $detail->paid_b_pv)],
-            ['title' => 'Total Match PV', 'value' => $detail->total_pairs]
-        ],
         'Total Team And Pairs' => [
             ['title' => 'Left PV', 'value' => $detail->total_a_pv],
             ['title' => 'Right PV', 'value' => $detail->total_b_pv],
             ['title' => 'Left Team', 'value' => $detail->total_a],
             ['title' => 'Right Team', 'value' => $detail->total_b]
+        ],
+        'My Incomes' => [
+            ['title' => 'Total Income', 'value' => $calc_total_inc],
+            ['title' => 'Direct Sponsor Income', 'value' => $calc_sponsor_b],
+            ['title' => 'Sales Matching Income', 'value' => $calc_team_b],
+            ['title' => 'Matching Sponsor Income', 'value' => $calc_matching_sp],
+            ['title' => 'Today Sponsor Income', 'value' => $calc_today_sp],
+        ],
+        'Balance Pairs' => [
+            ['title' => 'Balance Left PV', 'value' => ($detail->total_a_pv - $detail->paid_a_pv)],
+            ['title' => 'Balance Right PV', 'value' => ($detail->total_b_pv - $detail->paid_b_pv)],
+            ['title' => 'Total Match PV', 'value' => $detail->total_pairs]
         ],
         'Payout' => [
             ['title' => 'Payment Received', 'value' => $p_Paid],
@@ -44,7 +55,9 @@
             $count = count($cards);
             $colClass = 'col-md-4';  
 
-            if ($count === 4) {
+            if ($count === 5) {
+                $colClass = 'col-md-4 col-xl';
+            } elseif ($count === 4) {
                 $colClass = 'col-md-3';
             } elseif ($count === 6) {
                 $colClass = 'col-md-2';
@@ -63,13 +76,15 @@
                             <div class="flex-grow-1">
                                 <span class="text-dark mb-3 lh-1 d-block text-truncate"><?php echo $card['title']; ?></span>
                                 <h4 class="mb-3">
-                                    <?php if (strpos($sectionTitle, 'Payout') !== false || strpos($card['title'], 'Income') !== false): ?>
+                                    <?php if (strpos($sectionTitle, 'Payout') !== false || strpos($sectionTitle, 'Incomes') !== false || strpos($card['title'], 'Income') !== false || strpos($card['title'], 'Bonus') !== false): ?>
                                         <i class="fas fa-rupee-sign"></i>
                                     <?php endif; ?>
                                     <span class="counter-value" data-target="<?php echo $card['value']; ?>"></span>
                                 </h4>
                             </div>
-                            
+                            <div class="flex-shrink-0 text-end dash-widget">
+                                <div id="mini-chart<?php echo ($index % 3) + 1; ?>" data-colors='["#1c84ee", "#33c38e"]' class="apex-charts"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -77,3 +92,4 @@
         <?php endforeach; ?>
     </div>
 <?php endforeach; ?>
+

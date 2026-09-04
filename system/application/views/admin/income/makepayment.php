@@ -63,9 +63,7 @@
                     <?php if($typee == 'Un-Paid' or $typee == 'Hold'){ ?>
                     <button type="button" class="btn btn-success mb-3" onclick="submitForm('Paid')">Paid selected ids</button>
                     <button type="button" class="btn btn-warning mb-3" onclick="submitForm('Hold')">Hold selected ids</button>
-                    <button type="button" class="btn btn-danger mb-3" onclick="submitForm('Reject')">Reject selected ids</button>
-                    <!--<a href="<?= base_url('income/update_payout_new'); ?>"  class="btn btn-info mb-3" onclick="return confirm('Are you sure you want to generate the payout?');">Generate Payout</a>-->
-                    <a href="<?= base_url('cron'); ?>"  class="btn btn-info mb-3" onclick="return confirm('Are you sure you want to generate the payout?');">Generate Payout</a>
+                    <a href="<?= site_url('cron/newcron2'); ?>"  class="btn btn-info mb-3" onclick="return confirm('Are you sure you want to generate the payout?');">Generate Payout</a>
                     <?php } ?>
                     <table class="table align-items-center table-flush" id="example">
                         <thead>

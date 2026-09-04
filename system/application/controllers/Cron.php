@@ -7,196 +7,56 @@ class Cron extends CI_Controller
 	public function __construct()
 	{
 		parent::__construct();
-        $this->send_wp          = $this->db_model->select('send_wp', 'global_setting', array('id' => 1));
-        $this->send_mail        = $this->db_model->select('send_mail', 'global_setting', array('id' => 1));
-        $this->payout_day       = $this->db_model->select('payout_days', 'global_setting', array('id' => 1));
-        $this->payout_method    = $this->db_model->select('payout_method', 'global_setting', array('id' => 1));
-        $this->enable_autopool  = $this->db_model->select('enable_autopool', 'global_setting', array('id' => 1));
+		date_default_timezone_set('Asia/Kolkata');
+        $this->send_wp     = $this->db_model->select('send_wp', 'global_setting', array('id' => 1));
+        $this->send_mail   = $this->db_model->select('send_mail', 'global_setting', array('id' => 1));
+        $this->payout_day  = $this->db_model->select('payout_days', 'global_setting', array('id' => 1));
 	} 
+
+// public function reprocess_matching_income()
+// {
+//     $this->load->model('earning'); // adjust to your actual model name
+
+// 		$this->db->select('*')->where('type', 'Matching Income');
+// 		$records = $this->db->get('earning')->result();
+//     foreach ($records as $row) {
+//         $this->earning->process_lvl($row->userid, $row->amount);
+//     }
+
+//     return TRUE;
+// }
 
 	public function index()
 	{
-		$this->newcron2();
-		if($this->enable_autopool == 1){
-		    $this->autopool_cron();
-		}
-		
-        if($this->payout_method == 'manual'){
-            $this->payout();
-        }
-        
-        if (date('w') == $this->payout_day or $this->payout_day == 0) {  
-            $this->generate_withdrawals();
-            #$this->fran_update_payout_new();
-            
-            if (date('t') == date('j')) 
-            { 
-                // If today is the last day of the month, send the repurchase payout.
-                $this->update_repurchase_payout();
-            }
-        }
-        
-        #Royalty Income Month Wise And royalty_rank Wise
-		if (date('j') == 1)  
-		{  
-			$this->load->model('earning');
-			$this->earning->royalty_income_process_month(date('Y-m', strtotime('-1 month')));
-			#$this->earning->royalty_income_process_month(date('Y-m'));
-		}
-        
-		redirect(isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'income/withdraws_list');
-
+		$this->daily_payout();
 	}
 
-    public function autopool_cron(){
-        $this->autopool_legs();
-        $this->autopool_binary();
-        
-        if($this->payout_method == 'manual'){
-            $this->payout();
-        }
-        
-        if (date('w') == $this->payout_day or $this->payout_day == 0) {  
-            $this->update_payout_new();
-            $this->generate_withdrawals();
-            $this->fran_update_payout_new();
-            if (date('t') == date('j')) 
-            { 
-                // If today is the last day of the month, send the repurchase payout.
-                $this->update_repurchase_payout();
-            }
-        }
-    }
+    public function newcron2(){
 
-	public function autopool_legs()
-	{
-		$this->load->model('auto_pools');
-		$this->auto_pools->update_legs();
-		$i = 0;
-		$j = $this->db_model->select('total_pool', 'autopool_setting', array('id' => 1));
-		while($i < $j){
-		    $i++;
-		    $table = 'autopool_'.$i;
-		    $this->auto_pools->update_legs($table);
-		}
-	}
-	
-	public function autopool_binary()
-	{
-		$this->load->model('auto_pools');
-		$i = 0;
-		$j = $this->db_model->select('total_pool', 'autopool_setting', array('id' => 1));
-		while($i < $j){
-		    $i++;
-		    $table = 'autopool_'.$i;
-		    $this->auto_pools->autopool_binary($table, $i);
-		}
-	}
-	
-    public function newcron2()
-	{
-		$this->update_first_rank();
+        $this->load->model('earning');
+
         $this->update_legs();
         $this->binary_payout();
         $this->rank_update();
-        $this->reward();
-        #$this->roi();
-        
+
         $this->update_payout_new();
         $this->generate_withdrawals();
 
-        if ($this->session->userdata('admin_id')) {
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Binary Matching Payout and Payout Requests Executed Successfully.</div>');
-            redirect('income/withdraws_list');
-        } else {
-            header('Content-Type: text/plain; charset=utf-8');
-            echo "=====================================================\n";
-            echo "CRON newcron2 EXECUTED SUCCESSFULLY\n";
-            echo "Date: " . date('Y-m-d H:i:s') . "\n";
-            echo "Binary payout evaluation, wallet settlement, and payout list generation completed.\n";
-            echo "Details written to: /system/application/logs/payout_debug.log\n";
-            echo "=====================================================\n";
-        }
+		redirect('income/withdraws_list/Un-Paid');
     }
 
-    public function debug_payout($userid = 0)
-    {
-        header('Content-Type: text/plain');
-        echo "=====================================================\n";
-        echo "GREEN AMRUT AYURVEDA - PAYOUT STEP-BY-STEP DIAGNOSTIC\n";
-        echo "Date: " . date('Y-m-d H:i:s') . "\n";
-        echo "=====================================================\n\n";
+    public function daily_payout(){
 
-        echo "STEP 1: Running update_legs()...\n";
-        $this->load->model('earning');
-        $this->earning->update_legs();
-        echo "[OK] Updated leg PV and downline counts for all members.\n\n";
+        $this->generate_withdrawals();
+        $this->fran_update_payout_new();
 
-        echo "STEP 2: Evaluating binary payout qualification...\n";
-        if ($userid > 0) {
-            $members = $this->db->select('*')->from('member')->where('id', $userid)->get()->result();
-        } else {
-            $members = $this->db->select('*')->from('member')->get()->result();
-        }
-
-        echo "Found " . count($members) . " member(s) to evaluate.\n\n";
-
-        foreach ($members as $m) {
-            echo "-----------------------------------------------------\n";
-            echo "MEMBER ID: {$m->id} | Name: {$m->name}\n";
-            echo "Topup: {$m->topup} | Status: {$m->status} | Package ID: {$m->signup_package}\n";
-            echo "Total Left PV (total_a_pv): {$m->total_a_pv} | Paid Left PV: {$m->paid_a_pv}\n";
-            echo "Total Right PV (total_b_pv): {$m->total_b_pv} | Paid Right PV: {$m->paid_b_pv}\n";
-            
-            $log = $this->earning->process_binary($m->id, array(), true);
-            if (is_array($log)) {
-                foreach ($log as $line) {
-                    echo "  " . $line . "\n";
-                }
-            }
-            echo "\n";
-        }
-
-        echo "STEP 3: Checking Pending Earnings in 'earning' table...\n";
-        $pending = $this->db->select('userid, type, amount, date, status')->from('earning')->where('status', 'Pending')->get()->result();
-        if (empty($pending)) {
-            echo "No 'Pending' earnings currently waiting for wallet transfer.\n\n";
-        } else {
-            echo "Found " . count($pending) . " Pending earning record(s):\n";
-            foreach ($pending as $p) {
-                echo "  User ID: {$p->userid} | Type: {$p->type} | Amount: {$p->amount} | Date: {$p->date}\n";
-            }
-            echo "\n";
-        }
-
-        echo "STEP 4: Running update_payout_new() (wallet settlement)...\n";
-        $this->update_payout_new();
-        echo "[OK] Transferred pending earnings to user wallets and set status = 'Paid'.\n\n";
-
-        echo "Diagnostic complete! Complete log written to: application/logs/payout_debug.log\n";
+		redirect('income/withdraws_list/Un-Paid');
     }
 
-
-	public function update_first_rank()
-	{
-		$this->db->select('*')->from('member')->where('topup >', 0)->where('rank', 'Member');
-		$data = $this->db->get()->result();
-
-		foreach ($data as $result) 
-		{
-			$sponsor_count = $this->db_model->count_all('member', array('sponsor' => $result->id, 'topup >' => 0));
-
-			if ($sponsor_count >= 6) 
-			{
-				if (trim($result->rank) == 'Member') 
-				{
-					$array = array('rank' => 'Bronze Associate',);
-					$this->db->where('id', $result->id)->update('member', $array);
-				}
-			}
-		}
-	}
-
+    public function weekly_payout(){
+        // Payout is converted to DAILY - forward directly to daily_payout
+        $this->daily_payout();
+    }
 
 	public function update_legs()
 	{
@@ -205,20 +65,36 @@ class Cron extends CI_Controller
 	}
 
 	public function binary_payout()
-	{	
-		$top_id = config_item('top_id') ? config_item('top_id') : '1001';
-		$this->db->select('*')->from('member')
-		         ->group_start()
-		             ->where('topup >', '0')
-		             ->or_where('id', $top_id)
-		         ->group_end()
-		         ->where('total_a_pv >', 0)
-		         ->where('total_b_pv >', 0);
+	{
+		$top_id = config_item('top_id');
+		$this->db->select('*')->from('member');
+		if (!empty($top_id)) {
+			$this->db->group_start()->where('topup >', 0)->or_where('id', $top_id)->group_end();
+		} else {
+			$this->db->where('topup >', 0);
+		}
+		$this->db->where('total_a_pv >', 0)->where('total_b_pv >', 0);
 		$data = $this->db->get()->result();
+
+		$log_dir = APPPATH . 'logs';
+		if (!is_dir($log_dir)) {
+			@mkdir($log_dir, 0777, true);
+		}
+		$cron_match_log = $log_dir . DIRECTORY_SEPARATOR . 'matching_bonus_' . date('Y-m-d') . '.log';
+		$header = "\n========================================\n"
+				. "[MATCHING BONUS / BINARY RUN]\n"
+				. "TIME: " . date('Y-m-d H:i:s') . "\n"
+				. "MEMBERS EVALUATED: " . (is_array($data) ? count($data) : 0) . "\n"
+				. "========================================\n";
+		@file_put_contents($cron_match_log, $header, FILE_APPEND);
+
 		foreach ($data as $result) {
 			$this->load->model('earning');
 			$data2 = array('total_a' => $result->total_a, 'total_b' => $result->total_b,'total_a_pv' => $result->total_a_pv, 'total_b_pv' => $result->total_b_pv, 'paid_a_pv' => $result->paid_a_pv, 'paid_b_pv' => $result->paid_b_pv, 'paid_a' => $result->paid_a, 'paid_b' => $result->paid_b, 'signup_package' => $result->signup_package, 'mypv' => $result->mypv, 'total_a_matching_incm' => $result->total_a_matching_incm, 'total_b_matching_incm' => $result->total_b_matching_incm, 'total_c_matching_incm' => $result->total_c_matching_incm, 'paid_a_matching_incm' => $result->paid_a_matching_incm, 'paid_b_matching_incm' => $result->paid_b_matching_incm);
-			$this->earning->process_binary($result->id, $data2);
+			$log_result = $this->earning->process_binary($result->id, $data2, true);
+			if (is_array($log_result)) {
+				@file_put_contents($cron_match_log, implode("\n", $log_result) . "\n\n", FILE_APPEND);
+			}
 		}
 	}
 	
@@ -236,7 +112,7 @@ class Cron extends CI_Controller
 
 	public function roi()
 	{ 
-		$count_product_roi = $this->db_model->count_all('product', array('roi >' => 0.00));
+		$count_product_roi = $this->db_model->count_all('product', array('roi >' =>0.00));
 		if (0 < $count_product_roi) {
 			$this->load->model('earning');
 			$this->earning->roi_earning();
@@ -263,145 +139,231 @@ class Cron extends CI_Controller
 			}
 	    } 
 	}
-
-    /*hide on 26-02-2026 for now we send repurechase and others income seprately
+	
 	public function update_payout_new()
-	{
-		$cname = config_item('company_name');
-		$web   = $_SERVER['HTTP_HOST'];
+    {
+        $this->db->select('userid, SUM(amount) AS total_balance');
+        $this->db->from('earning');
+        $this->db->where('status', 'Pending');
+        $this->db->group_by('userid');
+        $groups = $this->db->get()->result_array();
 
-		// Global Setting से Social Welfare Percentage
-		$social_welfare_percent = floatval($this->db_model->select('social_welfare_fund', 'global_setting', ['id' => 1]));
+        foreach ($groups as $grp)
+        {
+            if ($grp['total_balance'] <= 0) {
+                continue;
+            }
 
-		// सभी pending earning को group करें userid के हिसाब से
-		$this->db->select('userid, status, SUM(amount) AS total_balance');
-		$this->db->from('earning');
-		$this->db->where('status', 'Pending');
-		$this->db->group_by(['userid', 'status']);
-		$groups = $this->db->get()->result_array();
+            $cur_balance = $this->db_model->select('balance', 'wallet', ['userid' => $grp['userid']]) + 0;
+            $this->db->where('userid', $grp['userid']);
+            $this->db->update('wallet', ['balance' => $cur_balance + $grp['total_balance']]);
 
-		foreach ($groups as $grp) 
-		{
-			$userid = $grp['userid'];
-			$total_balance = $grp['total_balance'];
+            $this->db->where('userid', $grp['userid']);
+            $this->db->where('status', 'Pending');
+            $this->db->update('earning', ['status' => 'Paid']);
+        }
+    }
 
-			// Member की activation_type निकालें
-			$activation_type = $this->db_model->select('activation_type', 'member', ['id' => $userid]);
+	public function generate_withdrawals()
+    {
+        $min          = floatval(config_item('min_withdraw'));
+        $admin_charge = floatval(config_item('admin_charges'));
+        $payout_tax   = floatval(config_item('payout_tax'));
+        $deduct_pc    = $admin_charge + $payout_tax;
 
-			// ===== FREE USER CASE =====
-			if (strtolower(trim($activation_type)) == 'free') 
-			{
-				if ($total_balance >= 5000) 
-				{
-					// Step 1️⃣: 5000 deduct करें और earning_deduct table में डालें
-					$this->db->insert('earning_deduct', [
-						'userid' => $userid,
-						'amount' => 5000,
-						'type'   => 'For Your Free Activation Charges',
-						'date'   => date('Y-m-d')
-					]);
+        $log_dir = APPPATH . 'logs';
+        if (!is_dir($log_dir)) {
+            @mkdir($log_dir, 0777, true);
+        }
+        $log_file         = $log_dir . DIRECTORY_SEPARATOR . 'payout_daily_' . date('Y-m-d') . '.log';
+        $payout_debug_log = $log_dir . DIRECTORY_SEPARATOR . 'payout_debug.log';
 
-					// Step 2️⃣: Member को activate करें
-					$this->db->set([
-						'signup_package'  => 3,
-						'topup'           => 5000,
-						'activation_date' => date('Y-m-d'),
-						'activation_type' => 'paid'
-					])
-					->where('id', $userid)
-					->update('member');
+        $this->db->select('userid, balance, pan_no')->where('balance >=', $min);
+        $res = $this->db->get('wallet')->result();
+        $eligible_count = is_array($res) ? count($res) : 0;
 
-					// Step 3️⃣: Product Wallet अपडेट करें
-					$product_wallet = $this->db_model->select('balance', 'product_wallet', array('userid' => $userid));
-					if ($product_wallet) 
-					{
-						$new_balance = $product_wallet + 5000;
-						$this->db->set('balance', $new_balance)
-						->where('userid', $userid)
-						->update('product_wallet');
-					}
-					
-					// ✅ Step 4️⃣: Product Sale Entry करें (as product dispatch)
-					$this->db->insert('product_sale', [
-						'product_id'     => 3,
-						'userid'         => $userid,
-						'order_by'       => 'Member',
-						'cost'           => 5000,
-						'qty'            => 1,
-						'pv'             => 1000,
-						'payment_sataus' => 'Success',
-						'date'           => date('Y-m-d')
-					]);
-					
+        $log_header = "\n========================================\n"
+                    . "[DAILY PAYOUT START]\n"
+                    . "TIME: " . date('Y-m-d H:i:s') . "\n"
+                    . "MIN WITHDRAW: " . $min . "\n"
+                    . "DEDUCT %: " . $deduct_pc . "% (Admin Charge: {$admin_charge}%, Payout Tax: {$payout_tax}%)\n"
+                    . "ELIGIBLE WALLET COUNT: " . $eligible_count . "\n"
+                    . "========================================\n";
 
-					// Step 4️⃣: बचा हुआ amount payout में भेजें
-					$payout_amount = $total_balance - 5000;
+        @file_put_contents($log_file, $log_header, FILE_APPEND);
+        @file_put_contents($payout_debug_log, $log_header, FILE_APPEND);
 
-					// सभी pending earning को paid करें (चाहे payout_amount 0 हो या >0)
-					$this->db->where('userid', $userid)
-							->where('status', 'Pending')
-							->update('earning', ['status' => 'Paid']);
+        foreach ($res as $row) {
+            $user_id = $row->userid;
+            $gross   = (float) $row->balance;
+            if ($gross < $min) {
+                continue;
+            }
 
-					$social_fund  = $payout_amount * ($social_welfare_percent / 100);
-					$final_payout = $payout_amount - $social_fund;
+            $this->db->trans_begin();
 
-					if ($payout_amount > 0) 
-					{
-						// Withdraw entry (after 1% deduction)
-						$this->db->insert('withdraw_request', [
-							'userid' => $userid,
-							'amount' => $final_payout,
-							'date'   => date('Y-m-d')
-						]);
+            $wallet_fresh = $this->db->select('balance, pan_no')->where('userid', $user_id)->get('wallet')->row();
+            if (!$wallet_fresh || (float)$wallet_fresh->balance < $min) {
+                $this->db->trans_rollback();
+                $entry = "USER ID: {$user_id} | SKIPPED: Balance below minimum threshold ({$min})\n";
+                @file_put_contents($log_file, $entry, FILE_APPEND);
+                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
+                continue;
+            }
 
-						// Social Welfare Fund entry
-						$this->db->insert('social_welfare_fund', [
-							'userid' => $userid,
-							'amount' => $social_fund,
-							'type'   => $social_welfare_percent . '% Social Welfare Deduction',
-							'date'   => date('Y-m-d')
-						]);
-					}
-				} 
-				else 
-				{
-					continue; // ₹5000 से कम होने पर hold
-				}
-			} 
-			else 
-			{
-				// ===== PAID USER CASE =====
+            $cur_balance = (float)$wallet_fresh->balance;
+            $tax_amount  = round($cur_balance * $deduct_pc / 100, 2);
+            $pan_no      = !empty($wallet_fresh->pan_no) ? $wallet_fresh->pan_no : ($row->pan_no ?? '');
 
-				$payout_amount = $total_balance;
+            $withdraw_data = array(
+                'userid'      => $user_id,
+                'amount'      => round($cur_balance),
+                'tax'         => $tax_amount,
+                'pan_no'      => $pan_no,
+                'date'        => date('Y-m-d'),
+                'withdraw_in' => 'Bank',
+                'status'      => 'Un-Paid',
+            );
 
-				// 1% Social Welfare Fund deduction
-				$social_fund  = $payout_amount * ($social_welfare_percent / 100);
-				$final_payout = $payout_amount - $social_fund;
+            $insert_ok = $this->db->insert('withdraw_request', $withdraw_data);
+            $insert_id = $this->db->insert_id();
 
+            if (!$insert_ok || !$insert_id) {
+                $db_err = $this->db->error();
+                $this->db->trans_rollback();
+                $entry = "USER ID: {$user_id} | WITHDRAW INSERT FAILED: " . json_encode($db_err) . " | TRANSACTION ROLLBACK\n";
+                @file_put_contents($log_file, $entry, FILE_APPEND);
+                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
+                continue;
+            }
 
-				// सभी pending earning को paid करें
-				$this->db->where('userid', $userid)
-						->where('status', 'Pending')
-						->update('earning', ['status' => 'Paid']);
+            $this->db->where('userid', $user_id);
+            $update_ok = $this->db->update('wallet', array('balance' => 0));
 
-				// Withdraw entry (after 1% deduction)
-				$this->db->insert('withdraw_request', [
-					'userid' => $userid,
-					'amount' => $final_payout,
-					'date'   => date('Y-m-d')
-				]);
+            if (!$update_ok) {
+                $db_err = $this->db->error();
+                $this->db->trans_rollback();
+                $entry = "USER ID: {$user_id} | WALLET UPDATE FAILED: " . json_encode($db_err) . " | TRANSACTION ROLLBACK\n";
+                @file_put_contents($log_file, $entry, FILE_APPEND);
+                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
+                continue;
+            }
 
-				// Social Welfare Fund entry
-				$this->db->insert('social_welfare_fund', [
-					'userid' => $userid,
-					'amount' => $social_fund,
-					'type'   => $social_welfare_percent . '% Social Welfare Deduction',
-					'date'   => date('Y-m-d')
-				]);
-			}
-		}
-	}
-	*/
+            if ($this->db->trans_status() === FALSE) {
+                $db_err = $this->db->error();
+                $this->db->trans_rollback();
+                $entry = "USER ID: {$user_id} | TRANSACTION STATUS FALSE: " . json_encode($db_err) . " | TRANSACTION ROLLBACK\n";
+                @file_put_contents($log_file, $entry, FILE_APPEND);
+                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
+            } else {
+                $this->db->trans_commit();
+                $entry = "USER ID: {$user_id} | WALLET BALANCE: {$cur_balance} | GROSS: {$withdraw_data['amount']} | TAX: {$tax_amount} | INSERT ID: {$insert_id} | WALLET UPDATE: SUCCESS (New Balance: 0) | TRANSACTION COMMITTED\n";
+                @file_put_contents($log_file, $entry, FILE_APPEND);
+                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
+            }
+        }
+    }
+
+    public function debug_payout($userid = null)
+    {
+        $this->matching_bonus_log($userid);
+    }
+
+    public function matching_log($userid = null)
+    {
+        $this->matching_bonus_log($userid);
+    }
+
+    public function matching_bonus_log($userid = null)
+    {
+        if (empty($userid)) {
+            $userid = $this->input->get('userid');
+        }
+        if (empty($userid)) {
+            $userid = config_item('top_id');
+        }
+        if (empty($userid)) {
+            $userid = '1001';
+        }
+
+        $this->load->model('earning');
+
+        if (!headers_sent()) {
+            header('Content-Type: text/plain; charset=utf-8');
+        }
+
+        echo "=================================================================\n";
+        echo "MATCHING BONUS DIAGNOSTIC / PAYOUT LOG\n";
+        echo "TIME: " . date('Y-m-d H:i:s') . "\n";
+        echo "USER ID: " . $userid . "\n";
+        echo "=================================================================\n\n";
+
+        $logs = $this->earning->process_binary($userid, array(), true);
+
+        if (is_array($logs)) {
+            foreach ($logs as $line) {
+                echo $line . "\n";
+            }
+        } else {
+            echo "Result: " . var_export($logs, true) . "\n";
+        }
+
+        echo "\n=================================================================\n";
+        echo "WALLET STATUS FOR USER " . $userid . ":\n";
+        $wallet = $this->db->get_where('wallet', array('userid' => $userid))->row();
+        if ($wallet) {
+            echo "Current Wallet Balance: Rs. " . $wallet->balance . "\n";
+            echo "PAN: " . ($wallet->pan_no ?? 'N/A') . "\n";
+        } else {
+            echo "No wallet record found for user " . $userid . "\n";
+        }
+
+        $min = floatval(config_item('min_withdraw'));
+        echo "Minimum Withdrawal Threshold: Rs. " . $min . "\n";
+        echo "Eligible for Daily Withdrawal? " . (($wallet && (float)$wallet->balance >= $min) ? "YES" : "NO") . "\n";
+        echo "=================================================================\n";
+    }
+
+    public function debug_daily_payout()
+    {
+        if (!headers_sent()) {
+            header('Content-Type: text/plain; charset=utf-8');
+        }
+
+        $min          = floatval(config_item('min_withdraw'));
+        $admin_charge = floatval(config_item('admin_charges'));
+        $payout_tax   = floatval(config_item('payout_tax'));
+        $deduct_pc    = $admin_charge + $payout_tax;
+
+        echo "=================================================================\n";
+        echo "DAILY PAYOUT DIAGNOSTIC RUN\n";
+        echo "TIME: " . date('Y-m-d H:i:s') . "\n";
+        echo "MIN WITHDRAW: Rs. " . $min . "\n";
+        echo "ADMIN CHARGE: " . $admin_charge . "%\n";
+        echo "PAYOUT TAX: " . $payout_tax . "%\n";
+        echo "TOTAL DEDUCTION: " . $deduct_pc . "%\n";
+        echo "=================================================================\n\n";
+
+        $this->db->select('w.userid, w.balance, w.pan_no, m.name, m.phone')
+                 ->from('wallet w')
+                 ->join('member m', 'm.id = w.userid', 'left')
+                 ->where('w.balance >=', $min);
+        $res = $this->db->get()->result();
+
+        echo "Eligible Wallets (Balance >= " . $min . "): " . count($res) . "\n\n";
+
+        foreach ($res as $row) {
+            $gross = (float)$row->balance;
+            $tax   = round($gross * $deduct_pc / 100, 2);
+            $net   = $gross - $tax;
+            echo "User ID: {$row->userid} | Name: {$row->name} | Balance: Rs. {$gross} | Tax/Admin: Rs. {$tax} | Net: Rs. {$net}\n";
+        }
+
+        echo "\n=================================================================\n";
+        echo "To execute daily payout and create Un-Paid withdraw requests, visit:\n";
+        echo site_url('cron/daily_payout') . "\n";
+        echo "=================================================================\n";
+    }
 
 
     public function fran_update_payout_new() {
@@ -470,6 +432,17 @@ class Cron extends CI_Controller
         return true;
     }
 	
+    public function reverse_invalid_binary()
+    {
+        $this->load->model('earning');
+        $reversed = $this->earning->reverse_invalid_binary();
+        $count    = count($reversed);
+        echo 'Reversed binary income for ' . $count . ' member(s) without 3 active directs.'
+           . ($count > 0 ? ' IDs: ' . implode(', ', $reversed) : '');
+    }
+
+
+
 	public function admin_topup()
 	{
 		redirect('users/topup-member');
@@ -482,7 +455,7 @@ class Cron extends CI_Controller
 
 	public function generate_payout()
 	{
-		redirect('wallet/generate-payout');
+		redirect('income/withdraws_list');
 	}
 
 	public function complete_registration()
@@ -543,303 +516,6 @@ class Cron extends CI_Controller
 		$balance = $this->db_model->select('balance', 'wallet', array('userid' => $uid));
 		echo $balance;
 	}
-	###
-	public function update_payout_new()
-	{
-		$this->db->select('userid, SUM(amount) AS total_balance');
-		$this->db->from('earning');
-		$this->db->where('status', 'Pending');
-		$this->db->where('type !=', 'Repurchase Income');
-		$this->db->group_by('userid');
-		$groups = $this->db->get()->result_array();
-
-		foreach ($groups as $grp) 
-		{
-			$userid        = $grp['userid'];
-			$total_balance = (float)$grp['total_balance'];
-
-			if ($total_balance <= 0) {
-				continue;
-			}
-
-			$cur_balance = (float)$this->db_model->select('balance', 'wallet', array('userid' => $userid));
-			$this->db->where('userid', $userid)->update('wallet', array('balance' => $cur_balance + $total_balance));
-
-			$this->db->where('userid', $userid)
-					->where('status', 'Pending')
-					->where('type !=', 'Repurchase Income')
-					->update('earning', array('status' => 'Paid'));
-		}
-	}
-
-	public function generate_withdrawals()
-	{
-		$cname = config_item('company_name');
-		$web   = $_SERVER['HTTP_HOST'];
-		$social_welfare_percent = floatval($this->db_model->select('social_welfare_fund', 'global_setting', array('id' => 1)));
-
-		$this->db->select('userid, balance')->from('wallet')->where('balance >', 0);
-		$wallets = $this->db->get()->result_array();
-
-		foreach ($wallets as $wal) 
-		{
-			$userid        = $wal['userid'];
-			$total_balance = (float)$wal['balance'];
-
-			if ($total_balance <= 0) {
-				continue;
-			}
-
-			$activation_type = $this->db_model->select('activation_type', 'member', array('id' => $userid));
-
-			if (strtolower(trim($activation_type)) == 'free') 
-			{
-				if ($total_balance >= 5000) 
-				{
-					$this->db->insert('earning_deduct', array(
-						'userid' => $userid,
-						'amount' => 5000,
-						'type'   => 'For Your Free Activation Charges',
-						'date'   => date('Y-m-d')
-					));
-
-					$this->db->set(array(
-						'signup_package'  => 3,
-						'topup'           => 5000,
-						'activation_date' => date('Y-m-d'),
-						'activation_type' => 'paid'
-					))
-					->where('id', $userid)
-					->update('member');
-
-					$product_wallet = $this->db_model->select('balance', 'product_wallet', array('userid' => $userid));
-					if ($product_wallet !== false && $product_wallet !== null) 
-					{
-						$new_balance = (float)$product_wallet + 5000;
-						$this->db->set('balance', $new_balance)
-						->where('userid', $userid)
-						->update('product_wallet');
-					}
-					
-					$this->db->insert('product_sale', array(
-						'product_id'     => 3,
-						'userid'         => $userid,
-						'order_by'       => 'Member',
-						'cost'           => 5000,
-						'qty'            => 1,
-						'pv'             => 1000,
-						'payment_sataus' => 'Success',
-						'date'           => date('Y-m-d')
-					));
-
-					$payout_amount = $total_balance - 5000;
-
-					$this->db->where('userid', $userid)->update('wallet', array('balance' => 0));
-
-					$social_fund  = $payout_amount * ($social_welfare_percent / 100);
-					$final_payout = $payout_amount - $social_fund;
-
-					if ($payout_amount > 0) 
-					{
-						$this->db->insert('withdraw_request', array(
-							'userid' => $userid,
-							'amount' => $final_payout,
-							'date'   => date('Y-m-d'),
-							'status' => 'Un-Paid'
-						));
-
-						if ($social_fund > 0) {
-							$this->db->insert('social_welfare_fund', array(
-								'userid' => $userid,
-								'amount' => $social_fund,
-								'type'   => $social_welfare_percent . '% Social Welfare Deduction',
-								'date'   => date('Y-m-d')
-							));
-						}
-					}
-				} 
-				else 
-				{
-					continue; // Hold in wallet until 5000 balance
-				}
-			} 
-			else 
-			{
-				$payout_amount = $total_balance;
-
-				$social_fund  = $payout_amount * ($social_welfare_percent / 100);
-				$final_payout = $payout_amount - $social_fund;
-
-				$this->db->where('userid', $userid)->update('wallet', array('balance' => 0));
-
-				if ($payout_amount > 0) 
-				{
-					$this->db->insert('withdraw_request', array(
-						'userid'    => $userid,
-						'amount'    => $final_payout,
-						'date'      => date('Y-m-d'),
-						'paid_date' => date('Y-m-d'),
-						'status'    => 'Paid',
-						'tid'       => 'PAY-' . date('Ymd') . '-' . $userid,
-						'tax'       => ($payout_amount * config_item('payout_tax') / 100),
-					));
-
-					if ($social_fund > 0) {
-						$this->db->insert('social_welfare_fund', array(
-							'userid' => $userid,
-							'amount' => $social_fund,
-							'type'   => $social_welfare_percent . '% Social Welfare Deduction',
-							'date'   => date('Y-m-d')
-						));
-					}
-				}
-			}
-		}
-	}
-
-
-    ##
-    public function update_repurchase_payout()
-	{
-		$cname = config_item('company_name');
-		$web   = $_SERVER['HTTP_HOST'];
-
-		// Global Setting से Social Welfare Percentage
-		$social_welfare_percent = floatval($this->db_model->select('social_welfare_fund', 'global_setting', ['id' => 1]));
-
-		// सभी pending earning को group करें userid के हिसाब से
-		$this->db->select('userid, status, SUM(amount) AS total_balance');
-		$this->db->from('earning');
-		$this->db->where('status', 'Pending');
-        $this->db->where('type', 'Repurchase Income');//26-02-2026
-		$this->db->group_by(['userid', 'status']);
-		$groups = $this->db->get()->result_array();
-
-		foreach ($groups as $grp) 
-		{
-			$userid = $grp['userid'];
-			$total_balance = $grp['total_balance'];
-
-			// Member की activation_type निकालें
-			$activation_type = $this->db_model->select('activation_type', 'member', ['id' => $userid]);
-
-			// ===== FREE USER CASE =====
-			if (strtolower(trim($activation_type)) == 'free') 
-			{
-				if ($total_balance >= 5000) 
-				{
-					// Step 1️⃣: 5000 deduct करें और earning_deduct table में डालें
-					$this->db->insert('earning_deduct', [
-						'userid' => $userid,
-						'amount' => 5000,
-						'type'   => 'For Your Free Activation Charges',
-						'date'   => date('Y-m-d')
-					]);
-
-					// Step 2️⃣: Member को activate करें
-					$this->db->set([
-						'signup_package'  => 3,
-						'topup'           => 5000,
-						'activation_date' => date('Y-m-d'),
-						'activation_type' => 'paid'
-					])
-					->where('id', $userid)
-					->update('member');
-
-					// Step 3️⃣: Product Wallet अपडेट करें
-					$product_wallet = $this->db_model->select('balance', 'product_wallet', array('userid' => $userid));
-					if ($product_wallet) 
-					{
-						$new_balance = $product_wallet + 5000;
-						$this->db->set('balance', $new_balance)
-						->where('userid', $userid)
-						->update('product_wallet');
-					}
-					
-					// ✅ Step 4️⃣: Product Sale Entry करें (as product dispatch)
-					$this->db->insert('product_sale', [
-						'product_id'     => 3,
-						'userid'         => $userid,
-						'order_by'       => 'Member',
-						'cost'           => 5000,
-						'qty'            => 1,
-						'pv'             => 1000,
-						'payment_sataus' => 'Success',
-						'date'           => date('Y-m-d')
-					]);
-					
-
-					// Step 4️⃣: बचा हुआ amount payout में भेजें
-					$payout_amount = $total_balance - 5000;
-
-					// सभी pending earning को paid करें (चाहे payout_amount 0 हो या >0)
-					$this->db->where('userid', $userid)
-							->where('status', 'Pending')
-                            ->where('type', 'Repurchase Income')//26-02-2026
-							->update('earning', ['status' => 'Paid']);
-
-					$social_fund  = $payout_amount * ($social_welfare_percent / 100);
-					$final_payout = $payout_amount - $social_fund;
-
-					if ($payout_amount > 0) 
-					{
-						// Withdraw entry (after 1% deduction)
-						$this->db->insert('withdraw_request', [
-							'userid' => $userid,
-							'amount' => $final_payout,
-							'date'   => date('Y-m-d')
-						]);
-
-						// Social Welfare Fund entry
-						$this->db->insert('social_welfare_fund', [
-							'userid' => $userid,
-							'amount' => $social_fund,
-							'type'   => $social_welfare_percent . '% Social Welfare Deduction',
-							'date'   => date('Y-m-d')
-						]);
-					}
-				} 
-				else 
-				{
-					continue; // ₹5000 से कम होने पर hold
-				}
-			} 
-			else 
-			{
-				// ===== PAID USER CASE =====
-
-				$payout_amount = $total_balance;
-
-				// 1% Social Welfare Fund deduction
-				$social_fund  = $payout_amount * ($social_welfare_percent / 100);
-				$final_payout = $payout_amount - $social_fund;
-
-
-				// सभी pending earning को paid करें
-				$this->db->where('userid', $userid)
-						->where('status', 'Pending')
-                        ->where('type', 'Repurchase Income')//26-02-2026
-						->update('earning', ['status' => 'Paid']);
-
-				// Withdraw entry (after 1% deduction)
-				$this->db->insert('withdraw_request', [
-					'userid' => $userid,
-					'amount' => $final_payout,
-					'date'   => date('Y-m-d')
-				]);
-
-				// Social Welfare Fund entry
-				$this->db->insert('social_welfare_fund', [
-					'userid' => $userid,
-					'amount' => $social_fund,
-					'type'   => $social_welfare_percent . '% Social Welfare Deduction',
-					'date'   => date('Y-m-d')
-				]);
-			}
-		}
-	}
-	
-	###
 
 }
 
