@@ -354,6 +354,8 @@ public function get_tehsils($id) {
         $this->load->model('plan_model');
 
         // Validation Rules
+        $this->form_validation->set_rules('sponsor', 'Sponsor ID', 'trim');
+        $this->form_validation->set_rules('position', 'Placement ID', 'trim');
         $this->form_validation->set_rules('name', 'Name', 'trim|required');
         $this->form_validation->set_rules('phone', 'Phone No', 'trim|required');
         $this->form_validation->set_rules('password', 'Password', 'trim|required|min_length[5]');
@@ -509,41 +511,83 @@ public function get_tehsils($id) {
                 $district_name = $d_row ? $d_row->name : '';
                 $tehsil_name   = $t_row ? $t_row->name : '';
 
-                // C. TEAM ASSIGNMENT LOGIC (Founding 100 Flow)
-                $total_members = $this->db->where('id !=', 1001)->count_all_results('member');
-
-                if ($total_members < 100) {
-                    $sponsor = 1001;
-                } else {
-                    $founders = $this->db->select('id, tehsil_id')
-                                         ->where('id !=', 1001)
-                                         ->order_by('id', 'ASC')
-                                         ->limit(100)
-                                         ->get('member')->result();
-
-                    $local_founders = [];
-                    foreach ($founders as $f) {
-                        if ($f->tehsil_id == $t_id) {
-                            $local_founders[] = $f->id;
-                        }
-                    }
-
-                    if (!empty($local_founders)) {
-                        $this->db->where('tehsil_id', $t_id);
-                        $this->db->where_not_in('id', $local_founders);
-                        $after_count = $this->db->count_all_results('member');
-
-                        $turn = $after_count % count($local_founders);
-                        $sponsor = $local_founders[$turn];
+                // C. SPONSOR IDENTIFICATION & TEAM ASSIGNMENT LOGIC
+                $sp_input = trim($this->input->post('sponsor'));
+                if (!empty($sp_input)) {
+                    $spnumber = preg_replace("/[^0-9]+/", "", $sp_input);
+                    $sp_count = $this->db_model->count_all('member', array('id' => $spnumber));
+                    if ($sp_count > 0) {
+                        $sponsor = $spnumber;
                     } else {
+                        $this->session->set_flashdata('site_flash', '<div class="alert alert-danger">Entered Sponsor ID does not exist.</div>');
+                        redirect(site_url('site/register'));
+                    }
+                } else {
+                    $total_members = $this->db->where('id !=', 1001)->count_all_results('member');
+
+                    if ($total_members < 100) {
                         $sponsor = 1001;
+                    } else {
+                        $founders = $this->db->select('id, tehsil_id')
+                                             ->where('id !=', 1001)
+                                             ->order_by('id', 'ASC')
+                                             ->limit(100)
+                                             ->get('member')->result();
+
+                        $local_founders = [];
+                        foreach ($founders as $f) {
+                            if ($f->tehsil_id == $t_id) {
+                                $local_founders[] = $f->id;
+                            }
+                        }
+
+                        if (!empty($local_founders)) {
+                            $this->db->where('tehsil_id', $t_id);
+                            $this->db->where_not_in('id', $local_founders);
+                            $after_count = $this->db->count_all_results('member');
+
+                            $turn = $after_count % count($local_founders);
+                            $sponsor = $local_founders[$turn];
+                        } else {
+                            $sponsor = 1001;
+                        }
                     }
                 }
 
                 // D. Auto-Placement Logic
-                $auto_data = $this->find_vacant_node($sponsor); 
-                $position  = $auto_data['id'];
-                $leg       = $auto_data['leg'];
+                $pos_input = trim($this->input->post('position'));
+                if (!empty($pos_input)) {
+                    $posnumber = preg_replace("/[^0-9]+/", "", $pos_input);
+                    $pos_row = $this->db->select('id, A, B')->where('id', $posnumber)->get('member')->row();
+                    if ($pos_row) {
+                        $req_leg = $this->input->post('leg') ? trim($this->input->post('leg')) : '';
+                        if ($req_leg == 'A' && empty($pos_row->A)) {
+                            $position = $pos_row->id;
+                            $leg = 'A';
+                        } elseif ($req_leg == 'B' && empty($pos_row->B)) {
+                            $position = $pos_row->id;
+                            $leg = 'B';
+                        } elseif (empty($pos_row->A)) {
+                            $position = $pos_row->id;
+                            $leg = 'A';
+                        } elseif (empty($pos_row->B)) {
+                            $position = $pos_row->id;
+                            $leg = 'B';
+                        } else {
+                            $auto_data = $this->find_vacant_node($posnumber);
+                            $position  = $auto_data['id'];
+                            $leg       = $auto_data['leg'];
+                        }
+                    } else {
+                        $auto_data = $this->find_vacant_node($sponsor);
+                        $position  = $auto_data['id'];
+                        $leg       = $auto_data['leg'];
+                    }
+                } else {
+                    $auto_data = $this->find_vacant_node($sponsor); 
+                    $position  = $auto_data['id'];
+                    $leg       = $auto_data['leg'];
+                }
 
                 // E. Package & Pricing
                 $package_input = $this->input->post('join_package');

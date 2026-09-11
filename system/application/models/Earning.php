@@ -18,7 +18,10 @@ class Earning extends CI_Model
             $member = $this->db_model->select_multi('*', 'member', array('id' => $userid));
             if ($member) {
                 if (isset($member->plan_percentage) && (float)$member->plan_percentage > 0) {
-                    return ((float)$member->plan_percentage) / 100;
+                    return ((float)$member->plan_percentage) / 100.0;
+                }
+                if (isset($member->mypv) && (float)$member->mypv > 0) {
+                    return (float)$member->mypv;
                 }
                 if (!$packageid && !empty($member->signup_package)) {
                     $packageid = $member->signup_package;
@@ -33,11 +36,16 @@ class Earning extends CI_Model
             $product = $this->db_model->select_multi('*', 'product', array('id' => $packageid));
             if ($product) {
                 if (isset($product->plan_percentage) && (float)$product->plan_percentage > 0) {
-                    return ((float)$product->plan_percentage) / 100;
+                    return ((float)$product->plan_percentage) / 100.0;
                 }
-                $prod_name_lower = isset($product->prod_name) ? strtolower($product->prod_name) : '';
-                if (strpos($prod_name_lower, '50%') !== false || strpos($prod_name_lower, '50 percent') !== false || strpos($prod_name_lower, 'half') !== false) {
-                    return 0.50;
+                if (isset($product->pv) && (float)$product->pv > 0) {
+                    return (float)$product->pv;
+                }
+                $price = floatval($product->prod_price ?? 0);
+                $base_row = $this->db->select_max('prod_price')->get('product')->row();
+                $base_price = ($base_row && floatval($base_row->prod_price) > 0) ? floatval($base_row->prod_price) : $price;
+                if ($base_price > 0 && $price > 0) {
+                    return $price / $base_price;
                 }
             }
         }
@@ -65,13 +73,11 @@ class Earning extends CI_Model
 
     public function pay_earning($userid, $ref_id, $income_name, $amount, $levlno = 0, $pair_match = 0, $secret = 0)
     {
-        $earning_ct    = $this->db_model->sum('amount', 'earning', array('userid' => $userid, 'type' => 'Matching Income', 'date' => date('Y-m-d'))) + 0;
-        $pair_ct       = $this->db_model->count_all('pair_cuts', array('userid' => $userid,'DATE(date)' => date('Y-m-d')));
-        $member        = $this->db_model->select_multi('signup_package, status, topup, earning_freeze', 'member', array('id' => $userid));
-        $package       = $member ? $member->signup_package : null;
+        $member    = $this->db_model->select_multi('signup_package, join_package, status, topup, earning_freeze', 'member', array('id' => $userid));
+        $package   = ($member && !empty($member->signup_package)) ? $member->signup_package : ($member->join_package ?? null);
 
         $is_frozen = ($member && !empty($member->earning_freeze));
-        $is_active = ($member && $package != null && $member->topup > 0 && $member->status == 'Active');
+        $is_active = ($member && !empty($package) && ((float)$member->topup > 0) && $member->status == 'Active');
 
         if ($amount > 0 && $is_active && $is_frozen) {
             $this->db->insert('laps_earning', array(
@@ -81,6 +87,10 @@ class Earning extends CI_Model
                 'reason' => 'Frozen',
             ));
             return TRUE;
+        }
+
+        if (empty($secret)) {
+            $secret = strtoupper(substr(str_replace(' ', '', $income_name), 0, 3)) . '-' . $userid . '-' . date('YmdHis') . '-' . rand(100, 999);
         }
 
         if($amount > 0 and $is_active){
@@ -93,6 +103,7 @@ class Earning extends CI_Model
                 'pair_match'    => $pair_match,
                 'secret'        => $secret,
                 'levlno'        => $levlno,
+                'status'        => 'Pending',
             );
             $this->db->insert('earning', $data);
 
@@ -122,23 +133,47 @@ class Earning extends CI_Model
     }
 
     public function process_lvl($userid, $amount){
-        $lvl1_amt = (50 / 100) * $amount;
-        $lvl2_amt = (50  / 100) * $amount;
-        $amounts  = array($lvl1_amt, $lvl2_amt);
-        $sponsor  = $this->db_model->select('sponsor', 'member', array('id' => $userid));
-        $i        = 1;
-        foreach ($amounts as $amount) {
-            $amount = trim($amount);
-            if ($i == 1) {
-                $pay_gen_sponsor = $sponsor;
-            } else {
-                $pay_gen_sponsor = $this->find_sp_level_sponsor($userid, $i);
+        $member = $this->db_model->select_multi('sponsor, signup_package', 'member', array('id' => $userid));
+        $pkg_id = $member ? $member->signup_package : 0;
+        $prod   = $pkg_id ? $this->db_model->select_multi('level_income, sponser_level_inc', 'product', array('id' => $pkg_id)) : null;
+        if (!$prod) {
+            $prod = $this->db->order_by('id', 'ASC')->get('product')->row();
+        }
+
+        $levels_str = ($prod && !empty($prod->level_income)) ? $prod->level_income : (string)config_item('level_income');
+        if (empty($levels_str)) {
+            $levels_str = ($prod && !empty($prod->sponser_level_inc)) ? $prod->sponser_level_inc : '';
+        }
+        $levels = explode(',', $levels_str);
+
+        $sponsor = $member ? $member->sponsor : 0;
+        foreach ($levels as $idx => $lvl_pct) {
+            $i = $idx + 1;
+            if ($i > 2) {
+                break; // Single Leg Income Level 1 (30%) & Level 2 (20%)
             }
-            if ($pay_gen_sponsor > 0 && $amount > 0) {
-                $amount = $amount * 1;
-                $this->pay_earning($pay_gen_sponsor, $userid, 'Matching Sponsor Inc', $amount, $i);
+            $pct = floatval(trim($lvl_pct));
+            if ($pct > 0) {
+                $lvl_amount = ($pct <= 100) ? (($pct / 100.0) * $amount) : $pct;
+                $pay_gen_sponsor = ($i == 1) ? $sponsor : $this->find_sp_level_sponsor($userid, $i);
+                
+                if ($pay_gen_sponsor > 0 && $lvl_amount > 0) {
+                    // Qualification Check: First Tail (User must have total_pairs >= 1 and Active status)
+                    $sp_data = $this->db_model->select_multi('status, total_pairs, topup', 'member', array('id' => $pay_gen_sponsor));
+                    $has_first_tail = ($sp_data && ((int)$sp_data->total_pairs >= 1 || (float)$sp_data->topup > 0));
+                    
+                    if ($has_first_tail && $sp_data->status == 'Active') {
+                        $this->pay_earning($pay_gen_sponsor, $userid, 'Single Leg Income', $lvl_amount, $i);
+                    } else {
+                        $this->db->insert('laps_earning', array(
+                            'userid' => $pay_gen_sponsor,
+                            'amount' => $lvl_amount,
+                            'type'   => 'Single Leg Income',
+                            'reason' => 'First tail / pair not completed for Single Leg Income (pairs: ' . ($sp_data ? $sp_data->total_pairs : 0) . ')',
+                        ));
+                    }
+                }
             }
-            $i++;
         }
     }
 
@@ -269,7 +304,7 @@ class Earning extends CI_Model
         $log_lines[] = "(Informational ONLY - Does not block 2:1 / 1:2 PV matching)";
         $log_lines[] = "";
 
-        // 4. PAIR CALCULATION (Strictly 2:1 OR 1:2)
+        // 4. PAIR CALCULATION (Initial: 2:1 or 1:2, Subsequent: 1:1)
         $check_2_1_l = ($fa >= 2) ? "YES (Left = {$fa} >= 2)" : "NO (Left = {$fa} < 2)";
         $check_2_1_r = ($fb >= 1) ? "YES (Right = {$fb} >= 1)" : "NO (Right = {$fb} < 1)";
 
@@ -281,22 +316,54 @@ class Earning extends CI_Model
         $deduct_b       = 0;
         $selected_ratio = "NONE";
 
-        if ($fa >= 2 && $fb >= 1 && $fa >= $fb) {
-            $selected_ratio = "2:1";
-            $pairs          = (int) min(floor($fa / 2), $fb);
-            $deduct_a       = $pairs * 2;
-            $deduct_b       = $pairs * 1;
-        } elseif ($fb >= 2 && $fa >= 1 && $fb > $fa) {
-            $selected_ratio = "1:2";
-            $pairs          = (int) min($fa, floor($fb / 2));
-            $deduct_a       = $pairs * 1;
-            $deduct_b       = $pairs * 2;
+        if ($total_pair == 0) {
+            // First Match requires 2:1 or 1:2
+            if ($fa >= 2 && $fb >= 1 && ($fa >= $fb || $fb < 2)) {
+                $selected_ratio = "2:1";
+                $deduct_a       = 2;
+                $deduct_b       = 1;
+                $pairs          = 1;
+                
+                // Any additional matching PV in same run matches 1:1
+                $rem_a = floor($fa - 2);
+                $rem_b = floor($fb - 1);
+                $subsequent = (int) min($rem_a, $rem_b);
+                if ($subsequent > 0) {
+                    $deduct_a += $subsequent * 1;
+                    $deduct_b += $subsequent * 1;
+                    $pairs    += $subsequent;
+                }
+            } elseif ($fb >= 2 && $fa >= 1) {
+                $selected_ratio = "1:2";
+                $deduct_a       = 1;
+                $deduct_b       = 2;
+                $pairs          = 1;
+                
+                // Any additional matching PV in same run matches 1:1
+                $rem_a = floor($fa - 1);
+                $rem_b = floor($fb - 2);
+                $subsequent = (int) min($rem_a, $rem_b);
+                if ($subsequent > 0) {
+                    $deduct_a += $subsequent * 1;
+                    $deduct_b += $subsequent * 1;
+                    $pairs    += $subsequent;
+                }
+            }
+        } else {
+            // Subsequent Match: 1:1 Ratio for all available PV
+            if ($fa >= 1 && $fb >= 1) {
+                $selected_ratio = "1:1";
+                $pairs          = (int) min($fa, $fb);
+                $deduct_a       = $pairs * 1;
+                $deduct_b       = $pairs * 1;
+            }
         }
 
         $log_lines[] = "PAIR CALCULATION:";
         $log_lines[] = "BINARY RATIO CHECK:";
         $log_lines[] = "Left Available: " . $available_a;
         $log_lines[] = "Right Available: " . $available_b;
+        $log_lines[] = "Lifetime Previous Pairs: " . $total_pair;
         $log_lines[] = "";
         $log_lines[] = "Checking 2:1:";
         $log_lines[] = "Left >= 2? " . $check_2_1_l;
@@ -306,9 +373,7 @@ class Earning extends CI_Model
         $log_lines[] = "Left >= 1? " . $check_1_2_l;
         $log_lines[] = "Right >= 2? " . $check_1_2_r;
         $log_lines[] = "";
-        $log_lines[] = "Selected Ratio:";
-        $log_lines[] = $selected_ratio;
-        $log_lines[] = "";
+        $log_lines[] = "Selected Ratio: " . $selected_ratio;
         $log_lines[] = "Pairs Calculated: " . $pairs;
         $log_lines[] = "Left PV To Consume: " . $deduct_a;
         $log_lines[] = "Right PV To Consume: " . $deduct_b;
@@ -332,7 +397,7 @@ class Earning extends CI_Model
             return $debug ? $log_lines : true;
         }
 
-        // 5. PAYOUT CALCULATION (Configuration-Driven)
+        // 5. PAYOUT CALCULATION (Dynamic Matching Income Rate from Configuration / Product)
         $pkg_id = (int)($member_data->signup_package ?? 0);
         $prod   = null;
         if ($pkg_id > 0) {
@@ -341,24 +406,22 @@ class Earning extends CI_Model
         if (!$prod) {
             $prod = $this->db->order_by('id', 'ASC')->get('product')->row();
         }
-        $per_pair  = 0;
-        $cfg_val   = $prod ? ($prod->matching_income ?? 0) : 0;
+        
+        $per_pair = 0;
         if ($prod && isset($prod->matching_income) && (float)$prod->matching_income > 0) {
-            if ((float)$prod->matching_income <= 100 && isset($prod->prod_price) && (float)$prod->prod_price > 0) {
-                $per_pair = (float)$prod->prod_price * ((float)$prod->matching_income / 100.0);
-            } else {
+            if ((float)$prod->matching_income > 100) {
                 $per_pair = (float)$prod->matching_income;
+            } elseif (isset($prod->prod_price) && (float)$prod->prod_price > 0) {
+                $per_pair = (float)$prod->prod_price * ((float)$prod->matching_income / 100.0);
+            }
+        }
+        if ($per_pair <= 0) {
+            $cfg_match = config_item('binary_income') ?: config_item('matching_income');
+            if (!empty($cfg_match) && (float)$cfg_match > 0) {
+                $per_pair = (float)$cfg_match;
             }
         }
         $daily_cap = ($prod && $prod->capping > 0) ? (float) $prod->capping : 0;
-
-        if ($per_pair <= 0) {
-            $log_lines[] = "--> PACKAGE CHECK FAILED: Package matching_income rate is 0 INR in product table.";
-            $log_lines[] = "FINAL RESULT = PAYOUT FAILED";
-            $log_lines[] = "========================================\n";
-            $this->_write_payout_log($log_lines);
-            return $debug ? $log_lines : false;
-        }
 
         $cap_pairs        = ($daily_cap > 0 && $per_pair > 0) ? floor($daily_cap / $per_pair) : $pairs;
         $paid_pairs_today = (int)$this->db_model->sum('pair_match', 'earning', array(
@@ -371,15 +434,7 @@ class Earning extends CI_Model
         $payable_pairs = min($pairs, $remaining_cap);
         $flushed_pairs = $pairs - $payable_pairs;
 
-        $pay_amount = 0;
-        for ($i = 1; $i <= $payable_pairs; $i++) {
-            $lifetime_pair_no = $total_pair + $i;
-            if ($lifetime_pair_no % 5 === 0) {
-                $pay_amount += $per_pair * 0.5;
-            } else {
-                $pay_amount += $per_pair;
-            }
-        }
+        $pay_amount = $payable_pairs * $per_pair;
 
         $log_lines[] = "PAYOUT CALCULATION:";
         $log_lines[] = "BINARY PAYOUT CALCULATION:";
@@ -693,6 +748,13 @@ class Earning extends CI_Model
     
     public function reg_earning($userid, $sponsor, $packageid, $need_topup = TRUE, $qty = 1)
     {    
+        if (empty($sponsor)) {
+            $sponsor = $this->db_model->select('sponsor', 'member', array('id' => $userid));
+        }
+        if (empty($packageid)) {
+            $packageid = $this->db_model->select('signup_package', 'member', array('id' => $userid));
+        }
+
         $get_topup = floatval($this->db_model->select('topup', 'member', array('id' => $userid)));
         if ($need_topup == TRUE && $get_topup <= 0) {
             return TRUE; // Only trigger referral earnings when member is topped up / activated
@@ -701,79 +763,110 @@ class Earning extends CI_Model
             $package_ratio = $this->get_package_ratio($packageid, $userid);
             $prod          = $this->db_model->select_multi('*', 'product', array('id' => $packageid)); 
 
+            $user_pv = floatval($this->db_model->select('mypv', 'member', array('id' => $userid)));
+            if ($user_pv <= 0) {
+                if ($prod && isset($prod->pv) && floatval($prod->pv) > 0) {
+                    $user_pv = floatval($prod->pv);
+                } elseif ($package_ratio > 0) {
+                    $user_pv = $package_ratio;
+                } else {
+                    $user_pv = 1.0;
+                }
+            }
+
             ###############################################################
-            # Direct Sponsor Income (Configured % of Package Price - PDF 3)
+            # Direct Sponsor Income (Configured Direct Income Rate / % * PV)
             ##############################################################
             
-            if ($prod && isset($prod->prod_price) && floatval($prod->prod_price) > 0 && trim($sponsor) !== '') { 
-                $check_dup = $this->db_model->count_all('earning', array(
-                    'userid' => $sponsor,
-                    'ref_id' => $userid,
-                    'type'   => 'Direct Sponsor Commission'
-                ));
+            if (trim($sponsor) !== '' && $sponsor > 0) { 
+                $check_dup = $this->db->where('userid', $sponsor)
+                                      ->where('ref_id', $userid)
+                                      ->where_in('type', array('Direct Sponsor Income', 'Direct Sponsor Commission'))
+                                      ->count_all_results('earning');
                 if ($check_dup <= 0) {
-                    $direct_pct  = (isset($prod->direct_income) && floatval($prod->direct_income) > 0)
-                        ? floatval($prod->direct_income)
-                        : 0;
-                    if ($direct_pct > 0) {
-                        $direct_rate = ($direct_pct <= 100) ? (floatval($prod->prod_price) * ($direct_pct / 100.0)) : $direct_pct;
-                        $direct_amt  = ($direct_rate * $qty) * $package_ratio;
-                        if ($direct_amt > 0) {
-                            $this->pay_earning($sponsor, $userid, 'Direct Sponsor Commission', $direct_amt, 0);
+                    $direct_rate = 0;
+                    if ($prod && isset($prod->direct_income) && floatval($prod->direct_income) > 0) {
+                        $direct_val = floatval($prod->direct_income);
+                        $direct_rate = ($direct_val > 100) ? $direct_val : (floatval($prod->prod_price) * ($direct_val / 100.0));
+                    } elseif (config_item('direct_income')) {
+                        $direct_val = floatval(config_item('direct_income'));
+                        $direct_rate = ($direct_val > 100) ? $direct_val : (floatval($get_topup) * ($direct_val / 100.0));
+                    }
+                    if ($direct_rate <= 0) {
+                        $first_p = $this->db->order_by('id', 'ASC')->get('product')->row();
+                        if ($first_p && isset($first_p->direct_income) && floatval($first_p->direct_income) > 0) {
+                            $direct_rate = floatval($first_p->direct_income) > 100 ? floatval($first_p->direct_income) : (floatval($first_p->prod_price) * (floatval($first_p->direct_income) / 100.0));
                         }
+                    }
+
+                    $direct_amt = ($direct_rate * $package_ratio * $qty);
+                    if ($direct_amt > 0) {
+                        $this->pay_earning($sponsor, $userid, 'Direct Sponsor Income', $direct_amt, 0);
                     }
                 }
             } 
             
             ###############################################################
-            # Direct Referral Bonus: 1st Level (Configured % - PDF 4 & 5)
+            # Direct Referral Bonus: 1st Level (Configured Level 1 %)
             ##############################################################
 
-            if ($prod && isset($prod->prod_price) && floatval($prod->prod_price) > 0 && trim($sponsor) !== '') {
-                $check_dup_drb1 = $this->db_model->count_all('earning', array(
-                    'userid' => $sponsor,
-                    'ref_id' => $userid,
-                    'type'   => 'Direct Referral Bonus',
-                    'levlno' => 1
-                ));
+            if (trim($sponsor) !== '' && $sponsor > 0) {
+                $check_dup_drb1 = $this->db->where('userid', $sponsor)
+                                           ->where('ref_id', $userid)
+                                           ->where_in('type', array('Direct Referral Bonus', 'Direct Referral Bonus (Level 1)'))
+                                           ->where('levlno', 1)
+                                           ->count_all_results('earning');
                 if ($check_dup_drb1 <= 0) {
                     $drb_l1_pct = 0;
-                    if (isset($prod->level_income) && trim($prod->level_income) !== '') {
+                    if ($prod && isset($prod->level_income) && trim($prod->level_income) !== '') {
                         $levels = explode(',', $prod->level_income);
-                        $drb_l1_pct = floatval(trim($levels[0] ?? 0));
-                    }
-                    if ($drb_l1_pct > 0) {
-                        $direct_bonus = (floatval($prod->prod_price) * ($drb_l1_pct / 100.0) * $qty) * $package_ratio; 
-                        if ($direct_bonus > 0) { 
-                            $this->pay_earning($sponsor, $userid, 'Direct Referral Bonus', $direct_bonus, 1);
+                        if (isset($levels[0]) && floatval(trim($levels[0])) > 0) {
+                            $drb_l1_pct = floatval(trim($levels[0]));
                         }
+                    }
+                    if ($drb_l1_pct <= 0 && config_item('level_income')) {
+                        $cfg_levels = explode(',', config_item('level_income'));
+                        if (isset($cfg_levels[0]) && floatval(trim($cfg_levels[0])) > 0) {
+                            $drb_l1_pct = floatval(trim($cfg_levels[0]));
+                        }
+                    }
+                    $qualifying_amt = ($prod && floatval($prod->prod_price) > 0) ? floatval($prod->prod_price) : $get_topup;
+                    $direct_bonus = ($qualifying_amt * ($drb_l1_pct / 100.0) * $qty * $package_ratio); 
+                    if ($direct_bonus > 0) { 
+                        $this->pay_earning($sponsor, $userid, 'Direct Referral Bonus', $direct_bonus, 1);
                     }
                 }
             }
             
             ###############################################################
-            # Direct Referral Bonus: 2nd Level (Configured % - PDF 4 & 6)
+            # Direct Referral Bonus: 2nd Level (Configured Level 2 %)
             ##############################################################
             
             $lvl2_sponsor = $this->find_sp_level_sponsor($userid, 2);
-            if ($lvl2_sponsor > 0 && $prod && isset($prod->prod_price) && floatval($prod->prod_price) > 0) {
-                $check_dup_drb2 = $this->db_model->count_all('earning', array(
-                    'userid' => $lvl2_sponsor,
-                    'ref_id' => $userid,
-                    'type'   => 'Direct Referral Bonus (Level 2)',
-                    'levlno' => 2
-                ));
+            if ($lvl2_sponsor > 0) {
+                $check_dup_drb2 = $this->db->where('userid', $lvl2_sponsor)
+                                           ->where('ref_id', $userid)
+                                           ->where_in('type', array('Direct Referral Bonus (Level 2)', 'Direct Referral Bonus'))
+                                           ->where('levlno', 2)
+                                           ->count_all_results('earning');
                 if ($check_dup_drb2 <= 0) {
                     $drb_l2_pct = 0;
-                    if (isset($prod->level_income) && trim($prod->level_income) !== '') {
+                    if ($prod && isset($prod->level_income) && trim($prod->level_income) !== '') {
                         $levels = explode(',', $prod->level_income);
-                        $drb_l2_pct = floatval(trim($levels[1] ?? 0));
-                    }
-                    if ($drb_l2_pct > 0) {
-                        $lvl2_bonus = (floatval($prod->prod_price) * ($drb_l2_pct / 100.0) * $qty) * $package_ratio;
-                        if ($lvl2_bonus > 0) {
-                            $this->pay_earning($lvl2_sponsor, $userid, 'Direct Referral Bonus (Level 2)', $lvl2_bonus, 2);
+                        if (isset($levels[1]) && floatval(trim($levels[1])) > 0) {
+                            $drb_l2_pct = floatval(trim($levels[1]));
                         }
+                    }
+                    if ($drb_l2_pct <= 0 && config_item('level_income')) {
+                        $cfg_levels = explode(',', config_item('level_income'));
+                        if (isset($cfg_levels[1]) && floatval(trim($cfg_levels[1])) > 0) {
+                            $drb_l2_pct = floatval(trim($cfg_levels[1]));
+                        }
+                    }
+                    $qualifying_amt = ($prod && floatval($prod->prod_price) > 0) ? floatval($prod->prod_price) : $get_topup;
+                    $lvl2_bonus = ($qualifying_amt * ($drb_l2_pct / 100.0) * $qty * $package_ratio);
+                    if ($lvl2_bonus > 0) {
+                        $this->pay_earning($lvl2_sponsor, $userid, 'Direct Referral Bonus (Level 2)', $lvl2_bonus, 2);
                     }
                 }
             } 

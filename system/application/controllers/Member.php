@@ -597,7 +597,7 @@ public function certificate() {
         $type   = $this->input->post('type') ?? null;
         $s_date = $this->input->post('start_date') ?? null;
         $e_date = $this->input->post('end_date') ?? null;
-        $this->db->select('DATE(date) as date, type, pair_match, ref_id, secret, userid ,status, SUM(amount) as amount')->from('earning')->where('userid', $this->session->user_id)->where('amount >', 0)->group_by(['DATE(date)', 'type','status', 'ref_id']);
+        $this->db->select('id, DATE(date) as date, type, pair_match, ref_id, secret, levlno, userid, status, amount')->from('earning')->where('userid', $this->session->user_id)->where('amount >', 0)->order_by('id', 'DESC');
         if ($type) {
             $this->db->where('type', $type);
         }
@@ -609,6 +609,17 @@ public function certificate() {
         }
                 
         $data['earning'] = $this->db->get()->result_array();
+        
+        // Income Totals by Category
+        $cat_query = $this->db->select('type, SUM(amount) as cat_total')
+                              ->from('earning')
+                              ->where('userid', $this->session->user_id)
+                              ->where('amount >', 0)
+                              ->group_by('type')
+                              ->get()->result_array();
+        $data['category_totals'] = $cat_query;
+        $data['grand_total']     = array_sum(array_column($cat_query, 'cat_total'));
+
         $data['title']   = 'Earnings List';
         $data['type']    = $type;
         $data['sdate']   = $s_date;

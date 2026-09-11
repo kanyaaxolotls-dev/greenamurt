@@ -63,47 +63,60 @@
                     </div>
                 </form>
             </div>
+            <?php if (!empty($category_totals)) { ?>
+            <div class="px-4 py-2">
+                <div class="row">
+                    <?php foreach ($category_totals as $ct) { ?>
+                        <div class="col-md-3 col-sm-6 mb-2">
+                            <div class="p-2 border rounded bg-light">
+                                <small class="text-muted d-block"><?= htmlspecialchars($ct['type']) ?></small>
+                                <strong class="text-success font-size-16"><?= config_item('currency') . number_format($ct['cat_total'], 2) ?></strong>
+                            </div>
+                        </div>
+                    <?php } ?>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <div class="p-2 border rounded bg-soft-primary">
+                            <small class="text-primary d-block font-weight-bold">Grand Total</small>
+                            <strong class="text-primary font-size-16"><?= config_item('currency') . number_format($grand_total ?? 0, 2) ?></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php } ?>
             <div class="card-body table-responsive">
                 <table id="datatable-buttons" class="table align-middle table-nowrap table-check">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 20px;" class="align-middle">
-                                <div class="form-check font-size-16">
-                                    <input class="form-check-input" type="checkbox" id="checkAll">
-                                    <label class="form-check-label" for="checkAll"></label>
-                                </div>
-                            </th>
-                            <th class="align-middle">Userid</th>
+                            <th class="align-middle">#</th>
                             <th class="align-middle">Date</th>
-                            <th class="align-middle">Type</th>
-                            <th class="align-middle">ref_id</th>
+                            <th class="align-middle">Income Type</th>
+                            <th class="align-middle">Ref / Sponsor</th>
+                            <th class="align-middle">Level</th>
+                            <th class="align-middle">Pair Match</th>
+                            <th class="align-middle">Tx ID</th>
                             <th class="align-middle">Amount</th>
                             <th class="align-middle">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php 
+                            $sn = 1;
                             foreach ($earning as $e) { 
-                                $admin_per  = config_item('admin_charges');
-                                $tds_per    = config_item('payout_tax');
                         ?>
                             <tr>
-                                <td>
-                                    <div class="form-check font-size-16">
-                                        <input class="form-check-input" type="checkbox" id="orderidcheck01">
-                                        <label class="form-check-label" for="orderidcheck01"></label>
-                                    </div>
-                                </td>
-                                <td><?php echo $e['userid']; ?></td>
+                                <td><?php echo $sn++; ?></td>
                                 <td><?php echo $e['date']; ?></td>
-                                <td><?php echo $e['type']; ?></td>
-                                <td><?php echo $e['ref_id']; ?></td>
-                                <td><?php echo config_item('currency') . $e['amount']; ?></td>
+                                <td><span class="badge bg-soft-info text-info font-size-12"><?php echo htmlspecialchars($e['type']); ?></span></td>
+                                <td><?php echo !empty($e['ref_id']) ? config_item('ID_EXT') . $e['ref_id'] : '-'; ?></td>
+                                <td><?php echo (!empty($e['levlno']) && $e['levlno'] > 0) ? 'Level ' . $e['levlno'] : '-'; ?></td>
+                                <td><?php echo (!empty($e['pair_match']) && $e['pair_match'] > 0) ? $e['pair_match'] . ' Pair(s)' : '-'; ?></td>
+                                <td><small class="text-muted font-monospace"><?php echo !empty($e['secret']) ? htmlspecialchars($e['secret']) : ('TX-' . $e['id']); ?></small></td>
+                                <td><strong class="text-success"><?php echo config_item('currency') . number_format($e['amount'], 2); ?></strong></td>
                                 <td>
                                     <?php if ($e['status'] == "Paid") { ?>
                                         <span class="badge bg-soft-success text-success"><?php echo $e['status']; ?></span>
                                     <?php } else { ?>
-                                        <span class="badge bg-soft-danger text-danger"><?php echo $e['status']; ?></span>
+                                        <span class="badge bg-soft-warning text-warning"><?php echo $e['status']; ?></span>
                                     <?php } ?>
                                 </td>
                             </tr>

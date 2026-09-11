@@ -185,5 +185,25 @@ $(function () {
     });
 
 });
+
+function get_user_name(id, result) {
+    var val = $(id).val();
+    if (!val || val.trim() === '') {
+        $(result).html('');
+        return;
+    }
+    var cleanId = val.replace(/\D/g, "");
+    if (cleanId === '') {
+        $(result).html('');
+        return;
+    }
+    $.get("<?= site_url('site/get_user_name/') ?>" + cleanId, function (data) {
+        if (data && data.trim() !== "User Not Found") {
+            $(result).html('<i class="fa fa-check-circle"></i> ' + data).removeClass('text-danger').addClass('text-success');
+        } else {
+            $(result).html('<i class="fa fa-times-circle"></i> User Not Found').removeClass('text-success').addClass('text-danger');
+        }
+    });
+}
 </script>
 <?php echo form_close(); ?>

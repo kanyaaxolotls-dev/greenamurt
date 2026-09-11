@@ -375,8 +375,18 @@ public function autopool_four(){
         $data['type']       = $type ?? '';
         $data['start_date'] = $start_date ?? '';
         $data['end_date']   = $end_date ?? '';
-        $this->db->select('*, userid, DATE(date) as date, SUM(amount) as total_amount')->from('earning')->group_by(['type', 'userid', 'DATE(date)']);
+        $this->db->select('*, userid, DATE(date) as date, SUM(amount) as total_amount')->from('earning')->group_by(['type', 'userid', 'DATE(date)', 'ref_id', 'pair_match', 'levlno', 'secret']);
         $data['earning']    = $this->db->get()->result_array();
+
+        // Income Totals by Category for Admin
+        $cat_query = $this->db->select('type, SUM(amount) as cat_total')
+                              ->from('earning')
+                              ->where('amount >', 0)
+                              ->group_by('type')
+                              ->get()->result_array();
+        $data['category_totals'] = $cat_query;
+        $data['grand_total']     = array_sum(array_column($cat_query, 'cat_total'));
+
         $data['title']      = 'Earnings';
         $data['breadcrumb'] = 'View Earnings';
         $data['layout']     = 'income/view_earning.php';

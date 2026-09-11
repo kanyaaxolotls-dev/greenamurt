@@ -36,6 +36,26 @@
             </div>
         </form>
     </div>
+        <?php if (!empty($category_totals)) { ?>
+        <div class="px-4 py-2">
+            <div class="row">
+                <?php foreach ($category_totals as $ct) { ?>
+                    <div class="col-md-3 col-sm-6 mb-2">
+                        <div class="p-2 border rounded bg-light">
+                            <small class="text-muted d-block"><?= htmlspecialchars($ct['type']) ?></small>
+                            <strong class="text-success font-size-16"><?= config_item('currency') . number_format($ct['cat_total'], 2) ?></strong>
+                        </div>
+                    </div>
+                <?php } ?>
+                <div class="col-md-3 col-sm-6 mb-2">
+                    <div class="p-2 border rounded bg-light" style="border-left: 4px solid #5e72e4 !important;">
+                        <small class="text-primary d-block font-weight-bold">Grand Total</small>
+                        <strong class="text-primary font-size-16"><?= config_item('currency') . number_format($grand_total ?? 0, 2) ?></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php } ?>
         <div class="card-header bg-white border-0"> 
             <div class="row align-items-center">
                     <div class="col-8">
@@ -57,9 +77,11 @@
             <th scope="col">Amount</th>
             <th scope="col">Type</th>
             <th scope="col">Ref ID</th> 
+            <th scope="col">Level</th>
+            <th scope="col">Pair Match</th>
+            <th scope="col">Tx Reference</th>
             <th scope="col">Date</th>
-            <!--<th scope="col">Pair Match</th>-->
-            <!--<th scope="col">Actions</th>-->
+            <th scope="col">Status</th>
         </tr>
     </thead>
             <?php
@@ -71,17 +93,20 @@
                 <td><?php echo $sn++; ?></td>
                 <td><a href="<?php echo site_url('users/user_detail/' . $e['userid']) ?>" target="_blank"><?php echo config_item('ID_EXT') . $e['userid']; ?></a></td>
                 <td><?php echo $user_name; ?></td>
-                <td><?php echo config_item('currency') . $e['total_amount']; ?></td>
-                <td><?php echo $e['type']; ?></td>
-                <td><?php echo $e['ref_id'] ? config_item('ID_EXT') . $e['ref_id'] : ""; ?></td>
+                <td><strong class="text-success"><?php echo config_item('currency') . number_format($e['total_amount'], 2); ?></strong></td>
+                <td><span class="badge badge-info"><?php echo htmlspecialchars($e['type']); ?></span></td>
+                <td><?php echo !empty($e['ref_id']) ? config_item('ID_EXT') . $e['ref_id'] : "-"; ?></td>
+                <td><?php echo (!empty($e['levlno']) && $e['levlno'] > 0) ? 'Level ' . $e['levlno'] : '-'; ?></td>
+                <td><?php echo (!empty($e['pair_match']) && $e['pair_match'] > 0) ? $e['pair_match'] . ' Pair(s)' : '-'; ?></td>
+                <td><small class="text-muted font-monospace"><?php echo !empty($e['secret']) ? htmlspecialchars($e['secret']) : ('TX-' . ($e['id'] ?? '')); ?></small></td>
                 <td><?php echo $e['date']; ?></td>
-                <!--<td><?php echo $e['levlno']; ?></td>-->
-                <!--<td>-->
-                <!--    <a href="<?php echo site_url('income/edit_earning/' . $e['id']); ?>"><img src="https://img.icons8.com/cotton/20/000000/edit.png"></a>-->
-                <!--    <a onclick="return confirm('Are you sure you want to delete this Record ?')"-->
-                <!--       href="<?php echo site_url('income/remove_earning/' . $e['id']); ?>"-->
-                <!--      ><img src="https://img.icons8.com/color/20/000000/clear-symbol.png"></a> -->
-                <!--</td>-->
+                <td>
+                    <?php if (($e['status'] ?? '') == "Paid") { ?>
+                        <span class="badge badge-success"><?php echo $e['status']; ?></span>
+                    <?php } else { ?>
+                        <span class="badge badge-warning"><?php echo $e['status'] ?? 'Pending'; ?></span>
+                    <?php } ?>
+                </td>
             </tr>
         <?php } ?>
     </table>
