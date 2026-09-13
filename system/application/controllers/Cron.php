@@ -105,7 +105,7 @@ class Cron extends CI_Controller
 	public function direct_sponsor_payout()
 	{
 		$this->load->model('earning');
-		$members = $this->db->select('*')->from('member')->where('id !=', '1000')->where('id !=', '1001')->get()->result();
+		$members = $this->db->select('*')->from('member')->where('id !=', '1000')->where('id !=', '1001')->where('status', 'Active')->where('topup >', 0)->get()->result();
 		if ($members) {
 			foreach ($members as $m) {
 				$sp_id = trim($m->sponsor ?? '');
@@ -115,13 +115,15 @@ class Cron extends CI_Controller
 				$chk = $this->db->where('userid', $sp_id)->where('ref_id', $m->id)->where('type', 'Direct Sponsor Income')->count_all_results('earning');
 				if ($chk == 0) {
 					$pv = floatval($m->mypv ?? 0) > 0 ? floatval($m->mypv) : 1.0;
-					$dir_rate = 890.0;
-					if (!empty($m->signup_package)) {
-						$p = $this->db->where('id', $m->signup_package)->get('product')->row();
-						if ($p && floatval($p->direct_income) > 0) {
-							$dir_rate = floatval($p->direct_income);
-						}
+					$pkg_id = !empty($m->signup_package) ? $m->signup_package : ($m->join_package ?? 0);
+					$p = null;
+					if ($pkg_id) {
+						$p = $this->db->where('id', $pkg_id)->get('product')->row();
 					}
+					if (!$p) {
+						$p = $this->db->order_by('id', 'ASC')->get('product')->row();
+					}
+					$dir_rate = ($p && floatval($p->direct_income) > 0) ? floatval($p->direct_income) : 0.0;
 					$dir_amt = $dir_rate * $pv;
 					$this->earning->pay_earning($sp_id, $m->id, 'Direct Sponsor Income', $dir_amt);
 				}
@@ -131,7 +133,7 @@ class Cron extends CI_Controller
 
 	public function binary_payout()
 	{
-		$this->db->select('*')->from('member')->where('id !=', '1000');
+		$this->db->select('*')->from('member')->where('id !=', '1000')->where('status', 'Active')->where('topup >', 0);
 		$this->db->where('total_a_pv >', 0)->where('total_b_pv >', 0);
 		$data = $this->db->get()->result();
 

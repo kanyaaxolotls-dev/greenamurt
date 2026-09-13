@@ -106,11 +106,24 @@ class Earning extends CI_Model
             return TRUE;
         }
 
+        if (!$member || $member->status !== 'Active' || floatval($member->topup ?? 0) <= 0) {
+            $this->db->insert('laps_earning', array(
+                'userid' => $userid,
+                'amount' => $amount,
+                'type'   => $income_name,
+                'reason' => 'Account Inactive / Deactive',
+            ));
+            $log_lines[] = "ACTION: LAPSED (Receiver account is Inactive / Deactive - Status: " . ($member ? $member->status : 'NotFound') . ", Topup: " . ($member ? $member->topup : 0) . ")";
+            $log_lines[] = "----------------------------------------\n";
+            $this->_write_payout_log($log_lines);
+            return TRUE;
+        }
+
         if (empty($secret)) {
             $secret = strtoupper(substr(str_replace(' ', '', $income_name), 0, 3)) . '-' . $userid . '-' . date('YmdHis') . '-' . rand(100, 999);
         }
 
-        // Direct credit to earning without blocking for topup or package
+        // Direct credit to earning for Active member
         $data = array(
             'userid'        => $userid,
             'amount'        => $amount,
@@ -143,18 +156,23 @@ class Earning extends CI_Model
         $log_lines[] = "DOWNLINE EARNER ID: {$userid}";
         $member = $this->db_model->select_multi('sponsor, signup_package, join_package', 'member', array('id' => $userid));
         $pkg_id = ($member && !empty($member->signup_package)) ? $member->signup_package : ($member->join_package ?? 0);
-        $prod   = $pkg_id ? $this->db_model->select_multi('level_income', 'product', array('id' => $pkg_id)) : null;
+        $prod = null;
+        if ($pkg_id > 0) {
+            $prod = $this->db_model->select_multi('level_income', 'product', array('id' => $pkg_id));
+        }
+        if (!$prod) {
+            $prod = $this->db->order_by('id', 'ASC')->get('product')->row();
+        }
 
-        $drb_l1_pct = 30.0;
-        $drb_l2_pct = 20.0;
+        $drb_l1_pct = 0.0;
+        $drb_l2_pct = 0.0;
 
-        // If package explicitly configures valid comma-separated levels, read it; otherwise default to strict 30, 20
         if ($prod && !empty($prod->level_income) && strpos($prod->level_income, ',') !== false) {
             $levels = array_map('trim', explode(',', (string)$prod->level_income));
-            if (isset($levels[0]) && is_numeric($levels[0]) && floatval($levels[0]) > 0) {
+            if (isset($levels[0]) && is_numeric($levels[0])) {
                 $drb_l1_pct = floatval($levels[0]);
             }
-            if (isset($levels[1]) && is_numeric($levels[1]) && floatval($levels[1]) > 0) {
+            if (isset($levels[1]) && is_numeric($levels[1])) {
                 $drb_l2_pct = floatval($levels[1]);
             }
         }
@@ -177,7 +195,7 @@ class Earning extends CI_Model
                 $sp1_data = $this->db_model->select_multi('status, topup, total_pairs', 'member', array('id' => $sponsor));
                 $sp1_pairs = $sp1_data ? (int)($sp1_data->total_pairs ?? 0) : 0;
 
-                if ($sp1_pairs >= 1) {
+                if ($sp1_data && $sp1_data->status === 'Active' && floatval($sp1_data->topup ?? 0) > 0 && $sp1_pairs >= 1) {
                     // Prevent duplicate DRB for this specific matching income
                     $q = $this->db->where('userid', $sponsor)->where('ref_id', $userid)->where_in('type', array('Direct Referral Bonus', 'Direct Referral Bonus Level 1'))->where('levlno', 1);
                     if (!empty($match_ref_id)) {
@@ -190,12 +208,12 @@ class Earning extends CI_Model
                     if ($chk_drb1 == 0) {
                         $sec = !empty($match_ref_id) ? ('DRB1-' . $match_ref_id) : 0;
                         $this->pay_earning($sponsor, $userid, 'Direct Referral Bonus Level 1', $lvl1_amount, 1, 0, $sec);
-                        $log_lines[] = "ACTION: CREDITED -> User #{$sponsor} received ₹" . number_format($lvl1_amount, 2) . " as Direct Referral Bonus Level 1 (30%)";
+                        $log_lines[] = "ACTION: CREDITED -> User #{$sponsor} received ₹" . number_format($lvl1_amount, 2) . " as Direct Referral Bonus Level 1 ({$drb_l1_pct}%)";
                     } else {
                         $log_lines[] = "ACTION: SKIPPED (Duplicate prevention: DRB Level 1 already generated for this matching event)";
                     }
                 } else {
-                    $log_lines[] = "ACTION: SKIPPED (Sponsor #{$sponsor} tail is not complete: total_pairs = {$sp1_pairs}, requires at least 1 pair / completed tail)";
+                    $log_lines[] = "ACTION: SKIPPED (Sponsor #{$sponsor} is either Inactive or tail is not complete: total_pairs = {$sp1_pairs})";
                 }
             } else {
                 $log_lines[] = "ACTION: SKIPPED (No valid direct sponsor found / Sponsor is 1000)";
@@ -205,8 +223,8 @@ class Earning extends CI_Model
         }
         $log_lines[] = "";
 
-        // Level 2: Direct Referral Bonus Level 2 (Configured Level 2 % of Matching Income - 20%)
-        $log_lines[] = "--- LEVEL 2 DRB CALCULATION (20%) ---";
+        // Level 2: Direct Referral Bonus Level 2 (Configured Level 2 % of Matching Income)
+        $log_lines[] = "--- LEVEL 2 DRB CALCULATION ({$drb_l2_pct}%) ---";
         if ($drb_l2_pct > 0) {
             $lvl2_amount = ($drb_l2_pct / 100.0) * $amount;
             $lvl2_sponsor = $this->find_sp_level_sponsor($userid, 2);
@@ -214,11 +232,11 @@ class Earning extends CI_Model
             $log_lines[] = "Calculated Level 2 Amount: ₹" . number_format($lvl2_amount, 2);
 
             if (!empty($lvl2_sponsor) && $lvl2_sponsor !== '0' && $lvl2_sponsor !== '1000' && $lvl2_amount > 0) {
-                // Check if Level 2 sponsor has completed their own tail (total_pairs >= 1)
+                // Check if Level 2 sponsor is Active and has completed their own tail (total_pairs >= 1)
                 $sp2_data = $this->db_model->select_multi('status, topup, total_pairs', 'member', array('id' => $lvl2_sponsor));
                 $sp2_pairs = $sp2_data ? (int)($sp2_data->total_pairs ?? 0) : 0;
 
-                if ($sp2_pairs >= 1) {
+                if ($sp2_data && $sp2_data->status === 'Active' && floatval($sp2_data->topup ?? 0) > 0 && $sp2_pairs >= 1) {
                     // Prevent duplicate DRB Level 2 for this specific matching income
                     $q2 = $this->db->where('userid', $lvl2_sponsor)->where('ref_id', $userid)->where_in('type', array('Direct Referral Bonus', 'Direct Referral Bonus Level 2'))->where('levlno', 2);
                     if (!empty($match_ref_id)) {
@@ -231,12 +249,12 @@ class Earning extends CI_Model
                     if ($chk_drb2 == 0) {
                         $sec2 = !empty($match_ref_id) ? ('DRB2-' . $match_ref_id) : 0;
                         $this->pay_earning($lvl2_sponsor, $userid, 'Direct Referral Bonus Level 2', $lvl2_amount, 2, 0, $sec2);
-                        $log_lines[] = "ACTION: CREDITED -> User #{$lvl2_sponsor} received ₹" . number_format($lvl2_amount, 2) . " as Direct Referral Bonus Level 2 (20%)";
+                        $log_lines[] = "ACTION: CREDITED -> User #{$lvl2_sponsor} received ₹" . number_format($lvl2_amount, 2) . " as Direct Referral Bonus Level 2 ({$drb_l2_pct}%)";
                     } else {
                         $log_lines[] = "ACTION: SKIPPED (Duplicate prevention: DRB Level 2 already generated for this matching event)";
                     }
                 } else {
-                    $log_lines[] = "ACTION: SKIPPED (Level 2 Sponsor #{$lvl2_sponsor} tail is not complete: total_pairs = {$sp2_pairs}, requires at least 1 pair / completed tail)";
+                    $log_lines[] = "ACTION: SKIPPED (Level 2 Sponsor #{$lvl2_sponsor} is either Inactive or tail is not complete: total_pairs = {$sp2_pairs})";
                 }
             } else {
                 $log_lines[] = "ACTION: SKIPPED (No valid Level 2 sponsor found / Level 2 Sponsor is 1000)";
@@ -344,6 +362,13 @@ class Earning extends CI_Model
         $log_lines[] = "Topup: " . ($member_data->topup ?? 0);
         $log_lines[] = "Package: " . ($member_data->signup_package ?? 'N/A');
         $log_lines[] = "";
+
+        if ($member_data->status !== 'Active' || floatval($member_data->topup ?? 0) <= 0) {
+            $log_lines[] = "FAIL: Member ID {$id} is Inactive / Deactive (Status: " . ($member_data->status ?? 'N/A') . ", Topup: " . ($member_data->topup ?? 0) . "). Matching Income skipped.";
+            $log_lines[] = "========================================\n";
+            $this->_write_payout_log($log_lines);
+            return $debug ? $log_lines : false;
+        }
 
         // 2. TREE / PV INFORMATION
         $a_side      = (float) ($member_data->total_a_pv  ?? 0);
