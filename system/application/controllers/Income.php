@@ -375,7 +375,7 @@ public function autopool_four(){
         $data['type']       = $type ?? '';
         $data['start_date'] = $start_date ?? '';
         $data['end_date']   = $end_date ?? '';
-        $this->db->select('*, userid, DATE(date) as date, SUM(amount) as total_amount')->from('earning')->group_by(['type', 'userid', 'DATE(date)', 'ref_id', 'pair_match', 'levlno', 'secret']);
+        $this->db->select('*, amount as total_amount')->from('earning')->order_by('id', 'DESC');
         $data['earning']    = $this->db->get()->result_array();
 
         // Income Totals by Category for Admin

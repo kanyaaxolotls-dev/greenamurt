@@ -1,21 +1,13 @@
 <?php
-    $calc_total_inc = isset($total_income) ? $total_income : ($this->db_model->sum('amount', 'earning', array('userid' => $this->session->user_id)) + 0);
+    $calc_total_inc = floatval($this->db_model->sum('amount', 'earning', array('userid' => $this->session->user_id)));
 
-    $calc_sponsor_b = isset($direct_sponsor_income) ? $direct_sponsor_income : (
-        $this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->group_start()->where_in('type', array('Direct Sponsor Income', 'Direct Sponsor Commission', 'Active Bonus', 'Referral Reward', 'Direct Income', 'Referral Income'))->group_end()->get()->row()->amount + 0
-    );
+    $calc_sponsor_b = floatval($this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->where_in('type', array('Direct Sponsor Income', 'Direct Sponsor Commission', 'Direct Income'))->get()->row()->amount ?? 0);
 
-    $calc_team_b = isset($matching) ? $matching : (
-        $this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->group_start()->where_in('type', array('Team Bonus', 'Matching Income', 'Matching'))->group_end()->get()->row()->amount + 0
-    );
+    $calc_team_b = floatval($this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->where_in('type', array('Matching Income', 'Sales Matching Income', 'Team Bonus'))->get()->row()->amount ?? 0);
 
-    $calc_matching_sp = isset($sp_level_income2) ? $sp_level_income2 : (
-        $this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->group_start()->where_in('type', array('Active Sponsor Bonus', 'Matching Sponsor Inc', 'Sponsor Income', 'Sponsor Level Inc'))->group_end()->get()->row()->amount + 0
-    );
+    $calc_drb_l1 = floatval($this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->where_in('type', array('Direct Referral Bonus', 'Direct Referral Bonus Level 1'))->where('levlno', 1)->get()->row()->amount ?? 0);
 
-    $calc_today_sp = isset($today_sponsor_income) ? $today_sponsor_income : (
-        $this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->where('date', date('Y-m-d'))->group_start()->where_in('type', array('Direct Sponsor Income', 'Direct Sponsor Commission'))->group_end()->get()->row()->amount + 0
-    );
+    $calc_drb_l2 = floatval($this->db->select_sum('amount')->from('earning')->where('userid', $this->session->user_id)->where_in('type', array('Direct Referral Bonus (Level 2)', 'Direct Referral Bonus Level 2'))->where('levlno', 2)->get()->row()->amount ?? 0);
 
     $sections = [
         'Total Team And Pairs' => [
@@ -28,8 +20,8 @@
             ['title' => 'Total Income', 'value' => $calc_total_inc],
             ['title' => 'Direct Sponsor Income', 'value' => $calc_sponsor_b],
             ['title' => 'Sales Matching Income', 'value' => $calc_team_b],
-            ['title' => 'Matching Sponsor Income', 'value' => $calc_matching_sp],
-            ['title' => 'Today Sponsor Income', 'value' => $calc_today_sp],
+            ['title' => 'Direct Referral Bonus Level 1', 'value' => $calc_drb_l1],
+            ['title' => 'Direct Referral Bonus Level 2', 'value' => $calc_drb_l2],
         ],
         'Balance Pairs' => [
             ['title' => 'Balance Left PV', 'value' => ($detail->total_a_pv - $detail->paid_a_pv)],
@@ -79,7 +71,7 @@
                                     <?php if (strpos($sectionTitle, 'Payout') !== false || strpos($sectionTitle, 'Incomes') !== false || strpos($card['title'], 'Income') !== false || strpos($card['title'], 'Bonus') !== false): ?>
                                         <i class="fas fa-rupee-sign"></i>
                                     <?php endif; ?>
-                                    <span class="counter-value" data-target="<?php echo $card['value']; ?>"></span>
+                                    <span class="counter-value" data-target="<?php echo $card['value']; ?>"><?php echo (is_numeric($card['value']) && floor($card['value']) == $card['value']) ? intval($card['value']) : $card['value']; ?></span>
                                 </h4>
                             </div>
                             <div class="flex-shrink-0 text-end dash-widget">

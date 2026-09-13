@@ -549,31 +549,38 @@ class Earning extends CI_Model
         $this->db->trans_begin();
 
         $tx_ref           = "BIN-" . $id . "-" . date('YmdHis') . "-" . rand(1000, 9999);
-        $earning_id       = 0;
-        $earning_ok       = false;
+        $earning_ids      = array();
+        $earning_ok       = true;
         $earning_err      = '';
         $wallet_ok        = false;
         $wallet_err       = '';
         $cur_bal          = 0;
         $new_bal          = 0;
 
-        if ($pay_amount > 0) {
-            // 1. EARNING INSERT
-            $earning_data = array(
-                'userid'     => $id,
-                'amount'     => $pay_amount,
-                'type'       => 'Matching Income',
-                'ref_id'     => '',
-                'date'       => date('Y-m-d'),
-                'pair_match' => $payable_pairs,
-                'secret'     => $tx_ref,
-                'status'     => 'Paid',
-            );
-            $earning_ok = $this->db->insert('earning', $earning_data);
-            $earning_id = $this->db->insert_id();
-            if (!$earning_ok) {
-                $db_err = $this->db->error();
-                $earning_err = $db_err['message'] ?? 'Earning insert failed';
+        if ($pay_amount > 0 && $payable_pairs > 0) {
+            // 1. EARNING INSERT (Separate individual row per matched pair)
+            for ($p_idx = 1; $p_idx <= $payable_pairs; $p_idx++) {
+                $pair_no = $total_pair + $p_idx;
+                $pair_secret = "BIN-" . $id . "-" . date('YmdHis') . "-" . rand(100, 999) . "-P" . $pair_no;
+                $earning_data = array(
+                    'userid'     => $id,
+                    'amount'     => $per_pair,
+                    'type'       => 'Matching Income',
+                    'ref_id'     => '',
+                    'date'       => date('Y-m-d'),
+                    'pair_match' => 1,
+                    'secret'     => $pair_secret,
+                    'status'     => 'Paid',
+                );
+                $ins_ok = $this->db->insert('earning', $earning_data);
+                if ($ins_ok) {
+                    $earning_ids[] = $this->db->insert_id();
+                } else {
+                    $earning_ok = false;
+                    $db_err = $this->db->error();
+                    $earning_err = $db_err['message'] ?? 'Earning insert failed';
+                    break;
+                }
             }
 
             // 2. WALLET CREDIT
@@ -631,8 +638,10 @@ class Earning extends CI_Model
         } else {
             $this->db->trans_commit();
             $tx_committed = true;
-            if ($pay_amount > 0 && $earning_id > 0) {
-                $this->process_lvl($id, $pay_amount, $earning_id);
+            if ($pay_amount > 0 && !empty($earning_ids)) {
+                foreach ($earning_ids as $eid) {
+                    $this->process_lvl($id, $per_pair, $eid);
+                }
             }
         }
 

@@ -263,151 +263,130 @@
                         </div>
                         <!-- end page title -->
 
-                        <!-- New  Start-->
+                        <!-- New Start-->
                         <div class="row">
-                            <div class="col-xl-2 col-md-2">
+                            <div class="col-xl-2 col-md-4 col-sm-6 col-12">
                                 <!-- card -->
                                 <div class="card card-h-100">
-                                    <!-- card body -->
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-grow-1">
-                                                <span class="mb-3 lh-1 d-block text-dark">Matching Income</span>
-                                                <h4 class="mb-3">
+                                                <span class="mb-2 lh-1 d-block text-dark font-size-13">Direct Sponsor Income</span>
+                                                <h4 class="mb-0 text-primary">
                                                     <i class="fas fa-rupee-sign"></i>
                                                     <span>
                                                         <?php 
-                                                            
-                                                            /*$matching_income = $this->db_model->sum('amount', 'earning', array('userid' => $this->session->user_id,'type'=> 'Matching Income'));
-                                                            echo $matching_income ? $matching_income : 0;*/
-                                                             $total_pairs    = $this->db_model->select('total_pairs', 'member', ['id' => $this->session->user_id]);
-                                                             echo $total_pairs ? $total_pairs : 0;
+                                                            $sp_q = $this->db->where('userid', $this->session->user_id)->where('type', 'Direct Sponsor Income')->select_sum('amount')->get('earning')->row();
+                                                            $sp_amt = $sp_q ? floatval($sp_q->amount) : 0;
+                                                            echo number_format($sp_amt, 2);
                                                         ?> 
                                                     </span>
                                                 </h4>
                                             </div>
-                                            
-                                        </div>
-                                    </div><!-- end card body -->
-                                </div><!-- end card -->
-                            </div><!-- end col -->
-
-                            <div class="col-xl-2 col-md-2">
-                                <!-- card -->
-                                <div class="card card-h-100">
-                                    <!-- card body -->
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-grow-1">
-                                                <span class="mb-3 lh-1 d-block text-dark">Sponsor Income</span>
-                                                <h4 class="mb-3">
-                                                    <i class="fas fa-rupee-sign"></i>
-                                                    <?php 
-                                                        $this->db->like('type', 'Sponsor Income'); // LIKE condition
-                                                        $this->db->where('userid', $this->session->user_id);
-                                                        $this->db->select_sum('amount');
-                                                        $query = $this->db->get('earning');
-
-                                                        $sponsor_income = 0;
-                                                        if ($query && $query->num_rows() > 0) {
-                                                            $result = $query->row();
-                                                            $sponsor_income = $result->amount ?? 0;
-                                                        }
-
-                                                        echo $sponsor_income;
-                                                    ?> 
-                                                </h4>
-                                            </div>
-                                            
-                                        </div>
-                                    </div><!-- end card body -->
-                                </div><!-- end card -->
-                            </div><!-- end col -->
-
-                            <!-- Repurchase Income Card Commented Out
-                            <div class="col-xl-2 col-md-2">
-                                <div class="card card-h-100">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-grow-1">
-                                                <span class="mb-3 lh-1 d-block text-dark">Repurchase Income</span>
-                                                <h4 class="mb-3">
-                                                    <i class="fas fa-rupee-sign"></i>
-                                                    <span>
-                                                        <?php 
-                                                            $repurchase_income = $this->db_model->sum('amount', 'earning', array('userid' => $this->session->user_id,'type'=> 'Repurchase Income'));
-                                                            echo $repurchase_income ? $repurchase_income : 0;
-                                                        ?> 
-                                                    </span> 
-                                                </h4>
-                                            </div>
-                                            
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            -->
-                            
-                            <!-- Royalty Income Card Commented Out
-                            <div class="col-xl-2 col-md-2">
+                            </div><!-- end col -->
+
+                            <div class="col-xl-2 col-md-4 col-sm-6 col-12">
+                                <!-- card -->
                                 <div class="card card-h-100">
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-grow-1">
-                                                <span class="mb-3 lh-1 d-block text-dark">Royalty Income</span>
-                                                <h4 class="mb-3">
+                                                <span class="mb-2 lh-1 d-block text-dark font-size-13">Matching Income</span>
+                                                <h4 class="mb-0 text-success">
                                                     <i class="fas fa-rupee-sign"></i>
                                                     <span>
                                                         <?php 
-                                                            $total_royalty_inc = $this->db_model->sum('amount', 'earning', array('type LIKE' => '%royalty%','userid' => $this->session->user_id)); 
-                                                            echo $total_royalty_inc ? $total_royalty_inc : 0;
+                                                            $match_q = $this->db->where('userid', $this->session->user_id)->where('type', 'Matching Income')->select_sum('amount')->get('earning')->row();
+                                                            $match_amt = $match_q ? floatval($match_q->amount) : 0;
+                                                            echo number_format($match_amt, 2);
                                                         ?> 
-                                                    </span> 
+                                                    </span>
                                                 </h4>
                                             </div>
-                                            
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            -->
+                            </div><!-- end col -->
 
-                            <div class="col-xl-2 col-md-2">
+                            <div class="col-xl-2 col-md-4 col-sm-6 col-12">
                                 <!-- card -->
                                 <div class="card card-h-100">
-                                    <!-- card body -->
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-grow-1">
-                                                <span class="mb-3 lh-1 d-block text-dark">Total Earning</span>
-                                                <h4 class="mb-3">
+                                                <span class="mb-2 lh-1 d-block text-dark font-size-13">DRB Level 1</span>
+                                                <h4 class="mb-0 text-info">
+                                                    <i class="fas fa-rupee-sign"></i>
+                                                    <span>
+                                                        <?php 
+                                                            $drb1_q = $this->db->where('userid', $this->session->user_id)->where_in('type', array('Direct Referral Bonus', 'Direct Referral Bonus Level 1'))->where('levlno', 1)->select_sum('amount')->get('earning')->row();
+                                                            $drb1_amt = $drb1_q ? floatval($drb1_q->amount) : 0;
+                                                            echo number_format($drb1_amt, 2);
+                                                        ?> 
+                                                    </span>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div><!-- end col -->
+
+                            <div class="col-xl-2 col-md-4 col-sm-6 col-12">
+                                <!-- card -->
+                                <div class="card card-h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <span class="mb-2 lh-1 d-block text-dark font-size-13">DRB Level 2</span>
+                                                <h4 class="mb-0 text-warning">
+                                                    <i class="fas fa-rupee-sign"></i>
+                                                    <span>
+                                                        <?php 
+                                                            $drb2_q = $this->db->where('userid', $this->session->user_id)->where_in('type', array('Direct Referral Bonus (Level 2)', 'Direct Referral Bonus Level 2'))->where('levlno', 2)->select_sum('amount')->get('earning')->row();
+                                                            $drb2_amt = $drb2_q ? floatval($drb2_q->amount) : 0;
+                                                            echo number_format($drb2_amt, 2);
+                                                        ?> 
+                                                    </span>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div><!-- end col -->
+
+                            <div class="col-xl-2 col-md-4 col-sm-6 col-12">
+                                <!-- card -->
+                                <div class="card card-h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center">
+                                            <div class="flex-grow-1">
+                                                <span class="mb-2 lh-1 d-block text-dark font-size-13">Total Earning</span>
+                                                <h4 class="mb-0 text-dark">
                                                     <i class="fas fa-rupee-sign"></i>
                                                     <span>
                                                         <?php
-                                                            //echo $this->db_model->sum('amount', 'earning',array('userid' => $this->session->user_id)); 
                                                             $total_payout = $this->db_model->sum('amount', 'earning', array('userid' => $this->session->user_id));
-                                                            $tax = config_item('admin_charges') + config_item('payout_tax');
-                                                            $total_pay_amt = ($total_payout > 0) ? $total_payout - ($total_payout * $tax / 100) : 0;
-                                                            echo $total_pay_amt;
+                                                            echo number_format(floatval($total_payout), 2);
                                                         ?>
                                                     </span> 
                                                 </h4>
                                             </div>
-                                            
                                         </div>
-                                    </div><!-- end card body -->
-                                </div><!-- end card -->
+                                    </div>
+                                </div>
                             </div><!-- end col -->
         
-                            <div class="col-xl-2 col-md-2">
+                            <div class="col-xl-2 col-md-4 col-sm-6 col-12">
                                 <!-- card -->
                                 <div class="card card-h-100">
-                                    <!-- card body -->
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
                                             <div class="flex-grow-1">
-                                                <span class="mb-3 lh-1 d-block text-dark">Award Reward</span>
-                                                <h4 class="mb-3">
+                                                <span class="mb-2 lh-1 d-block text-dark font-size-13">Award Reward</span>
+                                                <h4 class="mb-0">
                                                     <span>
                                                     <?php 
                                                         $current_reward = "-";
@@ -415,20 +394,18 @@
                                                         if($reward_rank){
                                                             $current_reward = $this->db_model->select('reward_gift', 'reward_setting', ['reward_name' => $reward_rank]);
                                                         }
-                                                        echo $current_reward;
-                                                        
+                                                        echo $current_reward ? $current_reward : '-';
                                                     ?> 
                                                     </span>
                                                 </h4>
                                             </div>
-                                            
                                         </div>
-                                    </div><!-- end card body -->
-                                </div><!-- end card -->
+                                    </div>
+                                </div>
                             </div><!-- end col--> 
                             
                         </div>
-                    <!-- New  end-->
+                    <!-- New end-->
 
                         <div class="row">
                             <div class="col-xl-2 col-md-2">
