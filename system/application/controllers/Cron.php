@@ -123,8 +123,7 @@ class Cron extends CI_Controller
 					if (!$p) {
 						$p = $this->db->order_by('id', 'ASC')->get('product')->row();
 					}
-					$dir_rate = ($p && floatval($p->direct_income) > 0) ? floatval($p->direct_income) : 0.0;
-					$dir_amt = $dir_rate * $pv;
+					$dir_amt = ($p && floatval($p->direct_income) > 0) ? floatval($p->direct_income) : 0.0;
 					$this->earning->pay_earning($sp_id, $m->id, 'Direct Sponsor Income', $dir_amt);
 				}
 			}
