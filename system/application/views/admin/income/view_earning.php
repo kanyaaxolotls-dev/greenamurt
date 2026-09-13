@@ -62,6 +62,7 @@
                           <h3 class="mb-0">View Earning</h3>
                     </div>
                 <div class="col-4 text-right"> 
+                    <a href="<?php echo site_url('cron/recalculate_clean_payout')?>" class="btn btn-sm btn-danger" onclick="return confirm('सर्व जुने चुकीचे पेआउट्स रिसेट करून सर्व जुन्या IDs वर नवीन नियमांनुसार फ्रेश कॅल्क्युलेशन करायचे का?');">🔄 Clean Recalculate</a>
                     <a href="<?php echo site_url('income/view_earning')?>" class="btn btn-sm btn-primary">Home</a>
                 </div> 
             </div> 

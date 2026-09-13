@@ -73,23 +73,19 @@ function credit_wallet($conn, $userid, $amount) {
 }
 
 if ($action === 'sync') {
-    // 1. Fetch Product 1 configuration
+    // 1. Fetch Product 1 configuration (default fallback)
     $prod_res = $conn->query("SELECT * FROM product WHERE id = 1 LIMIT 1");
     $prod = $prod_res ? $prod_res->fetch_assoc() : null;
 
-    $prod_price    = $prod ? floatval($prod['prod_price']) : 8900.0;
     $direct_rate   = ($prod && floatval($prod['direct_income']) > 0) ? floatval($prod['direct_income']) : 890.0;
     $matching_rate = ($prod && floatval($prod['matching_income']) > 0) ? floatval($prod['matching_income']) : 890.0;
     
-    $level_str = ($prod && !empty($prod['level_income'])) ? $prod['level_income'] : '30,20';
-    $levels = explode(',', $level_str);
-    $drb_l1_pct = isset($levels[0]) ? floatval(trim($levels[0])) : 30.0;
-    $drb_l2_pct = isset($levels[1]) ? floatval(trim($levels[1])) : 20.0;
+    $default_level_str = ($prod && !empty($prod['level_income'])) ? $prod['level_income'] : '30,20';
 
     $today = date('Y-m-d');
     $created_count = 0;
 
-    // 2. Iterate each member and process Direct Sponsor & DRB
+    // 2. Iterate each member and process Direct Sponsor Income (Independent registration-time earning)
     foreach ($tree_uids as $uid) {
         $m_res = $conn->query("SELECT * FROM member WHERE id = '$uid' LIMIT 1");
         if (!$m_res || $m_res->num_rows == 0) continue;
@@ -105,7 +101,7 @@ if ($action === 'sync') {
             $sp = ($sp_res && $sp_res->num_rows > 0) ? $sp_res->fetch_assoc() : null;
 
             if ($sp && $sp['status'] === 'Active') {
-                // A. Direct Sponsor Income
+                // Direct Sponsor Income
                 $check_dir = $conn->query("SELECT id FROM earning WHERE userid = '$sponsor_id' AND ref_id = '$uid' AND type = 'Direct Sponsor Income' LIMIT 1");
                 if (!$check_dir || $check_dir->num_rows == 0) {
                     $dir_amt = $direct_rate * $pv;
@@ -115,60 +111,75 @@ if ($action === 'sync') {
                     $sync_log[] = "✅ User #{$sponsor_id} ला User #{$uid} चा Direct Sponsor Income: ₹" . number_format($dir_amt, 2) . " जमा झाला.";
                     $created_count++;
                 }
-
-                // B. Direct Referral Bonus - Level 1 (30%)
-                $check_drb1 = $conn->query("SELECT id FROM earning WHERE userid = '$sponsor_id' AND ref_id = '$uid' AND type = 'Direct Referral Bonus' AND levlno = 1 LIMIT 1");
-                if (!$check_drb1 || $check_drb1->num_rows == 0) {
-                    $drb1_amt = ($prod_price * ($drb_l1_pct / 100.0)) * $pv;
-                    $secret = "DRB1-{$sponsor_id}-" . date('YmdHis') . "-" . rand(100, 999);
-                    $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$sponsor_id', '$drb1_amt', 'Direct Referral Bonus', '$uid', 1, '$today', '$secret', 'Paid')");
-                    credit_wallet($conn, $sponsor_id, $drb1_amt);
-                    $sync_log[] = "✅ User #{$sponsor_id} ला User #{$uid} चा DRB Level 1 ({$drb_l1_pct}%): ₹" . number_format($drb1_amt, 2) . " जमा झाला.";
-                    $created_count++;
-                }
-
-                // C. Direct Referral Bonus - Level 2 (20%)
-                $l2_sponsor_id = trim($sp['sponsor'] ?? '');
-                if (!empty($l2_sponsor_id) && $l2_sponsor_id !== '0') {
-                    $sp2_res = $conn->query("SELECT * FROM member WHERE id = '$l2_sponsor_id' LIMIT 1");
-                    $sp2 = ($sp2_res && $sp2_res->num_rows > 0) ? $sp2_res->fetch_assoc() : null;
-
-                    if ($sp2 && $sp2['status'] === 'Active') {
-                        $check_drb2 = $conn->query("SELECT id FROM earning WHERE userid = '$l2_sponsor_id' AND ref_id = '$uid' AND type = 'Direct Referral Bonus (Level 2)' AND levlno = 2 LIMIT 1");
-                        if (!$check_drb2 || $check_drb2->num_rows == 0) {
-                            $drb2_amt = ($prod_price * ($drb_l2_pct / 100.0)) * $pv;
-                            $secret = "DRB2-{$l2_sponsor_id}-" . date('YmdHis') . "-" . rand(100, 999);
-                            $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$l2_sponsor_id', '$drb2_amt', 'Direct Referral Bonus (Level 2)', '$uid', 2, '$today', '$secret', 'Paid')");
-                            credit_wallet($conn, $l2_sponsor_id, $drb2_amt);
-                            $sync_log[] = "✅ User #{$l2_sponsor_id} ला User #{$uid} चा DRB Level 2 ({$drb_l2_pct}%): ₹" . number_format($drb2_amt, 2) . " जमा झाला.";
-                            $created_count++;
-                        }
-                    }
-                }
             }
         }
     }
 
-    // 3. Process Single Leg Income for Matching Earners
+    // 3. Process Dynamic Direct Referral Bonus (DRB Level 1 & Level 2) for Matching Earners
     $match_res = $conn->query("SELECT * FROM earning WHERE type = 'Matching Income' AND amount > 0");
     if ($match_res) {
         while ($me = $match_res->fetch_assoc()) {
             $m_uid = $me['userid'];
             $m_amt = floatval($me['amount']);
 
-            $u_q = $conn->query("SELECT sponsor FROM member WHERE id = '$m_uid' LIMIT 1");
+            // Get downline member and their package level_income configuration
+            $u_q = $conn->query("SELECT sponsor, signup_package, join_package FROM member WHERE id = '$m_uid' LIMIT 1");
             if ($u_q && $u_q->num_rows > 0) {
                 $u_row = $u_q->fetch_assoc();
-                $sp1_id = $u_row['sponsor'];
+                $sp1_id = trim($u_row['sponsor'] ?? '');
+                $pkg_id = !empty($u_row['signup_package']) ? $u_row['signup_package'] : ($u_row['join_package'] ?? 0);
 
-                if (!empty($sp1_id) && $sp1_id !== '0') {
-                    $chk_sli1 = $conn->query("SELECT id FROM earning WHERE userid = '$sp1_id' AND ref_id = '$m_uid' AND type = 'Single Leg Income' AND levlno = 1 LIMIT 1");
-                    if (!$chk_sli1 || $chk_sli1->num_rows == 0) {
-                        $sli1_amt = $m_amt * 0.30;
-                        $secret = "SLI1-{$sp1_id}-" . date('YmdHis') . "-" . rand(100, 999);
-                        $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$sp1_id', '$sli1_amt', 'Single Leg Income', '$m_uid', 1, '$today', '$secret', 'Paid')");
-                        credit_wallet($conn, $sp1_id, $sli1_amt);
-                        $sync_log[] = "✅ User #{$sp1_id} ला User #{$m_uid} च्या मॅचिंग इन्कमवर Single Leg Income (30%): ₹" . number_format($sli1_amt, 2) . " जमा झाला.";
+                // Fetch dynamic level_income for member's package
+                $pkg_level_str = '';
+                if (!empty($pkg_id)) {
+                    $p_q = $conn->query("SELECT level_income FROM product WHERE id = '$pkg_id' LIMIT 1");
+                    if ($p_q && $p_q->num_rows > 0) {
+                        $p_row = $p_q->fetch_assoc();
+                        $pkg_level_str = $p_row['level_income'] ?? '';
+                    }
+                }
+                if (empty($pkg_level_str)) {
+                    $pkg_level_str = $default_level_str;
+                }
+
+                $levels = array_map('trim', explode(',', $pkg_level_str));
+                $drb_l1_pct = (isset($levels[0]) && is_numeric($levels[0])) ? floatval($levels[0]) : 0.0;
+                $drb_l2_pct = (isset($levels[1]) && is_numeric($levels[1])) ? floatval($levels[1]) : 0.0;
+
+                // Level 1: Direct Referral Bonus
+                if (!empty($sp1_id) && $sp1_id !== '0' && $drb_l1_pct > 0) {
+                    $sp1_q = $conn->query("SELECT * FROM member WHERE id = '$sp1_id' LIMIT 1");
+                    $sp1_row = ($sp1_q && $sp1_q->num_rows > 0) ? $sp1_q->fetch_assoc() : null;
+
+                    if ($sp1_row && $sp1_row['status'] === 'Active' && floatval($sp1_row['topup'] ?? 0) > 0) {
+                        $chk_drb1 = $conn->query("SELECT id FROM earning WHERE userid = '$sp1_id' AND ref_id = '$m_uid' AND type = 'Direct Referral Bonus' AND levlno = 1 LIMIT 1");
+                        if (!$chk_drb1 || $chk_drb1->num_rows == 0) {
+                            $drb1_amt = $m_amt * ($drb_l1_pct / 100.0);
+                            $secret = "DRB1-{$sp1_id}-" . date('YmdHis') . "-" . rand(100, 999);
+                            $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$sp1_id', '$drb1_amt', 'Direct Referral Bonus', '$m_uid', 1, '$today', '$secret', 'Paid')");
+                            credit_wallet($conn, $sp1_id, $drb1_amt);
+                            $sync_log[] = "✅ User #{$sp1_id} ला User #{$m_uid} च्या मॅचिंग इन्कमवर DRB Level 1 ({$drb_l1_pct}%): ₹" . number_format($drb1_amt, 2) . " जमा झाला.";
+                            $created_count++;
+                        }
+                    }
+
+                    // Level 2: Direct Referral Bonus Level 2
+                    $sp2_id = trim($sp1_row['sponsor'] ?? '');
+                    if (!empty($sp2_id) && $sp2_id !== '0' && $drb_l2_pct > 0) {
+                        $sp2_q = $conn->query("SELECT * FROM member WHERE id = '$sp2_id' LIMIT 1");
+                        $sp2_row = ($sp2_q && $sp2_q->num_rows > 0) ? $sp2_q->fetch_assoc() : null;
+
+                        if ($sp2_row && $sp2_row['status'] === 'Active' && floatval($sp2_row['topup'] ?? 0) > 0) {
+                            $chk_drb2 = $conn->query("SELECT id FROM earning WHERE userid = '$sp2_id' AND ref_id = '$m_uid' AND type = 'Direct Referral Bonus (Level 2)' AND levlno = 2 LIMIT 1");
+                            if (!$chk_drb2 || $chk_drb2->num_rows == 0) {
+                                $drb2_amt = $m_amt * ($drb_l2_pct / 100.0);
+                                $secret = "DRB2-{$sp2_id}-" . date('YmdHis') . "-" . rand(100, 999);
+                                $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$sp2_id', '$drb2_amt', 'Direct Referral Bonus (Level 2)', '$m_uid', 2, '$today', '$secret', 'Paid')");
+                                credit_wallet($conn, $sp2_id, $drb2_amt);
+                                $sync_log[] = "✅ User #{$sp2_id} ला User #{$m_uid} च्या मॅचिंग इन्कमवर DRB Level 2 ({$drb_l2_pct}%): ₹" . number_format($drb2_amt, 2) . " जमा झाला.";
+                                $created_count++;
+                            }
+                        }
                     }
                 }
             }

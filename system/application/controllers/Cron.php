@@ -36,13 +36,40 @@ class Cron extends CI_Controller
         $this->load->model('earning');
 
         $this->update_legs();
+        $this->direct_sponsor_payout();
         $this->binary_payout();
+        $this->drb_payout();
         $this->rank_update();
 
         $this->update_payout_new();
         $this->generate_withdrawals();
 
 		redirect('income/withdraws_list/Un-Paid');
+    }
+
+    public function recalculate_clean_payout(){
+        $this->load->model('earning');
+
+        // 1. Reset member paid PVs and pairs so matching evaluates fresh
+        $this->db->query("UPDATE member SET paid_a_pv = 0, paid_b_pv = 0, total_pairs = 0");
+
+        // 2. Reset earnings, laps_earning, wallets, and withdraw requests
+        $this->db->query("TRUNCATE TABLE earning");
+        $this->db->query("TRUNCATE TABLE laps_earning");
+        $this->db->query("TRUNCATE TABLE wallet");
+        $this->db->query("DELETE FROM withdraw_request WHERE status = 'Un-Paid' OR status = 'Pending'");
+
+        // 3. Update legs & recalculate cleanly
+        $this->update_legs();
+        $this->direct_sponsor_payout();
+        $this->binary_payout();
+        $this->drb_payout();
+        $this->rank_update();
+        $this->update_payout_new();
+        $this->generate_withdrawals();
+
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">All Payouts Cleaned & Recalculated Successfully!</div>');
+        redirect('income/view-earning');
     }
 
     public function daily_payout(){
@@ -58,21 +85,53 @@ class Cron extends CI_Controller
         $this->daily_payout();
     }
 
+	public function drb_payout()
+	{
+		$this->load->model('earning');
+		$matchings = $this->db->select('*')->from('earning')->where('type', 'Matching Income')->where('amount >', 0)->get()->result();
+		if ($matchings) {
+			foreach ($matchings as $m_row) {
+				$this->earning->process_lvl($m_row->userid, $m_row->amount, $m_row->id);
+			}
+		}
+	}
+
 	public function update_legs()
 	{
 		$this->load->model('earning');
 		$this->earning->update_legs();
 	}
 
+	public function direct_sponsor_payout()
+	{
+		$this->load->model('earning');
+		$members = $this->db->select('*')->from('member')->where('id !=', '1000')->where('id !=', '1001')->get()->result();
+		if ($members) {
+			foreach ($members as $m) {
+				$sp_id = trim($m->sponsor ?? '');
+				if (empty($sp_id) || $sp_id === '0' || $sp_id === '1000') {
+					continue;
+				}
+				$chk = $this->db->where('userid', $sp_id)->where('ref_id', $m->id)->where('type', 'Direct Sponsor Income')->count_all_results('earning');
+				if ($chk == 0) {
+					$pv = floatval($m->mypv ?? 0) > 0 ? floatval($m->mypv) : 1.0;
+					$dir_rate = 890.0;
+					if (!empty($m->signup_package)) {
+						$p = $this->db->where('id', $m->signup_package)->get('product')->row();
+						if ($p && floatval($p->direct_income) > 0) {
+							$dir_rate = floatval($p->direct_income);
+						}
+					}
+					$dir_amt = $dir_rate * $pv;
+					$this->earning->pay_earning($sp_id, $m->id, 'Direct Sponsor Income', $dir_amt);
+				}
+			}
+		}
+	}
+
 	public function binary_payout()
 	{
-		$top_id = config_item('top_id');
-		$this->db->select('*')->from('member');
-		if (!empty($top_id)) {
-			$this->db->group_start()->where('topup >', 0)->or_where('id', $top_id)->group_end();
-		} else {
-			$this->db->where('topup >', 0);
-		}
+		$this->db->select('*')->from('member')->where('id !=', '1000');
 		$this->db->where('total_a_pv >', 0)->where('total_b_pv >', 0);
 		$data = $this->db->get()->result();
 
