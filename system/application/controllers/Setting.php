@@ -222,38 +222,43 @@ class Setting extends CI_Controller
     }
 
 
-   public function reward_setting()
+    public function reward_setting()
     {
         $this->load->model('plan_model');
         $this->form_validation->set_rules('reward_name', 'Reward Name', 'trim|required');
         if ($this->form_validation->run() == FALSE) {
-            $this->db->select('id, reward_name, reward_duration, achievers,reward_amt');
-            $data['result']     = $this->db->get('reward_setting')->result();
+            $this->db->select('*');
+            $data['result']     = $this->db->order_by('id', 'ASC')->get('reward_setting')->result();
             $data['leg']        = $this->plan_model->create_leg();
-            $data['title']      = 'Reward Setting';
+            $data['title']      = 'Rank, Reward & Gift Settings';
             $data['breadcrumb'] = 'Reward Setting';
             $data['layout']     = 'setting/reward_setting.php';
             $this->load->view('admin/index', $data);
         } else {
             $reward_name     = $this->input->post('reward_name');
+            $reward_gift     = $this->input->post('reward_gift');
             $reward_duration = $this->input->post('reward_duration');
-            $reward_amt = $this->input->post('reward_amt');
-            $no_of_sponsor = $this->input->post('no_of_sponsor');
-            $a = $this->input->post('A') ? $this->input->post('A') : 0;
-            $b = $this->input->post('B') ? $this->input->post('B') : 0;
-            $c = $this->input->post('C') ? $this->input->post('C') : 0;
-            $d = $this->input->post('D') ? $this->input->post('D') : 0;
-            $e = $this->input->post('E') ? $this->input->post('E') : 0;
+            $reward_amt      = $this->input->post('reward_amt');
+            $grace_amt       = $this->input->post('grace_amt');
+            $no_of_sponsor   = $this->input->post('no_of_sponsor');
+            $a               = $this->input->post('A') ? $this->input->post('A') : 0;
+            $b               = $this->input->post('B') ? $this->input->post('B') : 0;
+            $c               = $this->input->post('C') ? $this->input->post('C') : 0;
+            $d               = $this->input->post('D') ? $this->input->post('D') : 0;
+            $e               = $this->input->post('E') ? $this->input->post('E') : 0;
  
             $array = array(
                 'reward_name'     => $reward_name,
+                'reward_gift'     => $reward_gift,
                 'reward_duration' => $reward_duration,  
+                'total_member'    => $a,
                 'A'               => $a,
                 'B'               => $b,
                 'C'               => $c,
                 'D'               => $d,
                 'E'               => $e,
                 'reward_amt'      => $reward_amt,
+                'grace_amt'       => $grace_amt,
                 'no_of_sponsor'   => $no_of_sponsor,
             );
             $this->db->insert('reward_setting', $array);
@@ -272,12 +277,12 @@ class Setting extends CI_Controller
         redirect('setting/reward-setting');
     }
 
-   public function edit_reward($id)
+    public function edit_reward($id)
     { 
         $this->load->model('plan_model');
         $this->form_validation->set_rules('reward_name', 'Reward Name', 'trim|required');
         if ($this->form_validation->run() == FALSE) {
-            $data['result']     = $this->db_model->select_multi('id, reward_name, reward_duration, A, B, C, D, E,no_of_sponsor,reward_amt', 'reward_setting', array('id' => $id));
+            $data['result']     = $this->db->where('id', $id)->get('reward_setting')->row();
             $data['leg']        = $this->plan_model->create_leg();
             $data['title']      = 'Edit Reward';
             $data['breadcrumb'] = 'Edit Reward';
@@ -285,25 +290,30 @@ class Setting extends CI_Controller
             $this->load->view('admin/index', $data);
         } else {
             $reward_name     = $this->input->post('reward_name');
+            $reward_gift     = $this->input->post('reward_gift');
             $reward_duration = $this->input->post('reward_duration');
-            $reward_amt = $this->input->post('reward_amt');
-            $no_of_sponsor = $this->input->post('no_of_sponsor');
+            $reward_amt      = $this->input->post('reward_amt');
+            $grace_amt       = $this->input->post('grace_amt');
+            $no_of_sponsor   = $this->input->post('no_of_sponsor');
 
             $a = $this->input->post('A') ? $this->input->post('A') : 0; 
             $b = $this->input->post('B') ? $this->input->post('B') : 0;
             $c = $this->input->post('C') ? $this->input->post('C') : 0;
-            $d = $this->input->post('D') ? $this->inputt->post('D') : 0;
+            $d = $this->input->post('D') ? $this->input->post('D') : 0;
             $e = $this->input->post('E') ? $this->input->post('E') : 0;
 
             $array = array(
                 'reward_name'     => $reward_name,
+                'reward_gift'     => $reward_gift,
                 'reward_duration' => $reward_duration,
+                'total_member'    => $a,
                 'A'               => $a,
                 'B'               => $b,
                 'C'               => $c,
                 'D'               => $d,
                 'E'               => $e,
                 'reward_amt'      => $reward_amt,
+                'grace_amt'       => $grace_amt,
                 'no_of_sponsor'   => $no_of_sponsor,
             );
 

@@ -671,28 +671,32 @@
                 // remaining pairs (this will reduce reward by reward)
                 $remaining_pairs = $user_total_pairs;
 
-                // rewards ordered properly (VERY IMPORTANT)
-                $this->db->order_by('id', 'ASC'); // or required pairs ASC
-                $all_rewards = $this->db->get('rank_system')->result();
+                // rewards ordered properly from reward_setting
+                $this->db->order_by('id', 'ASC');
+                $all_rewards = $this->db->get('reward_setting')->result();
 
                 foreach ($all_rewards as $rewards) { 
                     
-                    $required_pairs = (int) $rewards->total_member;
+                    $required_pairs = (int) ($rewards->total_member ?? $rewards->A);
+                    $duration_text = ($rewards->reward_duration > 0) ? ($rewards->reward_duration . ' Days') : 'No Limit';
                 ?>
                 
-                <div class="d-flex align-items-center pb-4">
-                    <div class="avatar-md me-4"></div>
-
+                <div class="d-flex align-items-center pb-3 mb-2 border-bottom">
                     <div class="flex-grow-1">
-                        <h5 class="font-size-15 mb-1">
-                            <a href="#" class="text-dark">
-                                <?php echo $rewards->rank_name; ?>
-                                [ <?php echo $required_pairs; ?> Pairs ]
-                            </a>
+                        <h5 class="font-size-14 mb-1">
+                            <strong class="text-primary"><?php echo $rewards->reward_name; ?></strong>
+                            <span class="badge bg-light text-dark">[ <?php echo number_format($required_pairs); ?> Pairs ]</span>
+                            <span class="badge bg-soft-info text-info"><i class="bx bx-time-five"></i> <?php echo $duration_text; ?></span>
                         </h5>
+                        <div class="font-size-12 text-muted mb-1">
+                            <strong>Reward:</strong> ₹<?php echo number_format($rewards->reward_amt); ?> / <?php echo $rewards->reward_gift; ?>
+                            <?php if ($rewards->reward_duration > 0 && !empty($rewards->grace_amt)): ?>
+                                <span class="text-secondary">(Grace: ₹<?php echo number_format($rewards->grace_amt); ?>)</span>
+                            <?php endif; ?>
+                        </div>
 
                         <?php if ($remaining_pairs >= $required_pairs) { ?>
-                            <span class="text-success fw-bold">
+                            <span class="text-success fw-bold font-size-13">
                                 🎉 Reward Achieved
                             </span>
                             <?php 
@@ -700,20 +704,20 @@
                                 $remaining_pairs -= $required_pairs;
                             ?>
                         <?php } else { ?>
-                            <span class="text-muted">
+                            <span class="text-muted font-size-12">
                                 Remaining Pairs:
                                 <strong class="text-danger">
-                                    <?php echo ($required_pairs - $remaining_pairs); ?>
+                                    <?php echo number_format($required_pairs - $remaining_pairs); ?> Pairs
                                 </strong>
                             </span>
                         <?php } ?>
                     </div>
 
-                    <div class="flex-shrink-0 text-end">
+                    <div class="flex-shrink-0 text-end ps-2">
                         <?php if ($remaining_pairs >= $required_pairs) { ?>
                             <i class="bx bx-check-circle font-size-24 text-success"></i>
                         <?php } else { ?>
-                            <i class="bx bx-lock font-size-24 text-danger"></i>
+                            <i class="bx bx-lock font-size-24 text-muted"></i>
                         <?php } ?>
                     </div>
 

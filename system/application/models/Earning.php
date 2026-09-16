@@ -2005,31 +2005,42 @@ public function family_fund($data){
     
     public function reward_process()
     {
-        $reward = $this->db->get('reward_setting')->result();
+        $reward = $this->db->order_by('id', 'ASC')->get('reward_setting')->result();
         foreach ($reward as $res) 
         {
-            $this->db->where(['topup >' => 0,'signup_package !=' => '','total_a >' => 9,'total_b >' => 9]);
+            $this->db->where(['topup >' => 0, 'status' => 'Active']);
             $data = $this->db->get('member')->result();
           
             foreach ($data as $result) {
                 
                 $pair_match = min($result->total_a, $result->total_b);
 
-                if($pair_match < 9){ continue; }
-
                 if($pair_match >= $res->total_member)
                 {
-                    $tbl_rewaed = $this->db_model->select('balance', 'rewards', array('userid' => $result->id ,'reward_id' => $res->id ));
+                    $tbl_rewaed = $this->db_model->select('id', 'rewards', array('userid' => $result->id ,'reward_id' => $res->id ));
                 
-                    if ($tbl_rewaed == "") 
+                    if (empty($tbl_rewaed)) 
                     {
+                        // Calculate days from registration/activation
+                        $reg_time = !empty($result->join_time) ? strtotime($result->join_time) : (!empty($result->topup_date) ? strtotime($result->topup_date) : time());
+                        $days_taken = ceil((time() - $reg_time) / 86400);
+
+                        $final_amt = floatval($res->reward_amt);
+                        $is_grace  = false;
+
+                        // If duration defined and exceeded, allocate 50% grace reward
+                        if (intval($res->reward_duration) > 0 && $days_taken > intval($res->reward_duration)) {
+                            $final_amt = (floatval($res->grace_amt) > 0) ? floatval($res->grace_amt) : ($final_amt / 2);
+                            $is_grace  = true;
+                        }
+
                         $array = array(
-                            'reward_id' => $res->id,
-                            'userid' => $result->id,
-                            'date' => date('Y-m-d'),
-                            'status' => 'Pending',
+                            'reward_id'   => $res->id,
+                            'userid'      => $result->id,
+                            'date'        => date('Y-m-d'),
+                            'status'      => 'Pending',
                             'reward_gift' => $res->reward_gift,
-                            'reward_amt' => $res->reward_amt,
+                            'reward_amt'  => $final_amt,
                         );
                         $inserted = $this->db->insert('rewards', $array);
 
