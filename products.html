@@ -44,7 +44,7 @@
 <div class="page-header">
   <div class="breadcrumb"><a href="index.html">Home</a> <span>›</span> Products</div>
   <h1>Our Ayurvedic Products</h1>
-  <p>18+ premium natural wellness products for Health, Wealth &amp; Safety of your family.</p>
+  <p>Premium 100% natural Ayurvedic wellness products for Health, Wealth &amp; Safety of your family.</p>
 </div>
 
 <!-- PRODUCTS SECTION -->
@@ -54,72 +54,24 @@
     <!-- Category Filters -->
     <div class="category-tabs">
       <button class="cat-btn active" onclick="filterProducts('all', this)">All Products</button>
+      <button class="cat-btn" onclick="filterProducts('immunity', this)">Immunity &amp; Wellness</button>
       <button class="cat-btn" onclick="filterProducts('joint', this)">Joint &amp; Bone</button>
-      <button class="cat-btn" onclick="filterProducts('diabetes', this)">Diabetes Care</button>
-      <button class="cat-btn" onclick="filterProducts('liver', this)">Liver &amp; Kidney</button>
       <button class="cat-btn" onclick="filterProducts('women', this)">Women's Health</button>
-      <button class="cat-btn" onclick="filterProducts('immunity', this)">Immunity</button>
+      <button class="cat-btn" onclick="filterProducts('diabetes', this)">Diabetes Care</button>
+      <button class="cat-btn" onclick="filterProducts('liver', this)">Liver, Kidney &amp; Digestive</button>
     </div>
 
     <div class="products-grid" id="productsGrid">
 
+      <!-- 1. Sea Buckthorn Juice -->
       <div class="product-card" data-cat="immunity">
         <div class="product-img-wrap">
-          <!--<img src="images/product-01.jpeg" alt="Nutrifuel Multi Super Food Juice" loading="lazy" />-->
-          <img src="images/product-10.jpeg" alt="Joint Pain Capsule" loading="lazy" />
+          <img src="images/product-14.jpeg" alt="Sea Buckthorn Juice" loading="lazy" />
         </div>
         <div class="product-info">
-          <span class="product-badge">Immunity</span>
-          <div class="product-name"> 42 Herbs Juice</div>
-          <div class="product-desc">Natural &amp; Powerful berry juice with vitamins and antioxidants. Boosts energy, immunity and overall vitality. Sugar-free, Ayurvedic formula.</div>
-          <div class="product-footer">
-            <span class="product-tag">🍃 500 ml</span>
-            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="product-card" data-cat="liver">
-        <div class="product-img-wrap">
-          <!--<img src="images/product-02.jpeg" alt="Livrex Uricare Churna" loading="lazy" />-->
-          <img src="images/product-12.jpeg" alt="Stone Go Tablet" loading="lazy" />
-        </div>
-        <div class="product-info">
-          <span class="product-badge">Liver Care</span>
-          <div class="product-name">Livrex Uricare Churna</div>
-          <div class="product-desc">Ayurvedic powder for liver health, cholesterol control, fatty liver &amp; uric acid management. Pure, safe &amp; effective.</div>
-          <div class="product-footer">
-            <span class="product-tag">🍃 100% Natural</span>
-            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="product-card" data-cat="joint">
-        <div class="product-img-wrap">
-          <!--<img src="images/product-03.jpeg" alt="OrthoVeda Ayurvedic Powder" loading="lazy" />-->
-          <img src="images/product-11.jpeg" alt="Premium Women Care Juice" loading="lazy" />
-        </div>
-        <div class="product-info">
-          <span class="product-badge">Joint Care</span>
-          <div class="product-name">OrthoVeda Ayurvedic Powder</div>
-          <div class="product-desc">Natural relief for joint &amp; body pain. Reduces joint stiffness, strengthens bones and muscles. Trusted Ayurvedic formula. 60 Sachets.</div>
-          <div class="product-footer">
-            <span class="product-tag">🍃 5g Sachet × 60</span>
-            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="product-card" data-cat="immunity">
-        <div class="product-img-wrap">
-          <!--<img src="images/product-04.jpeg" alt="Sea Buckthorn Juice" loading="lazy" />-->
-          <img src="images/product-14.jpeg" alt="Madunashak Diabetic Care Juice" loading="lazy" />
-        </div>
-        <div class="product-info">
-          <span class="product-badge">Immunity</span>
+          <span class="product-badge">Immunity &amp; Vitality</span>
           <div class="product-name">Sea Buckthorn Juice</div>
-          <div class="product-desc">100% natural Sea Buckthorn juice — rich in Omega-7, vitamin C, antioxidants for immunity, skin &amp; heart health.</div>
+          <div class="product-desc">Pure Himalayan Sea Buckthorn Berries juice. Rich in antioxidants, boosts immunity, supports skin health &amp; detoxifies body.</div>
           <div class="product-footer">
             <span class="product-tag">🍃 500 ml</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
@@ -127,63 +79,15 @@
         </div>
       </div>
 
-      <div class="product-card" data-cat="liver">
-        <div class="product-img-wrap">
-          <!--<img src="images/product-05.jpeg" alt="Stone Go Juice" loading="lazy" />-->
-          <img src="images/product-13.jpeg" alt="Piles Go Tablet" loading="lazy" />
-        </div>
-        <div class="product-info">
-          <span class="product-badge">Kidney Care</span>
-          <div class="product-name">Stone Go Juice</div>
-          <div class="product-desc">Ayurvedic juice for dissolving kidney stones, improving urinary health, reducing UTI risk &amp; protecting against new stone formation.</div>
-          <div class="product-footer">
-            <span class="product-tag">🍃 500 ml</span>
-            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="product-card" data-cat="diabetes">
-        <div class="product-img-wrap">
-          <!--<img src="images/product-06.jpeg" alt="Madunashak Diabetes Control Lotion" loading="lazy" />-->
-           <img src="images/product-01.jpeg" alt="Nutrifuel Multi Super Food Juice" loading="lazy" />
-        </div>
-        <div class="product-info">
-          <span class="product-badge">Diabetes</span>
-          <div class="product-name">Madunashak Diabetes Control Lotion</div>
-          <div class="product-desc">100% Ayurvedic lotion for diabetes management. No side effects. Effective topical Ayurvedic formula — 120 ml.</div>
-          <div class="product-footer">
-            <span class="product-tag">🍃 120 ml</span>
-            <span class="product-tag" style="color:var(--gold);">Madunashak</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="product-card" data-cat="diabetes">
-        <div class="product-img-wrap">
-          <!--<img src="images/product-07.jpeg" alt="Diabetic Tablet" loading="lazy" />-->
-            <img src="images/product-03.jpeg" alt="OrthoVeda Ayurvedic Powder" loading="lazy" />
-        </div>
-        <div class="product-info">
-          <span class="product-badge">Diabetes</span>
-          <div class="product-name">Diabetic Tablet</div>
-          <div class="product-desc">Natural Ayurvedic tablets for blood sugar management. Improves insulin function, boosts immunity &amp; reduces weakness.</div>
-          <div class="product-footer">
-            <span class="product-tag">🍃 60 Tablets</span>
-            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
-          </div>
-        </div>
-      </div>
-
+      <!-- 2. 42 Herbs Juice -->
       <div class="product-card" data-cat="immunity">
         <div class="product-img-wrap">
-          <!--<img src="images/product-08.jpeg" alt="Thyro Care Juice" loading="lazy" />-->
-             <img src="images/product-04.jpeg" alt="Sea Buckthorn Juice" loading="lazy" />
+          <img src="images/product-10.jpeg" alt="42 Herbs Juice" loading="lazy" />
         </div>
         <div class="product-info">
-          <span class="product-badge">Thyroid</span>
-          <div class="product-name">Thyro Care Juice</div>
-          <div class="product-desc">Natural Thyroid Function Regulator. 100% natural Ayurvedic juice for healthy thyroid levels and overall wellness. 500 ml.</div>
+          <span class="product-badge">Daily Wellness</span>
+          <div class="product-name">42 Herbs Juice</div>
+          <div class="product-desc">Supports overall wellness &amp; helps boost natural energy. Supports daily immunity, rich in natural antioxidants, helps improve digestion &amp; gut health.</div>
           <div class="product-footer">
             <span class="product-tag">🍃 500 ml</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
@@ -191,31 +95,95 @@
         </div>
       </div>
 
-      <div class="product-card" data-cat="women">
+      <!-- 3. Triple Strength Omega-3 Fish Oil -->
+      <div class="product-card" data-cat="immunity">
         <div class="product-img-wrap">
-          <!--<img src="images/product-09.jpeg" alt="Women Care Tablet" loading="lazy" />-->
-             <img src="images/product-02.jpeg" alt="Livrex Uricare Churna" loading="lazy" />
+          <img src="images/product-17.jpeg" alt="Triple Strength Omega-3 Fish Oil" loading="lazy" />
         </div>
         <div class="product-info">
-          <span class="product-badge">Women's Health</span>
-          <div class="product-name">Women Care Tablet</div>
-          <div class="product-desc">Natural support for hormonal balance in women. Boosts energy, vitality &amp; freshness. 60 tablets × 500mg.</div>
+          <span class="product-badge">Heart &amp; Brain</span>
+          <div class="product-name">Triple Strength Omega-3 Fish Oil</div>
+          <div class="product-desc">Essential Fatty Acids (EPA 360 + DHA 240). Supports healthy heart, brain, joints, eye health &amp; glowing skin. Premium pure formula.</div>
           <div class="product-footer">
-            <span class="product-tag">🍃 60 × 500mg</span>
+            <span class="product-tag">🍃 60 Softgels × 1000mg</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
           </div>
         </div>
       </div>
 
+      <!-- 4. Thyro Care Juice -->
+      <div class="product-card" data-cat="immunity">
+        <div class="product-img-wrap">
+          <img src="images/product-04.jpeg" alt="Thyro Care Juice" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Thyroid &amp; Wellness</span>
+          <div class="product-name">Thyro Care Juice</div>
+          <div class="product-desc">Natural Thyroid Function Regulator. १००% नैसर्गिक आयुर्वेदिक घटक थायरॉईड ग्रंथींचे संतुलन, चयापचय आणि निरोगी आरोग्यासाठी उपयुक्त.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 500 ml</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. Sanjivani Ras -->
+      <div class="product-card" data-cat="immunity">
+        <div class="product-img-wrap">
+          <img src="images/product-18.jpeg" alt="Sanjivani Ras" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Multi Super Food</span>
+          <div class="product-name">Sanjivani Ras</div>
+          <div class="product-desc">Natural &amp; Powerful Multi Super Food Juice. रोगप्रतिकारक शक्ती, शारीरिक ऊर्जा, स्टॅमिना आणि संपूर्ण शरीर डिटॉक्ससाठी उत्कृष्ट.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 500 ml</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. Ortho Care Juice -->
       <div class="product-card" data-cat="joint">
         <div class="product-img-wrap">
-          <!--<img src="images/product-10.jpeg" alt="Joint Pain Capsule" loading="lazy" />-->
-          <img src="images/product-06.jpeg" alt="Madunashak Diabetes Control Lotion" loading="lazy" />
+          <img src="images/product-16.jpeg" alt="Ortho Care Juice" loading="lazy" />
         </div>
         <div class="product-info">
           <span class="product-badge">Joint Care</span>
+          <div class="product-name">Ortho Care Juice</div>
+          <div class="product-desc">Supports an active lifestyle. Supports joint health, promotes bone strength, helps improve joint flexibility &amp; supports comfortable movement.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 500 ml</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. Ortho Veda Oil -->
+      <div class="product-card" data-cat="joint">
+        <div class="product-img-wrap">
+          <img src="images/product-15.jpeg" alt="Ortho Veda Oil" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Joint Pain Relief</span>
+          <div class="product-name">Ortho Veda Oil</div>
+          <div class="product-desc">सांधे दुखी कमी करते, सूज व वेदना कमी करते, लवचिकता वाढवते. Ayurvedic joint pain relief oil for fast comfort and ease of movement.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 Topical Roll-on</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 8. Joint Pain Capsule -->
+      <div class="product-card" data-cat="joint">
+        <div class="product-img-wrap">
+          <img src="images/product-06.jpeg" alt="Joint Pain Capsule" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Joint &amp; Muscle</span>
           <div class="product-name">Joint Pain Capsule</div>
-          <div class="product-desc">Natural relief from joint pain, stiffness &amp; inflammation. Ayurvedic formula for all ages. 60 capsules, 100% natural.</div>
+          <div class="product-desc">सांधे दुखी, कडकपणा आणि सूज यांपासून नैसर्गिक दिलासा. Natural Ayurvedic capsule formula for joint flexibility &amp; pain relief.</div>
           <div class="product-footer">
             <span class="product-tag">🍃 60 Capsules</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
@@ -223,15 +191,31 @@
         </div>
       </div>
 
+      <!-- 9. OrthoVeda Ayurvedic Powder -->
+      <div class="product-card" data-cat="joint">
+        <div class="product-img-wrap">
+          <img src="images/product-11.jpeg" alt="OrthoVeda Ayurvedic Powder" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Joint &amp; Body Pain</span>
+          <div class="product-name">OrthoVeda Ayurvedic Powder</div>
+          <div class="product-desc">जॉईंट व बॉडी पेनसाठी नैसर्गिक आराम. दुखणे कमी करते, हालचाल सुधारते, सांध्यातील वेदना कमी करते, हाडे व स्नायू मजबूत करते.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 60 Sachets (5g)</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10. Lady Care Juice -->
       <div class="product-card" data-cat="women">
         <div class="product-img-wrap">
-            <img src="images/product-07.jpeg" alt="Diabetic Tablet" loading="lazy" />
-          <!--<img src="images/product-11.jpeg" alt="Premium Women Care Juice" loading="lazy" />-->
+          <img src="images/product-07.jpeg" alt="Lady Care Juice" loading="lazy" />
         </div>
         <div class="product-info">
           <span class="product-badge">Women's Health</span>
-          <div class="product-name">Premium Women Care Juice</div>
-          <div class="product-desc">Complete health care tonic for women. Natural, Ayurvedic, no added sugar. Safe &amp; effective. 500 ml.</div>
+          <div class="product-name">Lady Care Juice</div>
+          <div class="product-desc">Daily support for women's wellness. Helps manage white discharge, boosts energy &amp; vitality, helps reduce fatigue &amp; weakness, supports skin glow.</div>
           <div class="product-footer">
             <span class="product-tag">🍃 500 ml</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
@@ -239,77 +223,47 @@
         </div>
       </div>
 
-      <div class="product-card" data-cat="liver">
+      <!-- 11. Women Care Tablet -->
+      <div class="product-card" data-cat="women">
         <div class="product-img-wrap">
-          <!--<img src="images/product-12.jpeg" alt="Stone Go Tablet" loading="lazy" />-->
-             <img src="images/product-05.jpeg" alt="Stone Go Juice" loading="lazy" />
+          <img src="images/product-02.jpeg" alt="Women Care Tablet" loading="lazy" />
         </div>
         <div class="product-info">
-          <span class="product-badge">Kidney Care</span>
-          <div class="product-name">Stone Go Tablet</div>
-          <div class="product-desc">Natural support for kidney &amp; urinary tract health. Helps dissolve kidney stones naturally with Ayurvedic herbs.</div>
+          <span class="product-badge">Women's Health</span>
+          <div class="product-name">Women Care Tablet</div>
+          <div class="product-desc">हार्मोन्स संतुलनासाठी नैसर्गिक सहाय्य. हार्मोन्स संतुलन राखण्यास मदत करते आणि ऊर्जा व ताजेपणा वाढविण्यास मदत करते.</div>
           <div class="product-footer">
-            <span class="product-tag">🍃 Natural</span>
+            <span class="product-tag">🍃 60 गोळ्या × 500mg</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
           </div>
         </div>
       </div>
 
-      <div class="product-card" data-cat="liver">
+      <!-- 12. Anti Anion Chip Protection Sanitary Pads -->
+      <div class="product-card" data-cat="women">
         <div class="product-img-wrap">
-          <!--<img src="images/product-13.jpeg" alt="Piles Go Tablet" loading="lazy" />-->
-          <img src="images/product-09.jpeg" alt="Women Care Tablet" loading="lazy" />
+          <img src="images/product-19.jpeg" onerror="this.onerror=null; this.src='file:///C:/Users/kanya%20salve/.gemini/antigravity-ide/brain/d9ffeef4-abe6-4bf0-8f20-93bdba435e7f/.user_uploaded/media_1789558265007.jpg';" alt="Anti Anion Chip Sanitary Pads" loading="lazy" />
         </div>
         <div class="product-info">
-          <span class="product-badge">Digestive</span>
-          <div class="product-name">Piles Go Tablet</div>
-          <div class="product-desc">Natural Ayurvedic remedy for piles (hemorrhoids), fistula &amp; constipation. Safe, effective, no side effects.</div>
+          <span class="product-badge">Women's Hygiene</span>
+          <div class="product-name">Anti Anion Chip Sanitary Pads</div>
+          <div class="product-desc">१००% Rash Free with Natural Ayurvedic Care. Anti Anion Chip Protection, उत्कृष्ट शोषण (Better Absorption), Anti Bacterial, आरामदायक व दीर्घकाळ सुरक्षित.</div>
           <div class="product-footer">
-            <span class="product-tag">🍃 100% Natural</span>
+            <span class="product-tag">🍃 24N Pads Box</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
           </div>
         </div>
       </div>
 
+      <!-- 13. Diabetic Juice -->
       <div class="product-card" data-cat="diabetes">
         <div class="product-img-wrap">
-          <!--<img src="images/product-14.jpeg" alt="Madunashak Diabetic Care Juice" loading="lazy" />-->
-          <img src="images/product-08.jpeg" alt="Thyro Care Juice" loading="lazy" />
+          <img src="images/product-08.jpeg" alt="Diabetic Juice" loading="lazy" />
         </div>
         <div class="product-info">
-          <span class="product-badge">Diabetes</span>
+          <span class="product-badge">Diabetes Care</span>
           <div class="product-name">Diabetic Juice</div>
-          <div class="product-desc">Natural diabetic care juice with Aloe Vera, Amla, Karela &amp; more. Regulates blood sugar levels naturally. 500 ml.</div>
-          <div class="product-footer">
-            <span class="product-tag">🍃 500 ml</span>
-            <span class="product-tag" style="color:var(--gold);">Madunashak</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="product-card" data-cat="joint">
-        <div class="product-img-wrap">
-          <img src="images/product-15.jpeg" alt="Ortho Veda Oil" loading="lazy" />
-        </div>
-        <div class="product-info">
-          <span class="product-badge">Joint Care</span>
-          <div class="product-name">Ortho Veda Oil</div>
-          <div class="product-desc">Ayurvedic joint pain relief oil. Reduces inflammation, numbing &amp; pain. Improves flexibility with natural herbs. Roll-on format.</div>
-          <div class="product-footer">
-            <span class="product-tag">🍃 Topical</span>
-            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="product-card" data-cat="joint">
-        <div class="product-img-wrap">
-          <img src="images/product-16.jpeg" alt="Ortho Juice" loading="lazy" />
-        </div>
-        <div class="product-info">
-          <span class="product-badge">Joint Care</span>
-          <div class="product-name">Ortho Juice</div>
-          <div class="product-desc">Powerful Ayurvedic juice for multiple joint and body pain conditions. Natural formula for comprehensive joint relief. 500 ml.</div>
+          <div class="product-desc">Blend of 60 super herbs &amp; berries concentrate. Helps support healthy blood sugar levels, provides immunity support, aids detox &amp; improves digestion.</div>
           <div class="product-footer">
             <span class="product-tag">🍃 500 ml</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
@@ -317,35 +271,101 @@
         </div>
       </div>
 
-      <div class="product-card" data-cat="immunity">
+      <!-- 14. Diabetic Tablet -->
+      <div class="product-card" data-cat="diabetes">
         <div class="product-img-wrap">
-          <img src="images/product-17.jpeg" alt="Triple Strength Omega-3 Fish Oil" loading="lazy" />
+          <img src="images/product-03.jpeg" alt="Diabetic Tablet" loading="lazy" />
         </div>
         <div class="product-info">
-          <span class="product-badge">Heart &amp; Brain</span>
-          <div class="product-name">Triple Strength Omega-3  Oil</div>
-          <div class="product-desc">EPA 360 + DHA 240. Supports healthy heart, brain, joints, eyes &amp; skin. 60 softgels × 1000mg. Premium quality.</div>
+          <span class="product-badge">Blood Sugar Care</span>
+          <div class="product-name">Diabetic Tablet</div>
+          <div class="product-desc">पचनशक्ती सुधारते, कमजोरी कमी करते, प्रतिकारशक्ती वाढवते, इन्सुलिन कार्यक्षमता सुधारते व रक्तातील साखर नियंत्रणात ठेवते.</div>
           <div class="product-footer">
-            <span class="product-tag">🍃 60 × 1000mg</span>
+            <span class="product-tag">🍃 60 Tablets</span>
             <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
           </div>
         </div>
       </div>
 
-      <!--<div class="product-card" data-cat="immunity">-->
-      <!--  <div class="product-img-wrap">-->
-      <!--    <img src="images/product-18.jpeg" alt="Sanjivani Ras" loading="lazy" />-->
-      <!--  </div>-->
-      <!--  <div class="product-info">-->
-      <!--    <span class="product-badge">Super Food</span>-->
-      <!--    <div class="product-name">Sanjivani Ras</div>-->
-      <!--    <div class="product-desc">Natural &amp; powerful Multi Super Food juice. Detox, cleanse, immunity support &amp; strength &amp; stamina booster. Chemical-free formula. 500 ml.</div>-->
-      <!--    <div class="product-footer">-->
-      <!--      <span class="product-tag">🍃 500 ml</span>-->
-      <!--      <span class="product-tag" style="color:var(--gold);">Sanjivani</span>-->
-      <!--    </div>-->
-      <!--  </div>-->
-      <!--</div>-->
+      <!-- 15. Madhunashak Ayurvedic Lotion -->
+      <div class="product-card" data-cat="diabetes">
+        <div class="product-img-wrap">
+          <img src="images/product-01.jpeg" alt="Madhunashak Diabetes Control Lotion" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Ayurvedic Lotion</span>
+          <div class="product-name">Madhunashak Ayurvedic Lotion</div>
+          <div class="product-desc">100% आयुर्वेदिक लोशन for natural diabetes management. Topical Ayurvedic application with zero side effects. Fast acting herbal formula.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 120 ml</span>
+            <span class="product-tag" style="color:var(--gold);">Madhunashak</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 16. Livrex Uricare Churna -->
+      <div class="product-card" data-cat="liver">
+        <div class="product-img-wrap">
+          <img src="images/product-12.jpeg" alt="Livrex Uricare Churna" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Liver Care</span>
+          <div class="product-name">Livrex Uricare Churna</div>
+          <div class="product-desc">यकृत, कोलेस्ट्रॉल, फॅटी लिव्हर आणि युरिक ॲसिडसाठी उपयुक्त. शुद्ध आयुर्वेद, १००% नैसर्गिक, सुरक्षित व परिणामकारक.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 100% Natural Churna</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 17. Stone Go Juice -->
+      <div class="product-card" data-cat="liver">
+        <div class="product-img-wrap">
+          <img src="images/product-13.jpeg" alt="Stone Go Juice" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Kidney &amp; Urinary Care</span>
+          <div class="product-name">Stone Go Juice</div>
+          <div class="product-desc">किडनी स्टोन (खडे) विरघळण्यास मदत करते, मूत्रपिंड व मूत्रसंस्थेचे आरोग्य सुधारते, UTI संसर्ग कमी करते आणि नवीन खडे तयार होण्यापासून संरक्षण करते.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 500 ml</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 18. Stone Go Tablet -->
+      <div class="product-card" data-cat="liver">
+        <div class="product-img-wrap">
+          <img src="images/product-05.jpeg" alt="Stone Go Tablet" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Kidney &amp; Urinary Care</span>
+          <div class="product-name">Stone Go Tablet</div>
+          <div class="product-desc">मूत्रपिंड व मूत्रमार्गाच्या आरोग्यासाठी नैसर्गिक आधार. Helps dissolve kidney stones naturally &amp; promotes urinary tract wellness.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 Natural Tablets</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 19. Piles Go Tablet -->
+      <div class="product-card" data-cat="liver">
+        <div class="product-img-wrap">
+          <img src="images/product-09.jpeg" alt="Piles Go Tablet" loading="lazy" />
+        </div>
+        <div class="product-info">
+          <span class="product-badge">Digestive Care</span>
+          <div class="product-name">Piles Go Tablet</div>
+          <div class="product-desc">बवासीर, भेगा व बद्धकोष्ठता यावर नैसर्गिक उपाय. Natural Ayurvedic remedy for piles (hemorrhoids), fissure &amp; constipation.</div>
+          <div class="product-footer">
+            <span class="product-tag">🍃 Natural Tablets</span>
+            <span class="product-tag" style="color:var(--gold);">Green Amrut</span>
+          </div>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -398,13 +418,11 @@
     <div class="footer-col">
       <h4>Product Categories</h4>
       <ul>
+        <li><a href="products.html">💪 Immunity &amp; Wellness</a></li>
         <li><a href="products.html">🦴 Joint &amp; Bone Care</a></li>
-        <li><a href="products.html">🩸 Diabetes Care</a></li>
-        <li><a href="products.html">🫀 Liver &amp; Kidney</a></li>
         <li><a href="products.html">🌸 Women's Health</a></li>
-        <li><a href="products.html">💪 Immunity Boost</a></li>
-        <li><a href="products.html">🧠 Thyroid Care</a></li>
-        <li><a href="products.html">🐟 Omega-3 &amp; Nutrition</a></li>
+        <li><a href="products.html">🩸 Diabetes Care</a></li>
+        <li><a href="products.html">🫀 Liver &amp; Digestive Care</a></li>
       </ul>
     </div>
 
@@ -449,10 +467,30 @@ const menu = document.getElementById("menu-toggle");
 const links = document.getElementById("nav-links");
 const auth = document.getElementById("nav-auth");
 
-menu.addEventListener("click", () => {
-    links.classList.toggle("active");
-    auth.classList.toggle("active");
-});
+if (menu) {
+  menu.addEventListener("click", () => {
+      links.classList.toggle("active");
+      auth.classList.toggle("active");
+  });
+}
+
+function filterProducts(category, btnElement) {
+  const cards = document.querySelectorAll('.products-grid .product-card');
+  const buttons = document.querySelectorAll('.category-tabs .cat-btn');
+
+  buttons.forEach(btn => btn.classList.remove('active'));
+  if (btnElement) {
+    btnElement.classList.add('active');
+  }
+
+  cards.forEach(card => {
+    if (category === 'all' || card.getAttribute('data-cat') === category) {
+      card.style.display = 'flex';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
 </script>
 </body>
 </html>
