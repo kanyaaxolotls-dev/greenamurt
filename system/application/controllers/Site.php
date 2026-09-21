@@ -1869,6 +1869,7 @@ public function get_tehsils($id) {
             if (password_verify($password, $data->password)) {
                 // session_unset();
                 $session = md5($user . time());
+                $this->session->unset_userdata(array('admin_id', 'staff', 'designation'));
                 $this->session->set_userdata(array(
                     'user_id'    => $data->id,
                     'email'      => $data->email,
@@ -2099,6 +2100,7 @@ public function get_tehsils($id) {
             if ($password == $data->password) {
                 // session_unset();
                 $session = md5($user . time());
+                $this->session->unset_userdata('user_id');
                 $this->session->set_userdata(array(
                     'admin_id'    => $data->id,
                     'email'       => $data->email,
@@ -2136,6 +2138,7 @@ public function get_tehsils($id) {
             $data     = $this->db_model->select_multi("*", 'admin', array('username' => $user));
             if (password_verify($password, $data->password)) {
                 $session = md5($user . time());
+                $this->session->unset_userdata('user_id');
                 $this->session->set_userdata(array(
                     'admin_id'   => $data->id,
                     'email'      => $data->email,

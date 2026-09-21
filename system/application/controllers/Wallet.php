@@ -13,7 +13,7 @@ class Wallet extends CI_Controller
         if ($this->login->check_session() == FALSE && $this->login->check_member() == FALSE) {
             redirect(site_url('site/login'));
         }
-        if ($this->login->check_member() == TRUE) {
+        if ($this->login->check_session() == FALSE && $this->login->check_member() == TRUE) {
             $quiz_passed = $this->db->get_where('quiz_results', array(
                 'userid' => $this->session->user_id, 
                 'status' => 'Pass'
