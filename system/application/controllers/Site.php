@@ -455,8 +455,8 @@ public function get_tehsils($id) {
                     'join_time'          => date('Y-m-d'),
                     'placement_leg'      => $leg,
                     'registration_ip'    => $this->input->ip_address(),
-                    'topup'              => $join_package_price,
-                    'mypv'               => $prod_pv,
+                    'topup'              => 0,
+                    'mypv'               => 0,
                     'status'             => 'Suspend',
                     'country_id'         => $c_id,
                     'state_id'           => $s_id,
@@ -614,8 +614,8 @@ public function get_tehsils($id) {
                     'join_time'       => date('Y-m-d'),
                     'placement_leg'   => $leg,
                     'registration_ip' => $this->input->ip_address(),
-                    'topup'           => $join_package_price,
-                    'mypv'            => $prod_pv,
+                    'topup'           => 0,
+                    'mypv'            => 0,
                     'status'          => 'Suspend',
                     
                     // Geography IDs
@@ -1615,8 +1615,18 @@ public function get_tehsils($id) {
 
             $m_row = $this->db->get_where('member', array('id' => $this->session->_user_id_))->row();
             $has_paid = (!empty($m_row->epin) || !empty($m_row->activation_date));
+            $up_data = array('status' => $has_paid ? 'Active' : 'Inactive');
+            if ($has_paid) {
+                $pkg_id = $m_row->signup_package ?: ($m_row->join_package ?: 1);
+                $prod = $this->db_model->select_multi('pv, prod_price', 'product', array('id' => $pkg_id));
+                $up_data['mypv'] = $prod ? (float)$prod->pv : 1.0;
+                $up_data['topup'] = $m_row->join_package_price > 0 ? $m_row->join_package_price : ($prod ? (float)$prod->prod_price : 0);
+                if (empty($m_row->activation_date)) {
+                    $up_data['activation_date'] = date('Y-m-d');
+                }
+            }
             $this->db->where('id', $this->session->_user_id_);
-            $this->db->update('member', array('status' => $has_paid ? 'Active' : 'Inactive'));
+            $this->db->update('member', $up_data);
             
         //     $lst_usrid=$this->db->select('userid')->order_by('id',"desc")->limit(1)->get('pool_one')->row();
         //     $chk_id_pool = $this->db_model->select('userid', 'pool_one', array('userid' =>$this->session->_user_id_));
@@ -1704,6 +1714,7 @@ public function get_tehsils($id) {
             } else {
                 
                 $status = $this->earning->reg_earning($this->session->userdata('_user_id_'), $this->session->userdata('_sponsor_'), $this->session->userdata('_product_'), $need_topup = TRUE);
+                $this->earning->update_legs();
             
             }
             if ($status == TRUE) {

@@ -1031,13 +1031,23 @@ class Earning extends CI_Model
         return TRUE;
     }
 
+	public function get_member_active_pv($id)
+	{
+		$member = $this->db_model->select_multi('status, topup, mypv', 'member', array('id' => $id));
+		if ($member && $member->status === 'Active' && floatval($member->topup ?? 0) > 0) {
+			return floatval($member->mypv ?? 0);
+		}
+		return 0;
+	}
+
 	public function update_legs()
 	{
 		$this->db->select('*')->from('member');
 		$data = $this->db->get()->result();
 		foreach ($data as $result) {
 			if ($result->A !== '0') {
-				$total_a_pv   = $this->count_pv($result->A) + $this->db_model->select('mypv', 'member', array('id' => $result->A)) + $this->db_model->select('team_power', 'member', array('id' => $result->A));
+				$direct_a_pv  = $this->get_member_active_pv($result->A);
+				$total_a_pv   = $this->count_pv($result->A) + $direct_a_pv + $this->db_model->select('team_power', 'member', array('id' => $result->A));
 				$count_a      = $this->count_node($result->A);
 			}
 			else {
@@ -1045,7 +1055,8 @@ class Earning extends CI_Model
 				$total_a_pv   = 0;
 			}
 			if ($result->B !== '0') {
-				$total_b_pv   = $this->count_pv($result->B) + $this->db_model->select('mypv', 'member', array('id' => $result->B)) + $this->db_model->select('team_power', 'member', array('id' => $result->B));
+				$direct_b_pv  = $this->get_member_active_pv($result->B);
+				$total_b_pv   = $this->count_pv($result->B) + $direct_b_pv + $this->db_model->select('team_power', 'member', array('id' => $result->B));
 				$count_b      = $this->count_node($result->B);
 			}
 			else {
@@ -1062,9 +1073,9 @@ class Earning extends CI_Model
 
 	private function count_pv($id, $i = 0)
 	{
-		$this->db->select('id, mypv')->where('position', $id);
+		$this->db->select('id, mypv, status, topup')->where('position', $id);
 		$data = $this->db->get('member')->result();
-		$countdata = $this->db_model->sum('mypv', 'member', array('position' => $id, 'mypv !=' => '0')) + $this->db_model->sum('team_power', 'member', array('position' => $id, 'team_power !=' => '0'));
+		$countdata = $this->db_model->sum('mypv', 'member', array('position' => $id, 'status' => 'Active', 'topup >' => '0', 'mypv !=' => '0')) + $this->db_model->sum('team_power', 'member', array('position' => $id, 'status' => 'Active', 'team_power !=' => '0'));
 		$i = $i + $countdata;
 
 		foreach ($data as $result) {
@@ -1085,9 +1096,9 @@ class Earning extends CI_Model
 			}
 		}
 
-		$this->db->select('id,topup')->where('position', $id);
+		$this->db->select('id,topup,status')->where('position', $id);
 		$data = $this->db->get('member')->result();
-		$countdata = $this->db_model->count_all('member', array('position' => $id, 'topup >=' => '1'));
+		$countdata = $this->db_model->count_all('member', array('position' => $id, 'status' => 'Active', 'topup >=' => '1'));
 		$i = $i + $countdata;
 
 		foreach ($data as $result) {
