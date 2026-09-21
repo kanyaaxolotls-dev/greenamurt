@@ -1613,8 +1613,10 @@ public function get_tehsils($id) {
             $layout['layout'] = "success.php";
             $this->load->view('theme/default/index', $layout);
 
+            $m_row = $this->db->get_where('member', array('id' => $this->session->_user_id_))->row();
+            $has_paid = (!empty($m_row->epin) || !empty($m_row->activation_date));
             $this->db->where('id', $this->session->_user_id_);
-            $this->db->update('member', array('status' => 'Active'));
+            $this->db->update('member', array('status' => $has_paid ? 'Active' : 'Inactive'));
             
         //     $lst_usrid=$this->db->select('userid')->order_by('id',"desc")->limit(1)->get('pool_one')->row();
         //     $chk_id_pool = $this->db_model->select('userid', 'pool_one', array('userid' =>$this->session->_user_id_));
@@ -2222,15 +2224,21 @@ public function get_tehsils($id) {
     public function get_user_name_for_epin($uid = 0)
     {
         $uid = $this->common_model->filter($uid);
-        $user = $this->db_model->select_multi('name, activation_type, join_package, join_package_price', 'member', array('id' => $uid));
+        $user = $this->db_model->select_multi('name, activation_type, join_package, join_package_price, activation_date', 'member', array('id' => $uid));
 
         if ($user) {
+            $ak_global = $this->db_model->select_multi('*', 'global_setting', array('id' => 1));
+            $min_active_topup = ($ak_global && isset($ak_global->active_topup) && $ak_global->active_topup > 0) ? floatval($ak_global->active_topup) : 1;
+            $prod_sale = $this->db_model->sum('cost', 'product_sale', array('userid' => $uid));
+            $is_activated = ($prod_sale >= $min_active_topup && !empty($user->activation_date));
+
             echo json_encode(array(
                 'status' => 'success',
                 'name' => $user->name,
                 'activation_type' => $user->activation_type,
                 'join_package' => $user->join_package,
                 'join_package_price' => $user->join_package_price,
+                'is_activated' => $is_activated ? true : false,
             ));
         } else {
             echo json_encode(array('status' => 'error', 'message' => 'User Not Found'));

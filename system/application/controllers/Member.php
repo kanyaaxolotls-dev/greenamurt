@@ -27,32 +27,42 @@ class Member extends CI_Controller
         $this->load->library('pagination'); 
         $this->load->library('cart');
     
-        // 2. QUIZ RESTRICTION LOGIC
+        // 2. QUIZ & E-PIN ACCESS RESTRICTION LOGIC
         // Get the current method name the user is trying to access
         $current_method = $this->router->fetch_method();
     
-        // List of methods the user IS allowed to access even if they haven't done the quiz
+        // List of methods allowed when exam is not completed (ONLY Quiz and E-PIN sections)
         $allowed_methods = array(
+            // Quiz Methods
             'quiz_center', 
             'submit_quiz_payment', 
             'start_quiz', 
             'skip_quiz',
             'answer_sheet',
             'process_quiz', 
-            'logout'
+            'logout',
+            // E-Pin Methods ONLY
+            'unused_epin',
+            'used_epin',
+            'transfer_epin',
+            'epin_transfer_history',
+            'generate_epin',
+            'requested_epin',
+            'epin_dashboard',
+            'epin_request',
+            'epin_activation_by_member',
+            'get_user_name'
         );
-    
-        // If the user is trying to access a restricted page (like dashboard/index)
-        if (!in_array($current_method, $allowed_methods)) {
-            
-            // Check database if this user has a 'Pass' result
-            $quiz_passed = $this->db->get_where('quiz_results', array(
-                'userid' => $this->session->user_id, 
-                'status' => 'Pass'
-            ))->row();
-    
-            // If no 'Pass' record found, force redirect to quiz center
-            if (!$quiz_passed) {
+
+        // Check database if this user has a 'Pass' result
+        $quiz_passed = $this->db->get_where('quiz_results', array(
+            'userid' => $this->session->user_id, 
+            'status' => 'Pass'
+        ))->row();
+
+        // If user has NOT passed exam, block all pages except Quiz & E-PIN
+        if (!$quiz_passed) {
+            if (!in_array($current_method, $allowed_methods)) {
                 $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">Please complete and pass the Nadi Vigyan Quiz to access your dashboard.</div>');
                 redirect(site_url('member/quiz_center'));
             }
@@ -1548,6 +1558,7 @@ public function certificate() {
                 'epin'=>$sign_package_epin,
                 'activation_date' =>$activation_date,
                 'my_business'=>$package_cost->matching_income,
+                'status' => 'Active',
             ); 
               
             $this->db->where('id', $this->session->user_id);
@@ -1562,6 +1573,15 @@ public function certificate() {
             $this->db->where('epin',$sign_package_epin);
             $this->db->update('epin', $data);
 
+            // Ensure Quiz status is marked Pass
+            $chk_quiz = $this->db->get_where('quiz_results', array('userid' => $this->session->user_id, 'status' => 'Pass'))->row();
+            if(!$chk_quiz) {
+                $this->db->insert('quiz_results', [
+                    'userid' => $this->session->user_id,
+                    'score'  => 50,
+                    'status' => 'Pass'
+                ]);
+            }
 
             $this->load->model('earning');
         
@@ -2632,107 +2652,126 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
     public function epin_activation_by_member() {
         $max_row     = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
         $orderid     = ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
-        $idd         =  $this->input->post('user_id');
+        
+        $idd         = $this->input->post('user_id');
         preg_match('/\d+/', $idd, $matches);
-        $number      = isset($matches[0]) ? $matches[0] : 0;
-        $user_id     = $number;
-        $sp_o        = $this->db_model->select('sponsor', 'member', array('id' => $user_id));
-        $status2     = $this->db_model->count_all('member', array('sponsor' => $sp_o,'topup >' => 0));
-        if($status2 == 2){
-            $status2 = 3;
-        }
-        else{
-            $status2 = 2;
-        }
+        $user_id     = isset($matches[0]) ? $matches[0] : 0;
 
-        $prod_data   =  $this->db_model->select_multi('*', 'product', array('id' => $this->input->post('signup_package')));  
-        $epin_value  = $this->db_model->select('amount', 'epin', array('epin'   => trim($this->input->post('epin')),'status' => 'Un-used',));
-        $find_user   = $this->db_model->select('id', 'member', array('id' => $user_id));
-        $al_active   = $this->db_model->select('topup', 'member', array('id' => $user_id));
-        $epin        = $this->input->post('epin');
+        $find_user   = $this->db->get_where('member', array('id' => $user_id))->row();
+        $epin_code   = trim($this->input->post('epin'));
+        $epin_row    = $this->db->get_where('epin', array('epin' => $epin_code, 'status' => 'Un-used'))->row();
+        $epin_value  = $epin_row ? floatval($epin_row->amount) : 0;
 
-        if($find_user != NULL and ($al_active == NULL or $al_active <= 0)){
-           if($prod_data && ($epin_value == $prod_data->dealer_price or $epin_value == 0)) {
-               if($epin_value != 0){
-                   $prod_pv = $prod_data->pv;
-               } else{
-                   $prod_pv = 0;
-               }    
-               $mypv = $this->db_model->select('mypv', 'member', array('id' => $user_id));
-
-               // 1. Order Creation & Order ID Generation (Saved FIRST)
-               $sale_data = array(
-                   'product_id'  => $prod_data->id,
-                   'userid'      => $user_id,
-                   'cost'        => $prod_data->dealer_price,
-                   'date'        => date('Y-m-d'),
-                   'order_by'    => 'Member',
-                   'orderid'     => $orderid,
-                   'pv'          => $prod_data->pv,
-                   'type'        => 'topup',
-                   'epin_amount' => $epin_value,
-                   'status'      => 'Processing',
-               );
-               $this->db->insert('product_sale', $sale_data);
-
-               $item_data = array(
-                   'product_id' => $prod_data->id,
-                   'order_id'   => $orderid,
-                   'cost'       => $prod_data->dealer_price,
-               );
-               $this->db->insert('product_item_sale', $item_data);
-
-               // 2. Member Activation Update
-               $data = array(
-                   'topup'           => $prod_data->dealer_price,
-                   'signup_package'  => $prod_data->id,
-                   'epin'            => $epin,
-                   'mypv'            => $mypv + $prod_pv,
-                   'activation_date' => date('Y-m-d'),
-                   'status2'         => $status2,
-                   'status'          => 'Active',
-               );
-               $this->db->where('id', $user_id);
-               $this->db->update('member', $data);
-
-               // Change epin status
-               $data = array(
-                   'status'    => 'Used',
-                   'used_by'   => $user_id,
-                   'used_time' => date('Y-m-d'),
-               );
-               $this->db->where('epin', $epin);
-               $this->db->update('epin', $data);
-
-               // 3. MLM / Payout Processing
-               $this->load->model('earning'); 
-               if($epin_value != 0){
-                $this->earning->reg_earning($user_id, $this->db_model->select('sponsor', 'member', array('id' => $user_id)), $prod_data->id);
-                $this->earning->repurchase($orderid);
-               }
-
-               $this->earning->update_legs();
-
-               $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated your account. Order #' . $orderid . ' created.</div>');
-               redirect(site_url('member/unused-epin'));
-           }
-           else{
-               $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Epin and Package Amount Not Matched.</div>');
-               redirect(site_url('member/unused-epin')); 
-           }
-        }
-        elseif($al_active!=NULL and $al_active > 0){
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger"> Userid Already Activated.</div>');
+        if (!$find_user) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Invalid User ID.</div>');
             redirect(site_url('member/unused-epin'));
+            return;
         }
-        elseif($find_user == NULL){
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Invalid Userid.</div>');
+
+        $ak_global = $this->db_model->select_multi('*', 'global_setting', array('id' => 1));
+        $min_active_topup = ($ak_global && isset($ak_global->active_topup) && $ak_global->active_topup > 0) ? floatval($ak_global->active_topup) : 1;
+        $prod_sale = $this->db_model->sum('cost', 'product_sale', array('userid' => $user_id));
+
+        if ($prod_sale >= $min_active_topup && !empty($find_user->activation_date)) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">User ID ' . $user_id . ' is already Activated.</div>');
             redirect(site_url('member/unused-epin'));
+            return;
         }
-        else{
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Something Went Wrong Please Try Again later.</div>');
+
+        if (!$epin_row) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Invalid or already used E-Pin.</div>');
             redirect(site_url('member/unused-epin'));
+            return;
         }
+
+        // Determine Package ID
+        $package_id = $this->input->post('signup_package');
+        if (empty($package_id)) {
+            $package_id = !empty($find_user->signup_package) ? $find_user->signup_package : $find_user->join_package;
+        }
+        if (empty($package_id)) {
+            $matching_prod = $this->db->get_where('product', array('dealer_price' => $epin_value))->row();
+            $package_id = $matching_prod ? $matching_prod->id : 1;
+        }
+
+        $prod_data = $this->db->get_where('product', array('id' => $package_id))->row();
+        if (!$prod_data) {
+            $prod_data = $this->db->get_where('product', array('id' => 1))->row();
+        }
+
+        $activation_cost = $prod_data ? floatval($prod_data->dealer_price) : $epin_value;
+        $prod_pv = $prod_data ? $prod_data->pv : 0;
+        $prod_id = $prod_data ? $prod_data->id : 1;
+
+        // Calculate status2 (Binary Leg Logic)
+        $sp_o    = $find_user->sponsor;
+        $count   = $this->db_model->count_all('member', array('sponsor' => $sp_o, 'topup >' => 0));
+        $status2 = ($count >= 2) ? 3 : 2;
+
+        $mypv = floatval($find_user->mypv);
+
+        // 1. Order Creation & Order ID Generation (Saved FIRST)
+        $sale_data = array(
+            'product_id'  => $prod_id,
+            'userid'      => $user_id,
+            'cost'        => $activation_cost,
+            'date'        => date('Y-m-d'),
+            'order_by'    => 'Member',
+            'orderid'     => $orderid,
+            'pv'          => $prod_pv,
+            'type'        => 'topup',
+            'epin_amount' => $epin_value,
+            'status'      => 'Processing',
+        );
+        $this->db->insert('product_sale', $sale_data);
+
+        $item_data = array(
+            'product_id' => $prod_id,
+            'order_id'   => $orderid,
+            'cost'       => $activation_cost,
+        );
+        $this->db->insert('product_item_sale', $item_data);
+
+        // 2. Member Activation Update
+        $data = array(
+            'topup'           => $activation_cost,
+            'signup_package'  => $prod_id,
+            'epin'            => $epin_code,
+            'mypv'            => $prod_pv,
+            'activation_date' => date('Y-m-d'),
+            'status2'         => $status2,
+            'status'          => 'Active',
+        );
+        $this->db->where('id', $user_id);
+        $this->db->update('member', $data);
+
+        // 3. Change epin status
+        $data = array(
+            'status'    => 'Used',
+            'used_by'   => $user_id,
+            'used_time' => date('Y-m-d'),
+        );
+        $this->db->where('epin', $epin_code);
+        $this->db->update('epin', $data);
+
+        // 4. Trigger SwarangWellness Business Engine (Earning, Leg Updates, MLM)
+        $this->load->model('earning');
+        $this->earning->reg_earning($user_id, $sp_o, $prod_id, TRUE, 1);
+        $this->earning->update_legs();
+
+        // 5. Ensure Quiz / Certification is marked Pass (same as Exam / Skip Exam)
+        $chk_quiz = $this->db->get_where('quiz_results', array('userid' => $user_id, 'status' => 'Pass'))->row();
+        if (!$chk_quiz) {
+            $this->db->insert('quiz_results', [
+                'userid'       => $user_id,
+                'score'        => 50,
+                'status'       => 'Pass',
+                'attempt_date' => date('Y-m-d H:i:s')
+            ]);
+        }
+
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated User ID: ' . $user_id . '. Account is now ACTIVE! Order #' . $orderid . ' created.</div>');
+        redirect(site_url('member/unused-epin'));
     }
     
 }

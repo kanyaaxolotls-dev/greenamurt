@@ -125,7 +125,12 @@
                             <button class="btn btn-success btn-lg btn-paid shadow" onclick="$('#payment_area').hide(); $('#upload_form').fadeIn();">
                                 <i class="fa fa-check-circle me-2"></i> I HAVE PAID
                             </button>
-                            <a href="<?php echo site_url('member'); ?>" class="btn btn-link text-secondary">Cancel</a>
+                        </div>
+                        <div class="mt-3 pt-3 border-top">
+                            <span class="text-muted">Or activate using E-Pin:</span>
+                            <a href="<?php echo site_url('member/unused-epin'); ?>" class="btn btn-outline-success btn-sm ms-2">
+                                <i class="fa fa-key me-1"></i> E-Pin Activation
+                            </a>
                         </div>
                     </div>
 
@@ -149,6 +154,7 @@
                         <i class="fa fa-clock text-warning display-4 mb-3"></i>
                         <h4 class="fw-bold">Payment Under Review</h4>
                         <p class="text-muted">Your payment of ₹ 8900 is being verified by our team.<br>Once approved, you can start the quiz immediately.</p>
+                        <a href="<?php echo site_url('member/unused-epin'); ?>" class="btn btn-success mt-3 me-2"><i class="fa fa-key me-1"></i> Activate with E-Pin</a>
                         <a href="<?php echo site_url('member'); ?>" class="btn btn-outline-primary mt-3">Back to Home</a>
                     </div>
 

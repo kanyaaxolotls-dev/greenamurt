@@ -117,34 +117,49 @@
 function get_user_name(id, result) {
     var myString = $(id).val();
     var uid = myString.replace(/\D/g, "");
+    if (!uid) {
+        $(result).html("User Name : ");
+        return;
+    }
 
     $.get("<?php echo site_url('site/get_user_name_for_epin/') ?>" + uid, function(res) {
+        try {
+            var data = (typeof res === 'object') ? res : JSON.parse(res);
 
-        var data = JSON.parse(res);
+            if (data.status == 'success') {
+                if (data.is_activated) {
+                    $(result).html(data.name + " <span style='color:red;font-weight:bold;'>(Already Active)</span>").css("color","black");
+                    $("#submit_btn").prop("disabled", true);
+                } else {
+                    $(result).html(data.name + " <span style='color:green;font-weight:bold;'>(Inactive - Ready to Activate)</span>").css("color","black");
+                    $("#submit_btn").prop("disabled", false);
+                }
 
-        if (data.status == 'success') {
-            $(result).html(data.name).css("color","green");
+                if (data.join_package && $("#signup_package option[value='" + data.join_package + "']").length > 0) {
+                    $("#signup_package").val(data.join_package);
+                    $("#signup_package_hidden").val(data.join_package);
+                } else {
+                    var defaultPkg = $("#signup_package").val();
+                    $("#signup_package_hidden").val(defaultPkg);
+                }
+                $("#signup_package").prop("disabled", false);
 
-            if (data.activation_type == 'free') {
-                $("#signup_package").val("");          // No Package Select
-                $("#signup_package_hidden").val(""); 
-                $("#signup_package").prop("disabled", true);
+            } else {
+                $(result).html(data.message).css("color","red");
                 $("#submit_btn").prop("disabled", true);
-                $(result).append(" <span style='color:blue'>(Free Registered)</span>");
-
-            } else if (data.activation_type == 'paid') {
-                $("#signup_package").val(data.join_package); // Auto select package
-                $("#signup_package").prop("disabled", true);
-                $("#signup_package_hidden").val(data.join_package); 
-                $("#submit_btn").prop("disabled", false);
-                $(result).append(" <span style='color:green'>(Paid User)</span>");
             }
-
-        } else {
-            $(result).html(data.message).css("color","red");
-            $("#signup_package_hidden").val($("#signup_package").val());
-            $("#signup_package").val("").prop("disabled", false); // Allow user to choose package
+        } catch(e) {
+            console.error(e);
         }
     });
 }
+
+$(document).ready(function() {
+    $("#signup_package").on('change', function() {
+        $("#signup_package_hidden").val($(this).val());
+    });
+    if ($("#signup_package").val()) {
+        $("#signup_package_hidden").val($("#signup_package").val());
+    }
+});
 </script>

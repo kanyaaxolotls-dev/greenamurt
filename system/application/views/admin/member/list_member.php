@@ -101,7 +101,9 @@
                         <?php 
                             $topup = $this->db_model->sum('cost', 'product_sale', array('userid' => $e['id'])); 
                             $ch_tp = $this->db_model->select('active_topup', 'global_setting', array('id' => 1)); 
-                            if($topup >= $ch_tp){
+                            $min_active_tp = ($ch_tp > 0) ? floatval($ch_tp) : 1;
+                            $isActive = ($topup >= $min_active_tp && !empty($e['activation_date']));
+                            if($isActive){
                                 $date = $e['activation_date'];
                                 $clr  = 'success';
                             } else{
@@ -145,7 +147,7 @@
                         </td>
                     <td>
                       <span class="badge badge-dot mr-4">
-                        <span class="status"><?php if($topup >= $ch_tp){?> <i class="bg-success"></i> <?php }else{?> <i class="bg-danger"></i><?php } ?></span>
+                        <span class="status"><?php if($isActive){?> <i class="bg-success"></i> <?php }else{?> <i class="bg-danger"></i><?php } ?></span>
                       </span>
                     </td>
                     <!--<td>-->

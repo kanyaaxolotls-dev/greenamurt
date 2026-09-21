@@ -107,11 +107,13 @@
                             foreach ($ak_data as $member) { 
                                 $i++;
                                 $member_data = $this->db_model->select_multi('*','member',array('id' => $member));
-                                if($member_data->signup_package){
+                                $prod_sale   = $this->db_model->sum('cost', 'product_sale', array('userid' => $member));
+                                $isActive    = ($prod_sale > 0) && !empty($member_data->activation_date);
+                                if($isActive){
                                     $status = 'Active';
                                     $clr    = 'success';
                                 }else{
-                                    $status = 'Inctive';
+                                    $status = 'Inactive';
                                     $clr    = 'danger';
                                 }
                         ?>

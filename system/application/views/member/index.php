@@ -223,8 +223,9 @@
                     <div class="container-fluid">           
 
                 <?php
-                    $prod_sale = $this->db_model->sum('cost', 'product_sale',array('userid' => $detail->id));
-                    if($prod_sale >= $ak_global->active_topup){
+                    $prod_sale = $this->db_model->sum('cost', 'product_sale', array('userid' => $detail->id));
+                    $min_topup = ($ak_global && isset($ak_global->active_topup) && $ak_global->active_topup > 0) ? floatval($ak_global->active_topup) : 1;
+                    if($prod_sale >= $min_topup && !empty($detail->activation_date)){
                         $msgg = 'Active';
                         $clrr = 'success';
                     }else{

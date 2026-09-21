@@ -56,7 +56,8 @@
                             <?php 
                                 foreach ($members as $member): 
                                     $prod_sale   = $this->db_model->sum('cost', 'product_sale', array('userid' => $member->id)); 
-                                    $isActive    = ($prod_sale != 0) && ($prod_sale >= $active_topup);
+                                    $min_tp      = ($active_topup > 0) ? $active_topup : 1;
+                                    $isActive    = ($prod_sale >= $min_tp) && !empty($member->activation_date);
                                     $status      = $isActive ? 'Active' : 'Inactive';
                                     $clr         = $isActive ? 'success' : 'danger';
                             ?>
@@ -114,15 +115,14 @@
                             <?php 
                                 foreach ($allMembers as $member): 
                                     $prod_sale   = $this->db_model->sum('cost', 'product_sale', array('userid' => $member->id)); 
-                                    $isActive    = ($prod_sale != 0) && ($prod_sale >= $active_topup);
+                                    $min_tp      = ($active_topup > 0) ? $active_topup : 1;
+                                    $isActive    = ($prod_sale >= $min_tp) && !empty($member->activation_date);
                                     $status1     = $isActive ? 'Active' : 'Inactive';
                                     $clr1        = $isActive ? 'success' : 'danger';
                             ?>
                             <?php 
                                 $i++;
                                 $sidee  = ($member->placement_leg == "A") ? 'Left' : 'Right';
-                                $status = $member->signup_package ? 'Active' : 'Inactive';
-                                $clr    = $member->signup_package ? 'success' : 'danger';
                             ?>
                             <tr>
                                 <td><?php echo $i; ?></td>

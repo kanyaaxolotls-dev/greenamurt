@@ -13,6 +13,13 @@ class Cart extends CI_Controller
         if ($this->login->check_member() == FALSE) {
             redirect(site_url('site/login'));
         }
+        $quiz_passed = $this->db->get_where('quiz_results', array(
+            'userid' => $this->session->user_id, 
+            'status' => 'Pass'
+        ))->row();
+        if (!$quiz_passed) {
+            redirect(site_url('member/quiz_center'));
+        }
         $this->load->library('pagination');
         $this->load->library('cart');
     }
