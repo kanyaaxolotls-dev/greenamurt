@@ -141,6 +141,27 @@
         box-shadow: 0 15px 30px rgba(16, 185, 129, 0.4);
         transform: scale(1.02);
     }
+
+    .btn-skip {
+        background: linear-gradient(to bottom, #f59e0b, #d97706);
+        color: white !important;
+        padding: 18px 35px;
+        font-size: 20px;
+        font-weight: 700;
+        border-radius: 12px;
+        border: none;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        transition: all 0.3s;
+    }
+
+    .btn-skip:hover {
+        box-shadow: 0 15px 30px rgba(245, 158, 11, 0.4);
+        transform: scale(1.02);
+        color: white !important;
+    }
     
     .hero-section {
         background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
@@ -293,10 +314,15 @@
                     </div>
 
                     <div class="text-center py-4">
-                        <button class="btn btn-premium btn-lg shadow" onclick="startExam()">
-                            🚀 Start Certification Exam
-                        </button>
-                        <p class="text-muted mt-3 small">Once the exam begins, the timer starts immediately.</p>
+                        <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap mb-2">
+                            <button class="btn btn-premium btn-lg shadow" onclick="startExam()">
+                                🚀 Start Certification Exam
+                            </button>
+                            <a href="<?php echo site_url('member/skip_quiz'); ?>" class="btn btn-skip shadow" onclick="return confirm('Are you sure you want to skip the exam and activate your account directly?');">
+                                ⏭️ Skip Exam
+                            </a>
+                        </div>
+                        <p class="text-muted mt-3 small">Once the exam begins, the timer starts immediately. You can also skip the exam to activate directly.</p>
                     </div>
                 </div>
             
@@ -329,10 +355,13 @@
                         endforeach; 
                         ?>
                 
-                        <div class="text-center mt-5">
+                        <div class="text-center mt-5 d-flex justify-content-center align-items-center gap-3 flex-wrap">
                             <button type="submit" class="btn btn-premium px-5">
                                 Finish & Submit Certification Exam
                             </button>
+                            <a href="<?php echo site_url('member/skip_quiz'); ?>" class="btn btn-skip px-4" onclick="return confirm('Are you sure you want to skip the exam and activate your account directly?');">
+                                ⏭️ Skip Exam
+                            </a>
                         </div>
                     </form>
                 </div>

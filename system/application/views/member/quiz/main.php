@@ -157,7 +157,14 @@
                         <i class="fa fa-unlock-alt text-success display-4 mb-3"></i>
                         <h3 class="fw-bold text-success">Access Granted!</h3>
                         <p class="mb-4">Your payment is verified. You are now ready to take the Certification Exam.</p>
-                        <a href="<?php echo site_url('member/start_quiz') ?>" class="btn btn-lg btn-primary px-5 shadow">START QUIZ NOW</a>
+                        <div class="d-flex justify-content-center align-items-center gap-3 flex-wrap">
+                            <a href="<?php echo site_url('member/start_quiz') ?>" class="btn btn-lg btn-primary px-4 shadow">
+                                <i class="fa fa-play-circle me-1"></i> START QUIZ NOW
+                            </a>
+                            <a href="<?php echo site_url('member/skip_quiz') ?>" class="btn btn-lg btn-warning px-4 shadow text-white" onclick="return confirm('Are you sure you want to skip the exam and activate your account directly?');">
+                                <i class="fa fa-forward me-1"></i> SKIP EXAM
+                            </a>
+                        </div>
                     </div>
 
                 <?php elseif($result): ?>

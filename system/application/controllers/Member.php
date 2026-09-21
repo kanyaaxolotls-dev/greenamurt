@@ -36,6 +36,7 @@ class Member extends CI_Controller
             'quiz_center', 
             'submit_quiz_payment', 
             'start_quiz', 
+            'skip_quiz',
             'answer_sheet',
             'process_quiz', 
             'logout'
@@ -2544,6 +2545,87 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
             $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">You failed. Correct answers: '.$correct_count.'. (Minimum 20 required to activate account)</div>');
         }
         
+        redirect('member/quiz_center');
+    }
+
+    public function skip_quiz() {
+        $user_id = $this->session->user_id;
+
+        // Check if quiz payment is approved
+        $payment = $this->db->get_where('quiz_payments', array('userid' => $user_id, 'status' => 'Approved'))->row();
+        if (!$payment) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">Approved quiz payment access is required to proceed.</div>');
+            redirect('member/quiz_center');
+            return;
+        }
+
+        // Check if user already passed
+        $already_passed = $this->db->get_where('quiz_results', array('userid' => $user_id, 'status' => 'Pass'))->row();
+        if (!$already_passed) {
+            // Save Quiz Result as Passed (50/50)
+            $this->db->insert('quiz_results', [
+                'userid' => $user_id,
+                'score'  => 50,
+                'status' => 'Pass'
+            ]);
+
+            // --- START AUTOMATIC ACTIVATION & SWARANGWELLNESS BUSINESS ENGINE ---
+            // 1. Calculate status2 (Binary Leg Logic)
+            $sp_o    = $this->db_model->select('sponsor', 'member', array('id' => $user_id));
+            $count   = $this->db_model->count_all('member', array('sponsor' => $sp_o, 'topup >' => 0));
+            $status2 = ($count >= 2) ? 3 : 2;
+
+            // 2. Get active topup requirement & package ID
+            $ak_global = $this->db_model->select_multi('*', 'global_setting', array('id' => 1));
+            $activation_amount = ($ak_global && isset($ak_global->active_topup)) ? $ak_global->active_topup : 0;
+            $package_id = $this->db_model->select('signup_package', 'member', array('id' => $user_id));
+            if (empty($package_id)) {
+                $package_id = 1; // Default activation package
+            }
+
+            // 3. Update Member Table to Active
+            $member_update = array(
+                'topup'           => $activation_amount,
+                'signup_package'  => $package_id,
+                'activation_date' => date('Y-m-d'),
+                'status2'         => $status2,
+                'status'          => 'Active' 
+            );
+            $this->db->where('id', $user_id)->update('member', $member_update);
+
+            // 4. Generate next Order ID and create activation order
+            $max_row_quiz = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+            $gen_orderid_quiz = ($max_row_quiz && isset($max_row_quiz->maxid) && $max_row_quiz->maxid > 0) ? ($max_row_quiz->maxid + 1) : 1001;
+
+            $sale_data = array(
+                'product_id' => $package_id,
+                'userid'     => $user_id,
+                'cost'       => $activation_amount,
+                'date'       => date('Y-m-d'),
+                'order_by'   => 'Quiz System (Skipped)',
+                'orderid'    => $gen_orderid_quiz,
+                'status'     => 'Processing',
+            );
+            $this->db->insert('product_sale', $sale_data);
+
+            $item_data = array(
+                'product_id' => $package_id,
+                'order_id'   => $gen_orderid_quiz,
+                'cost'       => $activation_amount,
+            );
+            $this->db->insert('product_item_sale', $item_data);
+
+            // 5. Trigger SwarangWellness Business Engine (Earning, Leg Updates, MLM)
+            $this->load->model('earning');
+            $this->earning->reg_earning($user_id, $sp_o, $package_id, TRUE, 1);
+            $this->earning->update_legs();
+            // --- END AUTOMATIC ACTIVATION ---
+
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Exam skipped successfully! Your account has been ACTIVATED.</div>');
+        } else {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-info">Your account is already active.</div>');
+        }
+
         redirect('member/quiz_center');
     }
 
