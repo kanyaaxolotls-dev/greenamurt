@@ -2,7 +2,7 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title">Pending Quiz Payments (₹ 8900)</h4>
+                <h4 class="card-title">Pending Quiz Payments</h4>
             </div>
             <div class="card-body">
                 <table class="table table-bordered table-striped" id="datatable">

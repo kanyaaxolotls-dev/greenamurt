@@ -2123,6 +2123,41 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
         public function quiz_center() {
             $userid = $this->session->user_id;
             
+            // Fetch member details
+            $member = $this->db->get_where('member', array('id' => $userid))->row();
+            
+            // Determine dynamic certification fee
+            $fee = 0;
+            if ($member) {
+                if (!empty($member->signup_package) || !empty($member->join_package)) {
+                    $pkg_id = !empty($member->signup_package) ? $member->signup_package : $member->join_package;
+                    $pkg = $this->db->get_where('product', array('id' => $pkg_id))->row();
+                    if ($pkg && floatval($pkg->prod_price) > 0) {
+                        $fee = floatval($pkg->prod_price);
+                    } elseif ($pkg && floatval($pkg->dealer_price) > 0) {
+                        $fee = floatval($pkg->dealer_price);
+                    }
+                }
+                if ($fee <= 0 && !empty($member->topup) && floatval($member->topup) > 0) {
+                    $fee = floatval($member->topup);
+                } elseif ($fee <= 0 && !empty($member->join_package_price) && floatval($member->join_package_price) > 0) {
+                    $fee = floatval($member->join_package_price);
+                }
+            }
+            
+            if ($fee <= 0) {
+                $default_pkg = $this->db->where('show_on_regform', 'Yes')->order_by('id', 'ASC')->get('product')->row();
+                if ($default_pkg) {
+                    $fee = floatval($default_pkg->prod_price) > 0 ? floatval($default_pkg->prod_price) : floatval($default_pkg->dealer_price);
+                }
+            }
+            
+            if ($fee <= 0) {
+                $fee = 8900;
+            }
+
+            $data['fee'] = $fee;
+            
             // Check payment status
             $data['payment'] = $this->db->get_where('quiz_payments', array('userid' => $userid, 'status' => 'Approved'))->row();
             $data['pending_payment'] = $this->db->get_where('quiz_payments', array('userid' => $userid, 'status' => 'Pending'))->row();

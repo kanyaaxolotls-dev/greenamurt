@@ -112,7 +112,7 @@
                     <!--<div class="h5 text-primary mb-4">Exam Fee: <strong>₹ 8900</strong></div>-->
                     <div class="mb-4">
                         <div class="text-muted">Official Certification Fee</div>
-                        <h2 class="text-primary fw-bold mb-0">₹ 8,900</h2>
+                        <h2 class="text-primary fw-bold mb-0">₹ <?php echo isset($fee) && $fee > 0 ? number_format($fee) : '8,900'; ?></h2>
                     </div>
                     <!-- Scanner Message -->
                     <div id="payment_area">
@@ -153,7 +153,7 @@
                     <div class="py-4">
                         <i class="fa fa-clock text-warning display-4 mb-3"></i>
                         <h4 class="fw-bold">Payment Under Review</h4>
-                        <p class="text-muted">Your payment of ₹ 8900 is being verified by our team.<br>Once approved, you can start the quiz immediately.</p>
+                        <p class="text-muted">Your payment of ₹ <?php echo isset($fee) && $fee > 0 ? number_format($fee) : '8,900'; ?> is being verified by our team.<br>Once approved, you can start the quiz immediately.</p>
                         <a href="<?php echo site_url('member/unused-epin'); ?>" class="btn btn-success mt-3 me-2"><i class="fa fa-key me-1"></i> Activate with E-Pin</a>
                         <a href="<?php echo site_url('member'); ?>" class="btn btn-outline-primary mt-3">Back to Home</a>
                     </div>
