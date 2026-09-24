@@ -105,21 +105,33 @@
         
             <div class="card-body text-center p-5">
                 
-                <?php if(!$payment && !$pending_payment): ?>
-                    <h3 class="fw-bold mb-3">Nadi Vigyan Certification Quiz</h3>
-                    <p class="text-muted">Unlock your dashboard by completing the official certification.</p>
-                    
-                    <!--<div class="h5 text-primary mb-4">Exam Fee: <strong>₹ 8900</strong></div>-->
-                    <div class="mb-4">
-                        <div class="text-muted">Official Certification Fee</div>
-                        <h2 class="text-primary fw-bold mb-0">₹ <?php echo isset($fee) && $fee > 0 ? number_format($fee) : '8,900'; ?></h2>
-                    </div>
+                <?php 
+                $is_package1 = (!isset($pkg_id) || $pkg_id == 1);
+                ?>
+
+                <?php if(!$payment && !$pending_payment && !$is_active): ?>
+                    <?php if($is_package1): ?>
+                        <h3 class="fw-bold mb-3">Nadi Vigyan Certification Quiz</h3>
+                        <p class="text-muted">Unlock your dashboard by completing the official certification.</p>
+                        <div class="mb-4">
+                            <div class="text-muted">Official Certification Fee</div>
+                            <h2 class="text-primary fw-bold mb-0">₹ <?php echo isset($fee) && $fee > 0 ? number_format($fee) : '8,900'; ?></h2>
+                        </div>
+                    <?php else: ?>
+                        <h3 class="fw-bold mb-3">Account Activation</h3>
+                        <p class="text-muted">Complete your payment to activate your account and access your dashboard.</p>
+                        <div class="mb-4">
+                            <div class="text-muted">Package Activation Fee (<?php echo isset($pkg_name) ? $pkg_name : 'Health Package 2'; ?>)</div>
+                            <h2 class="text-primary fw-bold mb-0">₹ <?php echo isset($fee) && $fee > 0 ? number_format($fee) : '4,450'; ?></h2>
+                        </div>
+                    <?php endif; ?>
+
                     <!-- Scanner Message -->
                     <div id="payment_area">
                         <div class="qr-container mb-3">
                             <img src="<?php echo base_url('uploads/qr_scanner.jpeg'); ?>" style="width:200px; border-radius: 10px;">
                         </div>
-                        <p class="text-danger fw-bold">Scan the QR code to pay & unlock your exam.</p>
+                        <p class="text-danger fw-bold">Scan the QR code to pay & submit your payment proof.</p>
                         
                         <div class="mt-4">
                             <button class="btn btn-success btn-lg btn-paid shadow" onclick="$('#payment_area').hide(); $('#upload_form').fadeIn();">
@@ -149,16 +161,30 @@
                         <button type="button" class="btn btn-link btn-sm mt-2" onclick="$('#upload_form').hide(); $('#payment_area').show();">Go Back</button>
                     </form>
 
-                <?php elseif($pending_payment): ?>
+                <?php elseif($pending_payment && !$is_active): ?>
                     <div class="py-4">
                         <i class="fa fa-clock text-warning display-4 mb-3"></i>
                         <h4 class="fw-bold">Payment Under Review</h4>
-                        <p class="text-muted">Your payment of ₹ <?php echo isset($fee) && $fee > 0 ? number_format($fee) : '8,900'; ?> is being verified by our team.<br>Once approved, you can start the quiz immediately.</p>
+                        <?php if($is_package1): ?>
+                            <p class="text-muted">Your payment of ₹ <?php echo isset($fee) && $fee > 0 ? number_format($fee) : '8,900'; ?> is being verified by our team.<br>Once approved, you can start the quiz immediately.</p>
+                        <?php else: ?>
+                            <p class="text-muted">Your payment of ₹ <?php echo isset($fee) && $fee > 0 ? number_format($fee) : '4,450'; ?> is being verified by our team.<br>Once approved by admin, your account will be activated immediately.</p>
+                        <?php endif; ?>
                         <a href="<?php echo site_url('member/unused-epin'); ?>" class="btn btn-success mt-3 me-2"><i class="fa fa-key me-1"></i> Activate with E-Pin</a>
                         <a href="<?php echo site_url('member'); ?>" class="btn btn-outline-primary mt-3">Back to Home</a>
                     </div>
 
-                <?php elseif($payment && !$result): ?>
+                <?php elseif(!$is_package1 && ($is_active || $payment)): ?>
+                    <div class="py-4">
+                        <div class="display-3 mb-3 text-success"><i class="fa fa-check-circle"></i></div>
+                        <h2 class="fw-bold text-success">Account Active!</h2>
+                        <p class="h5 text-muted mb-4">Your account is fully activated. You can now access all dashboard features.</p>
+                        <a href="<?php echo site_url('member'); ?>" class="btn btn-lg btn-success px-5 shadow rounded-pill">
+                            <i class="fa fa-tachometer-alt me-2"></i> Go to Dashboard
+                        </a>
+                    </div>
+
+                <?php elseif($is_package1 && $payment && !$result): ?>
                     <div class="py-4">
                         <i class="fa fa-unlock-alt text-success display-4 mb-3"></i>
                         <h3 class="fw-bold text-success">Access Granted!</h3>
@@ -173,7 +199,7 @@
                         </div>
                     </div>
 
-                <?php elseif($result): ?>
+                <?php elseif($is_package1 && $result): ?>
                     <div class="py-4">
                         <div class="display-3 mb-3">🎉</div>
                         <h2 class="fw-bold">Congratulations!</h2>
@@ -182,9 +208,11 @@
                             Your Score: <strong class="text-primary h4"><?php echo $result->score; ?> / 50</strong>
                         </div>
                         <br>
-                        <!--<a href="#" class="btn btn-info btn-lg shadow"><i class="fa fa-download"></i> Download Certificate</a>-->
-                        <a href="<?php echo site_url('member/certificate') ?>" target="_blank" class="btn btn-info btn-lg shadow rounded-pill px-4">
+                        <a href="<?php echo site_url('member/certificate') ?>" target="_blank" class="btn btn-info btn-lg shadow rounded-pill px-4 me-2">
                             <i class="fa fa-download me-2"></i> Download Official Certificate
+                        </a>
+                        <a href="<?php echo site_url('member'); ?>" class="btn btn-outline-primary btn-lg shadow rounded-pill px-4">
+                            Dashboard
                         </a>
                     </div>
                 <?php endif; ?>

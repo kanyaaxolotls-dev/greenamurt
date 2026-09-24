@@ -202,6 +202,15 @@
                      <li><a href="<?php echo site_url('member/welcome-letter') ?>"><i class="fa fa-file-text-o"></i><span> Acceptance Letter</span></a></li>
                     <li><a href="<?php echo site_url('member/proile') ?>"><span>Profile Details</span></a></li>
                     <li><a href="<?php echo site_url('member/settings') ?>"><span>Change Password</span></a></li>
+                    <?php 
+                    $u_member = $this->db->get_where('member', array('id' => $this->session->user_id))->row();
+                    $u_pkg = ($u_member && !empty($u_member->signup_package)) ? $u_member->signup_package : (($u_member && !empty($u_member->join_package)) ? $u_member->join_package : 1);
+                    if ($u_pkg == 1) {
+                        $u_passed = $this->db->get_where('quiz_results', array('userid' => $this->session->user_id, 'status' => 'Pass'))->row();
+                        if ($u_passed) {
+                    ?>
+                    <li><a href="<?php echo site_url('member/certificate') ?>" target="_blank"><i class="fa fa-certificate"></i><span> Official Certificate</span></a></li>
+                    <?php } } ?>
                 </ul>
             </li>
         

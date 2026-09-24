@@ -31,9 +31,9 @@ class Member extends CI_Controller
         // Get the current method name the user is trying to access
         $current_method = $this->router->fetch_method();
     
-        // List of methods allowed when exam is not completed (ONLY Quiz and E-PIN sections)
+        // List of methods allowed when exam/activation is not completed
         $allowed_methods = array(
-            // Quiz Methods
+            // Quiz & Payment Methods
             'quiz_center', 
             'submit_quiz_payment', 
             'start_quiz', 
@@ -54,17 +54,33 @@ class Member extends CI_Controller
             'get_user_name'
         );
 
-        // Check database if this user has a 'Pass' result
-        $quiz_passed = $this->db->get_where('quiz_results', array(
-            'userid' => $this->session->user_id, 
-            'status' => 'Pass'
-        ))->row();
+        $member = $this->db->get_where('member', array('id' => $this->session->user_id))->row();
+        $pkg_id = ($member && !empty($member->signup_package)) ? $member->signup_package : (($member && !empty($member->join_package)) ? $member->join_package : 1);
+        $is_active = ($member && $member->status == 'Active' && !empty($member->activation_date));
 
-        // If user has NOT passed exam, block all pages except Quiz & E-PIN
-        if (!$quiz_passed) {
-            if (!in_array($current_method, $allowed_methods)) {
-                $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">Please complete and pass the Nadi Vigyan Quiz to access your dashboard.</div>');
-                redirect(site_url('member/quiz_center'));
+        if ($pkg_id != 1) {
+            // Package 2 (No Exam / Certificate Flow)
+            // If not active, block access to dashboard and allow only payment/epin methods
+            if (!$is_active) {
+                if (!in_array($current_method, $allowed_methods)) {
+                    $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">Please complete your payment to activate your account.</div>');
+                    redirect(site_url('member/quiz_center'));
+                }
+            }
+        } else {
+            // Package 1 (Exam & Certificate Flow)
+            // Check database if this user has a 'Pass' result
+            $quiz_passed = $this->db->get_where('quiz_results', array(
+                'userid' => $this->session->user_id, 
+                'status' => 'Pass'
+            ))->row();
+
+            // If user has NOT passed exam, block all pages except Quiz & E-PIN
+            if (!$quiz_passed) {
+                if (!in_array($current_method, $allowed_methods)) {
+                    $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">Please complete and pass the Nadi Vigyan Quiz to access your dashboard.</div>');
+                    redirect(site_url('member/quiz_center'));
+                }
             }
         }
     }
@@ -199,6 +215,15 @@ class Member extends CI_Controller
 public function certificate() {
     $userid = $this->session->user_id;
 
+    $member = $this->db->get_where('member', array('id' => $userid))->row();
+    $pkg_id = ($member && !empty($member->signup_package)) ? $member->signup_package : (($member && !empty($member->join_package)) ? $member->join_package : 1);
+
+    if ($pkg_id != 1) {
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-info">Certificate is not included in Package 2.</div>');
+        redirect('member/index');
+        return;
+    }
+
     // 1. Fetch User and Quiz Result Data 
     // Note: I changed 'quiz_results.created_at' to 'quiz_results.attempt_date'
     $this->db->select('member.name, member.id as member_id, quiz_results.status, quiz_results.attempt_date as pass_date');
@@ -228,6 +253,14 @@ public function certificate() {
 }
    
    public function answer_sheet() {
+        $member = $this->db->get_where('member', array('id' => $this->session->user_id))->row();
+        $pkg_id = ($member && !empty($member->signup_package)) ? $member->signup_package : (($member && !empty($member->join_package)) ? $member->join_package : 1);
+        if ($pkg_id != 1) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-info">Answer sheet is only applicable for Nadi Vigyan Certification Package (Package 1).</div>');
+            redirect('member/index');
+            return;
+        }
+
         // Check if approved
         $check = $this->db->get_where('quiz_payments', array('userid' => $this->session->user_id, 'status' => 'Approved'))->row();
         if(!$check) { redirect('member/quiz_center'); }
@@ -2125,24 +2158,19 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
             
             // Fetch member details
             $member = $this->db->get_where('member', array('id' => $userid))->row();
+            $pkg_id = ($member && !empty($member->signup_package)) ? $member->signup_package : (($member && !empty($member->join_package)) ? $member->join_package : 1);
+            $pkg = $this->db->get_where('product', array('id' => $pkg_id))->row();
             
-            // Determine dynamic certification fee
+            // Determine dynamic certification / activation fee
             $fee = 0;
-            if ($member) {
-                if (!empty($member->signup_package) || !empty($member->join_package)) {
-                    $pkg_id = !empty($member->signup_package) ? $member->signup_package : $member->join_package;
-                    $pkg = $this->db->get_where('product', array('id' => $pkg_id))->row();
-                    if ($pkg && floatval($pkg->prod_price) > 0) {
-                        $fee = floatval($pkg->prod_price);
-                    } elseif ($pkg && floatval($pkg->dealer_price) > 0) {
-                        $fee = floatval($pkg->dealer_price);
-                    }
-                }
-                if ($fee <= 0 && !empty($member->topup) && floatval($member->topup) > 0) {
-                    $fee = floatval($member->topup);
-                } elseif ($fee <= 0 && !empty($member->join_package_price) && floatval($member->join_package_price) > 0) {
-                    $fee = floatval($member->join_package_price);
-                }
+            if ($pkg && floatval($pkg->prod_price) > 0) {
+                $fee = floatval($pkg->prod_price);
+            } elseif ($pkg && floatval($pkg->dealer_price) > 0) {
+                $fee = floatval($pkg->dealer_price);
+            } elseif ($member && !empty($member->topup) && floatval($member->topup) > 0) {
+                $fee = floatval($member->topup);
+            } elseif ($member && !empty($member->join_package_price) && floatval($member->join_package_price) > 0) {
+                $fee = floatval($member->join_package_price);
             }
             
             if ($fee <= 0) {
@@ -2153,17 +2181,20 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
             }
             
             if ($fee <= 0) {
-                $fee = 8900;
+                $fee = ($pkg_id == 1) ? 8900 : 4450;
             }
 
             $data['fee'] = $fee;
+            $data['pkg_id'] = $pkg_id;
+            $data['pkg_name'] = ($pkg && !empty($pkg->prod_name)) ? $pkg->prod_name : ($pkg_id == 1 ? 'Health Package' : 'Health Package 2');
+            $data['is_active'] = ($member && $member->status == 'Active' && !empty($member->activation_date));
             
             // Check payment status
             $data['payment'] = $this->db->get_where('quiz_payments', array('userid' => $userid, 'status' => 'Approved'))->row();
             $data['pending_payment'] = $this->db->get_where('quiz_payments', array('userid' => $userid, 'status' => 'Pending'))->row();
             $data['result'] = $this->db->get_where('quiz_results', array('userid' => $userid, 'status' => 'Pass'))->row();
         
-            $data['title'] = 'Nadi Vigyan Quiz Center';
+            $data['title'] = ($pkg_id == 1) ? 'Nadi Vigyan Quiz Center' : 'Account Activation';
             $data['layout'] = 'quiz/main.php';
             $this->load->view('member/index', $data);
         }
@@ -2193,6 +2224,14 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
         }
         
         public function start_quiz() {
+            $member = $this->db->get_where('member', array('id' => $this->session->user_id))->row();
+            $pkg_id = ($member && !empty($member->signup_package)) ? $member->signup_package : (($member && !empty($member->join_package)) ? $member->join_package : 1);
+            if ($pkg_id != 1) {
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-info">Exam is only applicable for Nadi Vigyan Certification Package (Package 1).</div>');
+                redirect('member/index');
+                return;
+            }
+
             // Check if approved
             $check = $this->db->get_where('quiz_payments', array('userid' => $this->session->user_id, 'status' => 'Approved'))->row();
             if(!$check) { redirect('member/quiz_center'); }
@@ -2466,11 +2505,19 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
         //     redirect('member/quiz_center');
         // }
         public function process_quiz() {
-        $answers = $this->input->post('q');
-        $correct_count = 0;
-        
-        // Solution Key
-       $solution = [
+            $member = $this->db->get_where('member', array('id' => $this->session->user_id))->row();
+            $pkg_id = ($member && !empty($member->signup_package)) ? $member->signup_package : (($member && !empty($member->join_package)) ? $member->join_package : 1);
+            if ($pkg_id != 1) {
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-info">Exam is only applicable for Nadi Vigyan Certification Package (Package 1).</div>');
+                redirect('member/index');
+                return;
+            }
+
+            $answers = $this->input->post('q');
+            $correct_count = 0;
+            
+            // Solution Key
+           $solution = [
             1=>'B',
             2=>'C',
             3=>'A',
@@ -2549,17 +2596,31 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
                 $status2 = ($count >= 2) ? 3 : 2;
 
                 // 2. Get active topup requirement & package ID
-                $ak_global = $this->db_model->select_multi('*', 'global_setting', array('id' => 1));
-                $activation_amount = ($ak_global && isset($ak_global->active_topup)) ? $ak_global->active_topup : 0;
                 $package_id = $this->db_model->select('signup_package', 'member', array('id' => $user_id));
+                if (empty($package_id)) {
+                    $package_id = $this->db_model->select('join_package', 'member', array('id' => $user_id));
+                }
                 if (empty($package_id)) {
                     $package_id = 1; // Default activation package
                 }
 
-                // 3. Update Member Table to Active
+                $prod = $this->db->get_where('product', array('id' => $package_id))->row();
+                $activation_amount = ($prod && floatval($prod->prod_price) > 0) ? floatval($prod->prod_price) : (($prod && floatval($prod->dealer_price) > 0) ? floatval($prod->dealer_price) : 8900);
+                $prod_pv = ($prod && isset($prod->pv)) ? floatval($prod->pv) : 1;
+
+                $user_data = $this->db->get_where('member', array('id' => $user_id))->row();
+                $current_mypv = floatval($user_data->mypv ?? 0);
+                $current_business = floatval($user_data->my_business ?? 0);
+                $new_mypv = $current_mypv + $prod_pv;
+                $new_business = $current_business + $activation_amount;
+
+                // 3. Update Member Table to Active & Increment mypv
                 $member_update = array(
                     'topup'           => $activation_amount,
+                    'my_business'     => $new_business,
+                    'mypv'            => $new_mypv,
                     'signup_package'  => $package_id,
+                    'join_package'    => $package_id,
                     'activation_date' => date('Y-m-d'),
                     'status2'         => $status2,
                     'status'          => 'Active' 
@@ -2574,6 +2635,7 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
                     'product_id' => $package_id,
                     'userid'     => $user_id,
                     'cost'       => $activation_amount,
+                    'pv'         => $prod_pv,
                     'date'       => date('Y-m-d'),
                     'order_by'   => 'Quiz System',
                     'orderid'    => $gen_orderid_quiz,
@@ -2606,6 +2668,14 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
     public function skip_quiz() {
         $user_id = $this->session->user_id;
 
+        $member = $this->db->get_where('member', array('id' => $user_id))->row();
+        $pkg_id = ($member && !empty($member->signup_package)) ? $member->signup_package : (($member && !empty($member->join_package)) ? $member->join_package : 1);
+        if ($pkg_id != 1) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-info">Exam is only applicable for Nadi Vigyan Certification Package (Package 1).</div>');
+            redirect('member/index');
+            return;
+        }
+
         // Check if quiz payment is approved
         $payment = $this->db->get_where('quiz_payments', array('userid' => $user_id, 'status' => 'Approved'))->row();
         if (!$payment) {
@@ -2631,17 +2701,31 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
             $status2 = ($count >= 2) ? 3 : 2;
 
             // 2. Get active topup requirement & package ID
-            $ak_global = $this->db_model->select_multi('*', 'global_setting', array('id' => 1));
-            $activation_amount = ($ak_global && isset($ak_global->active_topup)) ? $ak_global->active_topup : 0;
             $package_id = $this->db_model->select('signup_package', 'member', array('id' => $user_id));
+            if (empty($package_id)) {
+                $package_id = $this->db_model->select('join_package', 'member', array('id' => $user_id));
+            }
             if (empty($package_id)) {
                 $package_id = 1; // Default activation package
             }
 
-            // 3. Update Member Table to Active
+            $prod = $this->db->get_where('product', array('id' => $package_id))->row();
+            $activation_amount = ($prod && floatval($prod->prod_price) > 0) ? floatval($prod->prod_price) : (($prod && floatval($prod->dealer_price) > 0) ? floatval($prod->dealer_price) : 8900);
+            $prod_pv = ($prod && isset($prod->pv)) ? floatval($prod->pv) : 1;
+
+            $user_data = $this->db->get_where('member', array('id' => $user_id))->row();
+            $current_mypv = floatval($user_data->mypv ?? 0);
+            $current_business = floatval($user_data->my_business ?? 0);
+            $new_mypv = $current_mypv + $prod_pv;
+            $new_business = $current_business + $activation_amount;
+
+            // 3. Update Member Table to Active & Increment mypv
             $member_update = array(
                 'topup'           => $activation_amount,
+                'my_business'     => $new_business,
+                'mypv'            => $new_mypv,
                 'signup_package'  => $package_id,
+                'join_package'    => $package_id,
                 'activation_date' => date('Y-m-d'),
                 'status2'         => $status2,
                 'status'          => 'Active' 
@@ -2656,6 +2740,7 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
                 'product_id' => $package_id,
                 'userid'     => $user_id,
                 'cost'       => $activation_amount,
+                'pv'         => $prod_pv,
                 'date'       => date('Y-m-d'),
                 'order_by'   => 'Quiz System (Skipped)',
                 'orderid'    => $gen_orderid_quiz,
@@ -2767,12 +2852,20 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
         );
         $this->db->insert('product_item_sale', $item_data);
 
+        $existing_topup = floatval($find_user->topup ?? 0);
+        $existing_business = floatval($find_user->my_business ?? 0);
+        $new_topup = ($existing_topup > 0) ? ($existing_topup + $activation_cost) : $activation_cost;
+        $new_business = ($existing_business > 0) ? ($existing_business + $activation_cost) : $activation_cost;
+        $new_mypv = $mypv + $prod_pv;
+
         // 2. Member Activation Update
         $data = array(
-            'topup'           => $activation_cost,
+            'topup'           => $new_topup,
+            'my_business'     => $new_business,
             'signup_package'  => $prod_id,
+            'join_package'    => $prod_id,
             'epin'            => $epin_code,
-            'mypv'            => $prod_pv,
+            'mypv'            => $new_mypv,
             'activation_date' => date('Y-m-d'),
             'status2'         => $status2,
             'status'          => 'Active',
@@ -2794,15 +2887,17 @@ Franchisee ID: <strong>' . $fran_id . '</strong><br/>
         $this->earning->reg_earning($user_id, $sp_o, $prod_id, TRUE, 1);
         $this->earning->update_legs();
 
-        // 5. Ensure Quiz / Certification is marked Pass (same as Exam / Skip Exam)
-        $chk_quiz = $this->db->get_where('quiz_results', array('userid' => $user_id, 'status' => 'Pass'))->row();
-        if (!$chk_quiz) {
-            $this->db->insert('quiz_results', [
-                'userid'       => $user_id,
-                'score'        => 50,
-                'status'       => 'Pass',
-                'attempt_date' => date('Y-m-d H:i:s')
-            ]);
+        // 5. Ensure Quiz / Certification is marked Pass (ONLY for Package 1)
+        if ($prod_id == 1) {
+            $chk_quiz = $this->db->get_where('quiz_results', array('userid' => $user_id, 'status' => 'Pass'))->row();
+            if (!$chk_quiz) {
+                $this->db->insert('quiz_results', [
+                    'userid'       => $user_id,
+                    'score'        => 50,
+                    'status'       => 'Pass',
+                    'attempt_date' => date('Y-m-d H:i:s')
+                ]);
+            }
         }
 
         $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Successfully activated User ID: ' . $user_id . '. Account is now ACTIVE! Order #' . $orderid . ' created.</div>');

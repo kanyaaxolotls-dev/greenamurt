@@ -101,6 +101,8 @@ public function process_manual_quiz() {
         ))->row();
 
         if ($is_already_approved) {
+            // Also ensure package 2 is activated if not yet active
+            $this->_activate_package2_member($userid);
             $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">User ID '.$userid.' is already Approved and has access.</div>');
             redirect('admin/manual_quiz_approve');
             return; // Stop execution
@@ -120,6 +122,7 @@ public function process_manual_quiz() {
                 'txn_id' => 'MANUAL_ADMIN_' . $this->session->admin_id,
                 'created_at' => date('Y-m-d H:i:s') // Refresh timestamp to current approval time
             ));
+            $this->_activate_package2_member($userid);
             $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Existing pending request for User ID: '.$userid.' has been Approved.</div>');
         } else {
             // INSERT new row as Approved
@@ -131,6 +134,7 @@ public function process_manual_quiz() {
                 'created_at' => date('Y-m-d H:i:s')
             );
             $this->db->insert('quiz_payments', $data);
+            $this->_activate_package2_member($userid);
             $this->session->set_flashdata('common_flash', '<div class="alert alert-success">New manual access granted to User ID: '.$userid.'</div>');
         }
 
@@ -139,6 +143,83 @@ public function process_manual_quiz() {
     }
 
     redirect('admin/manual_quiz_approve');
+}
+
+private function _activate_package2_member($userid)
+{
+    $member = $this->db->get_where('member', array('id' => $userid))->row();
+    if (!$member) {
+        return false;
+    }
+
+    $pkg_id = !empty($member->signup_package) ? $member->signup_package : (!empty($member->join_package) ? $member->join_package : 1);
+
+    // Only activate directly for Package 2 (or non-Package 1)
+    if ($pkg_id != 1) {
+        $is_already_active = ($member->status == 'Active' && !empty($member->activation_date) && $member->topup > 0);
+        if (!$is_already_active) {
+            // 1. Calculate status2 (Binary Leg Logic)
+            $sp_o    = $member->sponsor;
+            $count   = $this->db_model->count_all('member', array('sponsor' => $sp_o, 'topup >' => 0));
+            $status2 = ($count >= 2) ? 3 : 2;
+
+            // 2. Determine price and PV
+            $prod = $this->db->get_where('product', array('id' => $pkg_id))->row();
+            $activation_amount = ($prod && floatval($prod->prod_price) > 0) ? floatval($prod->prod_price) : (($prod && floatval($prod->dealer_price) > 0) ? floatval($prod->dealer_price) : 4450);
+            $prod_pv = ($prod && isset($prod->pv)) ? floatval($prod->pv) : 0;
+
+            $current_mypv = floatval($member->mypv ?? 0);
+            $current_topup = floatval($member->topup ?? 0);
+            $current_business = floatval($member->my_business ?? 0);
+            $new_mypv = $current_mypv + $prod_pv;
+            $new_topup = ($current_topup > 0) ? ($current_topup + $activation_amount) : $activation_amount;
+            $new_business = ($current_business > 0) ? ($current_business + $activation_amount) : $activation_amount;
+
+            // 3. Update Member Table to Active & Increment mypv
+            $member_update = array(
+                'topup'           => $new_topup,
+                'my_business'     => $new_business,
+                'signup_package'  => $pkg_id,
+                'join_package'    => $pkg_id,
+                'mypv'            => $new_mypv,
+                'activation_date' => date('Y-m-d'),
+                'status2'         => $status2,
+                'status'          => 'Active'
+            );
+            $this->db->where('id', $userid)->update('member', $member_update);
+
+            // 4. Generate next Order ID and create activation order
+            $max_row = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+            $gen_orderid = ($max_row && isset($max_row->maxid) && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
+
+            $sale_data = array(
+                'product_id' => $pkg_id,
+                'userid'     => $userid,
+                'cost'       => $activation_amount,
+                'pv'         => $prod_pv,
+                'date'       => date('Y-m-d'),
+                'order_by'   => 'Admin Approval',
+                'orderid'    => $gen_orderid,
+                'status'     => 'Processing',
+            );
+            $this->db->insert('product_sale', $sale_data);
+
+            $item_data = array(
+                'product_id' => $pkg_id,
+                'order_id'   => $gen_orderid,
+                'cost'       => $activation_amount,
+            );
+            $this->db->insert('product_item_sale', $item_data);
+
+            // 5. Trigger SwarangWellness Business Engine (Earning, Leg Updates, MLM)
+            $this->load->model('earning');
+            $this->earning->reg_earning($userid, $sp_o, $pkg_id, TRUE, 1);
+            $this->earning->update_legs();
+
+            return true;
+        }
+    }
+    return false;
 }
 
 public function power_leg()
@@ -234,15 +315,16 @@ public function power_leg()
 // --- Add these to application/controllers/Admin.php ---
 
     public function quiz_payment_requests() {
-        // Join with member table to see the name of the person who paid
-        $this->db->select('quiz_payments.*, member.name, member.phone');
+        // Join with member and product tables to see the name of the person who paid and their package details
+        $this->db->select('quiz_payments.*, member.name, member.phone, member.signup_package, member.join_package, product.prod_name, product.prod_price');
         $this->db->from('quiz_payments');
         $this->db->join('member', 'member.id = quiz_payments.userid');
+        $this->db->join('product', 'product.id = member.signup_package', 'left');
         $this->db->order_by('quiz_payments.id', 'DESC');
         
         $data['requests'] = $this->db->get()->result();
-        $data['title'] = 'Quiz Payment Approvals';
-        $data['layout'] = 'quiz_approvals.php'; // We will create this file next
+        $data['title'] = 'Payment Approvals';
+        $data['layout'] = 'quiz_approvals.php';
         $this->load->view('admin/index', $data);
     }
     
@@ -250,6 +332,16 @@ public function power_leg()
         // Status will be 'Approved' or 'Rejected'
         $this->db->where('id', $id);
         $this->db->update('quiz_payments', array('status' => $status));
+        
+        $payment = $this->db->get_where('quiz_payments', array('id' => $id))->row();
+        if ($payment && $status == 'Approved') {
+            $activated = $this->_activate_package2_member($payment->userid);
+            if ($activated) {
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Payment Approved & User ID: '.$payment->userid.' directly ACTIVATED (Package 2 - No Exam Required).</div>');
+                redirect('admin/quiz_payment_requests');
+                return;
+            }
+        }
         
         $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Payment '.$status.' successfully.</div>');
         redirect('admin/quiz_payment_requests');
