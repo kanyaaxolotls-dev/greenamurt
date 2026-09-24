@@ -741,7 +741,44 @@ public function autopool_four(){
        // $this->common_model->mail($user_data->email, 'Payout Generated', 'Hi, ' . $user_data->name . ', Your payout of ' . config_item('currency') . $amount->amount . ' has been generated and paid. Please check your account. <hr/>--' . config_item('company_name'));
 
         $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Marked as Paid successfully.</div>');
-        redirect('income/make_payment');
+        redirect('income/withdraws_list/Un-Paid');
+    }
+
+    public function pay_ajax()
+    {
+        header('Content-Type: application/json');
+        $payid   = $this->input->post('id') ?? $this->input->post('payid');      
+        $tdetail = $this->input->post('detail') ?? $this->input->post('tdetail') ?? '';  
+    
+        $amount  = $this->db_model->select_multi('userid,amount', 'withdraw_request', array('id' => $payid));
+    
+        if (!$amount) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request ID']);
+            exit;
+        }
+
+        $total_deduction_rate = (float)config_item('admin_charges') + (float)config_item('payout_tax');
+    
+        $data = array(
+            'status'    => 'Paid',
+            'paid_date' => date('Y-m-d'),
+            'tid'       => $tdetail,
+            'tax'       => ($amount->amount * $total_deduction_rate / 100),
+        );
+        $this->db->where('id', $payid)->update('withdraw_request', $data);
+    
+        $tax_data = array(
+            'userid'     => $amount->userid,
+            'amount'     => $amount->amount,
+            'payout_id'  => $payid,
+            'tax_amount' => ($amount->amount * config_item('payout_tax') / 100),
+            'tax_percnt' => config_item('payout_tax'),
+            'date'       => date('Y-m-d'),
+        );
+        $this->db->insert('tax_report', $tax_data);
+    
+        echo json_encode(['status' => 'success', 'message' => 'Payout marked as Paid successfully.']);
+        exit;
     }
 
    public function user_data()
@@ -927,15 +964,40 @@ public function autopool_four(){
         redirect('income/pay-rewards');
     }
 
-    public function hold($id)
+    public function hold($id = null)
     {
+        $id = $id ? $id : $this->input->post('holdid');
+        $hold_reason = $this->input->post('hold_reason') ?? '';
+
         $data = array(
-            'status' => 'Hold',
+            'status'      => 'Hold',
+            'hold_reason' => $hold_reason,
         );
         $this->db->where('id', $id);
         $this->db->update('withdraw_request', $data);
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Hold the payment  successfully.</div>');
-        redirect('income/make_payment');
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Payment put on Hold successfully.</div>');
+        redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'income/withdraws_list/Un-Paid');
+    }
+
+    public function hold_ajax()
+    {
+        header('Content-Type: application/json');
+        $id     = $this->input->post('id');
+        $reason = $this->input->post('reason') ?? '';
+
+        if (empty($id)) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request ID']);
+            exit;
+        }
+
+        $this->db->where('id', $id);
+        $this->db->update('withdraw_request', [
+            'status'      => 'Hold',
+            'hold_reason' => $reason
+        ]);
+
+        echo json_encode(['status' => 'success', 'message' => 'Payment put on Hold successfully.']);
+        exit;
     }
 
     public function unhold($id)
@@ -945,8 +1007,8 @@ public function autopool_four(){
         );
         $this->db->where('id', $id);
         $this->db->update('withdraw_request', $data);
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Un-Hold the payment  successfully.</div>');
-        redirect('income/make_payment');
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Un-Hold the payment successfully.</div>');
+        redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'income/withdraws_list/Hold');
     }
 
     public function unpay($id)
@@ -956,8 +1018,8 @@ public function autopool_four(){
         );
         $this->db->where('id', $id);
         $this->db->update('withdraw_request', $data);
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Un-Paid the payment  successfully.</div>');
-        redirect('income/make_payment');
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Un-Paid the payment successfully.</div>');
+        redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'income/withdraws_list/Paid');
     }
 
     public function remove($id)

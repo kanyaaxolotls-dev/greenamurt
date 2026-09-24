@@ -227,64 +227,110 @@
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
-    function holdPayment(id) {
-    Swal.fire({
-        title: 'Hold Payment',
-        input: 'textarea',
-        inputLabel: 'Reason for Hold',
-        inputPlaceholder: 'Enter reason...',
-        inputAttributes: { 'aria-label': 'Enter reason...' },
-        showCancelButton: true,
-        confirmButtonText: 'Hold Now',
-        preConfirm: (reason) => {
-            if (!reason) {
-                Swal.showValidationMessage('Reason is required');
-            }
-            return reason;
+    function submitForm(status) {
+        const selectedCheckboxes = document.querySelectorAll('.rowCheckbox:checked');
+        const selectedIds = Array.from(selectedCheckboxes)
+            .map(checkbox => checkbox.value)
+            .join(',');
+
+        if (!selectedIds) {
+            Swal.fire('Notice', 'Please select at least one record.', 'warning');
+            return;
         }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post("<?= site_url('income/hold_ajax') ?>", { id: id, reason: result.value }, function(res) {
-                Swal.fire('Success', res.message, 'success').then(() => {
-                    location.reload(); // reload same page with filters intact
+
+        Swal.fire({
+            title: 'Confirm Action',
+            text: `Are you sure you want to mark selected payout(s) as ${status}?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, proceed'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('selectedIds').value = selectedIds;
+                document.getElementById('status').value = status;
+                document.getElementById('bulkActionForm').submit();
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function () {
+                const rowCheckboxes = document.querySelectorAll('.rowCheckbox');
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
                 });
-            }, 'json');
-        }
-    });
-}
-function payPayment(id) {
-    Swal.fire({
-        title: 'Enter Transaction Detail',
-        input: 'textarea',
-        inputPlaceholder: 'Transaction ID / Details...',
-        showCancelButton: true,
-        confirmButtonText: 'Pay Now',
-        preConfirm: (detail) => {
-            if (!detail) {
-                Swal.showValidationMessage('Transaction detail required');
-            }
-            return detail;
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            $.post("<?= site_url('income/pay_ajax') ?>", { id: id, detail: result.value }, function(res) {
-                console.log("Raw response:", res);
-                if (res.status === 'success') {
-                    Swal.fire('Success', res.message, 'success').then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire('Error', res.message || 'Something went wrong', 'error');
-                }
-            }, 'json')
-            .fail(function(xhr) {
-                console.error("AJAX Error:", xhr.responseText);
-                Swal.fire('Error', 'Invalid server response, check console', 'error');
             });
         }
     });
-}
+
+    function holdPayment(id) {
+        Swal.fire({
+            title: 'Hold Payment',
+            input: 'textarea',
+            inputLabel: 'Reason for Hold',
+            inputPlaceholder: 'Enter reason...',
+            inputAttributes: { 'aria-label': 'Enter reason...' },
+            showCancelButton: true,
+            confirmButtonText: 'Hold Now',
+            preConfirm: (reason) => {
+                if (!reason) {
+                    Swal.showValidationMessage('Reason is required');
+                }
+                return reason;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post("<?= site_url('income/hold_ajax') ?>", { id: id, reason: result.value }, function(res) {
+                    if (res && res.status === 'success') {
+                        Swal.fire('Success', res.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', (res && res.message) ? res.message : 'Something went wrong', 'error');
+                    }
+                }, 'json')
+                .fail(function(xhr) {
+                    console.error("AJAX Error:", xhr.responseText);
+                    Swal.fire('Error', 'Invalid server response, check console', 'error');
+                });
+            }
+        });
+    }
+
+    function payPayment(id) {
+        Swal.fire({
+            title: 'Enter Transaction Detail',
+            input: 'textarea',
+            inputPlaceholder: 'Transaction ID / Details...',
+            showCancelButton: true,
+            confirmButtonText: 'Pay Now',
+            preConfirm: (detail) => {
+                if (!detail) {
+                    Swal.showValidationMessage('Transaction detail required');
+                }
+                return detail;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.post("<?= site_url('income/pay_ajax') ?>", { id: id, detail: result.value }, function(res) {
+                    console.log("Raw response:", res);
+                    if (res && res.status === 'success') {
+                        Swal.fire('Success', res.message, 'success').then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', (res && res.message) ? res.message : 'Something went wrong', 'error');
+                    }
+                }, 'json')
+                .fail(function(xhr) {
+                    console.error("AJAX Error:", xhr.responseText);
+                    Swal.fire('Error', 'Invalid server response, check console', 'error');
+                });
+            }
+        });
+    }
 </script>

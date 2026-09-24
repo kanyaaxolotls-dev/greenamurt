@@ -14,7 +14,6 @@ if ($this->login->check_session() == FALSE) {
     Admin Dashboard | <?php echo config_item('company_name') ?>
   </title>
   <!-- Favicon -->
-
   <link href=" <?php echo base_url('axxets/assets/img/brand/favicon.png') ?>" rel="icon" type="image/png">
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
@@ -34,7 +33,6 @@ if ($this->login->check_session() == FALSE) {
   }
 ?>
 <script>   var BASEURL = "<?php echo site_url()?>"; </script>
- <script src="jquery.animated-bg.js"></script>
   
    <?php
     if (!isset($this->session->designation)) {
@@ -965,15 +963,6 @@ if ( isset( $loadJS ) && ! empty( $loadJS ) ) {
         application: "argon-dashboard-free"
       });
   </script>
-  <script type="text/javascript">
-    $(document).ready(function(){
-      $('.animated-bg').animatedbg({
-        // options here
-      });
-    });
-
-  </script>
-  
     
   <script src="https://unpkg.com/bootstrap-table/dist/bootstrap-table.min.js"></script>
 
@@ -996,22 +985,6 @@ if ( isset( $loadJS ) && ! empty( $loadJS ) ) {
     });
   });
 </script>
-  
-  <script>
-    window.TrackJS &&
-      TrackJS.install({
-        token: "ee6fab19c5a04ac1a32a645abde4613a",
-        application: "argon-dashboard-free"
-      });
-  </script>
-  <script type="text/javascript">
-    $(document).ready(function(){
-      $('.animated-bg').animatedbg({
-        // options here
-      });
-    });
-
-  </script>
 </body> 
 
 </html>
