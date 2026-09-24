@@ -235,8 +235,10 @@
                 <a href=""><i class=" fa fa-cog" aria-hidden="true"></i><span>E-Wallet</span><i
                             class="fa fa-angle-right pull-right"></i></a>
                 <ul class="nav nav-sub">
+                   <li><a href="<?php echo site_url('member/topup-wallet') ?>"><span>Add Money / Topup</span></a></li>
                    <li><a href="<?php echo site_url('wallet/transfer-balance') ?>"><span>Wallet Transfer</span></a></li>
                    <li><a href="<?php echo site_url('wallet/balance-transfer-list') ?>"><span>Transfer Report</span></a></li>
+                   <li><a href="<?php echo site_url('wallet/trans_history') ?>"><span>Wallet Transactions</span></a></li>
                     <?php if (config_item('user_withdraw') == "Yes") { ?>
                     <li><a href="<?php echo site_url('wallet/withdraw-payouts') ?>"><span>Withdraw payout request</span></a>
                     </li><?php } ?>

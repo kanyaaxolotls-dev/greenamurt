@@ -1792,6 +1792,11 @@ public function certificate() {
         $this->load->view('member/invoice/print_invoice.php', $data);
     }
 
+    public function deposit()
+    {
+        $this->deposite();
+    }
+
     public function deposite()
     {
         $this->form_validation->set_rules('amount', 'amount', 'trim|required');

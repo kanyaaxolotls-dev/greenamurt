@@ -78,8 +78,8 @@ class Earning extends CI_Model
             return FALSE;
         }
 
-        $member    = $this->db_model->select_multi('signup_package, join_package, status, topup, earning_freeze', 'member', array('id' => $userid));
-        $is_frozen = ($member && !empty($member->earning_freeze));
+        $member    = $this->db_model->select_multi('signup_package, join_package, status, topup', 'member', array('id' => $userid));
+        $is_frozen = ($member && isset($member->earning_freeze) && !empty($member->earning_freeze));
 
         $log_lines   = array();
         $log_lines[] = "----------------------------------------";

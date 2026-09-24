@@ -64,8 +64,8 @@ class Wallet extends CI_Controller
      }
      
      public function approve_fund_request($id){
-            $balance = $this->db_model->select_multi('amount,userid', 'deposite', array('id' => $id));
-            if($balance->status != 'Approved'){
+            $balance = $this->db_model->select_multi('amount,userid,status', 'deposite', array('id' => $id));
+            if($balance && $balance->status != 'Approved'){
                 $array = array(
                     'status' => 'Approved', 
                 );
@@ -73,9 +73,15 @@ class Wallet extends CI_Controller
                 $this->db->update('deposite', $array);
                 
                 $w_id    = $balance->userid;
-                $w_amt   = $balance->amount;
+                $w_amt   = (float)$balance->amount;
                 
-                $this->db->query("UPDATE product_wallet SET balance = balance+$w_amt WHERE userid = '$w_id'"); 
+                $chk_pw = $this->db->get_where('product_wallet', array('userid' => $w_id))->row();
+                if ($chk_pw) {
+                    $this->db->where('userid', $w_id)->update('product_wallet', array('balance' => (float)$chk_pw->balance + $w_amt));
+                } else {
+                    $this->db->insert('product_wallet', array('userid' => $w_id, 'balance' => $w_amt, 'type' => 'product'));
+                }
+
                 $data10 = array(
                     'userid'   => $balance->userid,
                     'amount'   => $balance->amount,
@@ -87,7 +93,7 @@ class Wallet extends CI_Controller
                 $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Wallet Balance Approved</div>');
                 redirect('wallet/support');
             } else{
-                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Request Already Approved</div>');
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Request Already Approved or Not Found</div>');
                 redirect('wallet/support');
             }
      }
@@ -106,11 +112,12 @@ class Wallet extends CI_Controller
             $this->load->view('admin/index', $data);
         } else {
             $uid     = $this->common_model->filter($this->input->post('uid'));
-            $balance = $this->input->post('balance');
+            $balance = (float)$this->input->post('balance');
             $type    = $this->input->post('submit');
 
             $udata    = $this->db_model->select_multi('phone,name', 'member', array('id' => $uid));
-            $get_fund = $this->db_model->select('balance', 'wallet', array('userid' => $uid));
+            $chk_w    = $this->db->get_where('wallet', array('userid' => $uid))->row();
+            $get_fund = $chk_w ? (float)$chk_w->balance : 0.0;
             
             $new_fund = $get_fund + $balance;
             $type2    = 'Credit';
@@ -119,11 +126,11 @@ class Wallet extends CI_Controller
                 $type2    = 'Debit';
             }
 
-            $array = array(
-                'balance' => $new_fund,
-            );
-            $this->db->where('userid', $uid);
-            $this->db->update('wallet', $array);
+            if ($chk_w) {
+                $this->db->where('userid', $uid)->update('wallet', array('balance' => $new_fund));
+            } else {
+                $this->db->insert('wallet', array('userid' => $uid, 'balance' => $new_fund));
+            }
 
             $w_transData = array(
                 'userid'     => $uid,
@@ -376,53 +383,44 @@ class Wallet extends CI_Controller
                 case "epin":
                     $epin        = trim($this->input->post('epin'));
                     $addTo       = trim($this->input->post('addTo'));
-                    $epin_value  = $this->db_model->select('amount', 'epin', array('epin'   => $epin,'status' => 'Un-used')); 
-                    if($addTo=='toMain'){
-                        $walletType   ='Wallet';
-                        $wal_bal=$this->db_model->select('balance', 'wallet', array('userid' =>$this->session->user_id));
-                    }
-                    else{
-                        $walletType   ='Product Wallet';
-                        $wal_bal=$this->db_model->select('balance', 'product_wallet', array('userid' =>$this->session->user_id));
-                    }
-                    if($epin !=='' && $epin_value>0 && $addTo!='' && $wal_bal !=null && $paytype=='epin'){
-                        $wallet_data=array('balance'=>$wal_bal + $epin_value);
-                        if($addTo=='toMain'){
-                            $this->db->where('userid',$this->session->user_id);
-                            $this->db->update('wallet',$wallet_data);
-                            $data = array(
-                                'status'    => 'Used',
-                                'used_by'   => $this->session->user_id,
-                                'used_time' => date('Y-m-d'),
-                            );
-                            $this->db->where('epin', $epin);
-                            $this->db->update('epin', $data);
+                    $epin_value  = (float)$this->db_model->select('amount', 'epin', array('epin' => $epin, 'status' => 'Un-used')); 
+                    
+                    $target_table = ($addTo == 'toMain') ? 'wallet' : 'product_wallet';
+                    $walletType   = ($addTo == 'toMain') ? 'Wallet' : 'Product Wallet';
+
+                    $chk_w = $this->db->get_where($target_table, array('userid' => $this->session->user_id))->row();
+                    $wal_bal = $chk_w ? (float)$chk_w->balance : 0.0;
+
+                    if ($epin !== '' && $epin_value > 0 && $addTo != '' && $paytype == 'epin') {
+                        $new_bal = $wal_bal + $epin_value;
+                        if ($chk_w) {
+                            $this->db->where('userid', $this->session->user_id)->update($target_table, array('balance' => $new_bal));
+                        } else {
+                            $this->db->insert($target_table, array('userid' => $this->session->user_id, 'balance' => $new_bal, 'type' => ($addTo == 'toMain' ? 'Default' : 'product')));
                         }
-                        else{
-                            $this->db->where('userid',$this->session->user_id);
-                            $this->db->update('product_wallet',$wallet_data);
-                            $data = array(
-                                'status'    => 'Used',
-                                'used_by'   => $this->session->user_id,
-                                'used_time' => date('Y-m-d'),
-                            );
-                            $this->db->where('epin', $epin);
-                            $this->db->update('epin', $data);
-                       }
+                        
+                        $data = array(
+                            'status'    => 'Used',
+                            'used_by'   => $this->session->user_id,
+                            'used_time' => date('Y-m-d'),
+                        );
+                        $this->db->where('epin', $epin);
+                        $this->db->update('epin', $data);
+
                         $w_transData = array(
                             'userid'     => $this->session->user_id,
-                            'type'       =>'Credit',
+                            'type'       => 'Credit',
                             'amount'     => $epin_value,
                             'ref_id'     => $epin,
                             'other'      => $walletType,
                         );
                         $this->db->insert('wallet_transaction', $w_transData);     
-                        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Money added to wallet</div>');
+                        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Money added to wallet successfully.</div>');
                         redirect(site_url('member/topup-wallet'));
                     }
                     else{
-                        $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Someting is wrong with add money #ErrorTopEpinWallet</div>');
-                        redirect('member/topup_wallet');
+                        $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Invalid E-Pin or unable to add money.</div>');
+                        redirect(site_url('member/topup-wallet'));
                     }
                 break;
                     
@@ -1105,52 +1103,55 @@ class Wallet extends CI_Controller
             
             $uid        = $this->session->user_id;
             $transferid = $this->common_model->filter($this->input->post('transferid'), 'number');
-            $balance    = $this->input->post('amount');
-            $to_wallet  = $this->input->post('paytype');
+            $balance    = (float)$this->input->post('amount');
+            $to_wallet  = ($this->input->post('paytype') == 'product_wallet') ? 'product_wallet' : 'wallet';
             $benifi_id  = $this->db_model->select('id', 'member', array('id' => $transferid));
             if($benifi_id == '' or $benifi_id == null){
                 $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Invalid beneficiary user id! kindly re-enter again</div>');
                 redirect('wallet/transfer-balance');
             }
                
-            $get_fund_uid = $this->db_model->select('balance', 'wallet', array('userid' => $uid));
-            $get_fund_tid = $this->db_model->select('balance', $to_wallet, array('userid' => $transferid));
+            $sender_w = $this->db->get_where('wallet', array('userid' => $uid))->row();
+            $get_fund_uid = $sender_w ? (float)$sender_w->balance : 0.0;
+            
+            $receiver_w = $this->db->get_where($to_wallet, array('userid' => $transferid))->row();
+            $get_fund_tid = $receiver_w ? (float)$receiver_w->balance : 0.0;
 
             if ($get_fund_uid < $balance || $balance <= 0 || $this->session->user_id == $transferid) {
-                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">In-sufficiant fund in wallet or cannot send in self wallet.</div>');
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">In-sufficient fund in wallet or cannot send in self wallet.</div>');
                 redirect('wallet/transfer-balance');
             }
             
-            $new_fund = $get_fund_tid + $balance;
-            $array    = array(
-                'balance' => $new_fund,
-            );
-            $this->db->where('userid', $transferid);
-            $this->db->update($to_wallet, $array);
+            // Credit receiver
+            $new_fund_tid = $get_fund_tid + $balance;
+            if ($receiver_w) {
+                $this->db->where('userid', $transferid)->update($to_wallet, array('balance' => $new_fund_tid));
+            } else {
+                $this->db->insert($to_wallet, array('userid' => $transferid, 'balance' => $new_fund_tid, 'type' => ($to_wallet == 'product_wallet' ? 'product' : 'Default')));
+            }
             
+            // Debit sender
+            $new_fund_uid = $get_fund_uid - $balance;
+            $this->db->where('userid', $uid)->update('wallet', array('balance' => $new_fund_uid));
+            
+            // Ledger logs
             $w_transData = array(
-                            'userid'     => $uid,
-                            'type'       =>'Debit',
-                            'amount'     => $balance,
-                            'ref_id'     => $transferid,
-                            'other'      => $to_wallet,
-                        );
+                'userid'     => $uid,
+                'type'       => 'Debit',
+                'amount'     => $balance,
+                'ref_id'     => $transferid,
+                'other'      => 'Transfer to ' . $to_wallet,
+            );
             $this->db->insert('wallet_transaction', $w_transData); 
             
             $w_transData2 = array(
-                            'userid'     => $transferid,
-                            'type'       =>'Credit',
-                            'amount'     => $balance,
-                            'ref_id'     => $uid,
-                            'other'      => $to_wallet,
-                        );
-            $this->db->insert('wallet_transaction', $w_transData2); 
-
-            $array = array(
-                'balance' => ($get_fund_uid - $balance),
+                'userid'     => $transferid,
+                'type'       => 'Credit',
+                'amount'     => $balance,
+                'ref_id'     => $uid,
+                'other'      => 'Transfer from ' . $uid . ' to ' . $to_wallet,
             );
-            $this->db->where('userid', $uid);
-            $this->db->update('wallet', $array);
+            $this->db->insert('wallet_transaction', $w_transData2); 
 
             $data = array(
                 'transfer_from' => $uid,
@@ -1165,31 +1166,40 @@ class Wallet extends CI_Controller
         }
     }
 
-    public function withdrawal_list()  
+    public function withdrawal_list($status = '', $sdate = '', $edate = '')  
     {
-        $status = $this->input->post('status');
-        $sdate  = $this->input->post('sdate');
-        $edate  = $this->input->post('edate');
-        if (trim($status) == ""):
-            $data['title']      = 'Withdrawal Report';
-            $data['breadcrumb'] = 'Withdrawal Report';
-            $data['layout']     = 'wallet/withdrawl_report.php';
-            $this->load->view('member/index', $data);
+        if ($this->login->check_member() == FALSE) {
+            redirect(site_url('site/login'));
+        }
 
-        else:
-            redirect(site_url('wallet/withdrawal_list/' . $status . '/' . $sdate . '/' . $edate));
-        endif;
+        if ($this->input->post('status') !== null) {
+            $status = $this->input->post('status');
+            $sdate  = $this->input->post('sdate');
+            $edate  = $this->input->post('edate');
+        }
+
+        $this->db->select('*')->from('withdraw_request')->where('userid', $this->session->user_id);
+        if (!empty($status) && $status != 'All') {
+            $this->db->where('status', $status);
+        }
+        if (!empty($sdate)) {
+            $this->db->where('date >=', $sdate);
+        }
+        if (!empty($edate)) {
+            $this->db->where('date <=', $edate);
+        }
+        $this->db->order_by('id', 'DESC');
+        $data['withdraw_request'] = $this->db->get()->result_array();
+        
+        $data['title']      = 'Withdrawal Report';
+        $data['breadcrumb'] = 'Withdrawal Report';
+        $data['layout']     = 'wallet/withdrawl_report.php';
+        $this->load->view('member/index', $data);
     }
 
     public function withdraw_request() 
     {
-        $config['per_page']   = 100;
-        $this->db->select('*')->from('withdraw_request')->where('userid', $this->session->user_id);
-        $data['withdraw_request'] = $this->db->get()->result_array();
-        $data['title']        = 'Payout';
-        $data['breadcrumb']   = 'Payout Report';
-        $data['layout']       = 'wallet/withdrawl_report.php';
-        $this->load->view('member/index', $data);
+        $this->withdrawal_list();
     }
  
     public function withdraw_payouts()
@@ -1202,60 +1212,88 @@ class Wallet extends CI_Controller
             $this->load->view('member/index', $data);
         } else {
             
-            // $trans_pass = $this->db_model->select('trans_password', 'member', array('id' => $this->session->user_id));
-            // if($this->input->post('trans_password') != $trans_pass){
-            //     $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Incorrect Transaction Password</div>');
-            //     redirect('wallet/withdraw-payouts');
-            // }
-            
             $uid     = $this->session->user_id;
-            $balance = $this->input->post('amount');
-            $divide  = $balance/500;
-            $get_fund_uid = $this->db_model->select('balance', 'wallet', array('userid' => $uid));
+            $balance = (float)$this->input->post('amount');
+            $min_w   = (float)config_item('min_withdraw');
+            
+            $sender_w     = $this->db->get_where('wallet', array('userid' => $uid))->row();
+            $get_fund_uid = $sender_w ? (float)$sender_w->balance : 0.0;
             $get_pan_uid  = $this->db_model->select('tax_no', 'member_profile', array('userid' => $uid));
+            
             if ($get_pan_uid == '' or $get_pan_uid == 'N/A') {
-                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Pancard number must for sending withdraw request...</div>');
-                redirect('wallet/withdraw_payouts');
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Pancard number is required for sending withdraw request. Please update your profile.</div>');
+                redirect('wallet/withdraw-payouts');
             }
-            if ($get_fund_uid < $balance || $balance < config_item('min_withdraw')) {
-                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger"> In-sufficient balance in your wallet or withdraw minimum: ' . config_item('currency') . config_item('min_withdraw') . '</div>');
-                redirect('wallet/withdraw_payouts');
+            if ($get_fund_uid < $balance || $balance < $min_w) {
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">In-sufficient balance in your wallet or minimum withdrawal is: ' . config_item('currency') . $min_w . '</div>');
+                redirect('wallet/withdraw-payouts');
             }
+
             $new_fund = $get_fund_uid - $balance;
-            $array    = array(
-                'balance' => $new_fund,
-            );
+            $this->db->where('userid', $uid)->update('wallet', array('balance' => $new_fund));
            
-            ## This self transfer main wallet to product wallet if product wallet enabled
             $selfid = $this->input->post('pay_type');
-           
-            if (config_item('wallet_type')=="Yes" && $selfid=="other"){
-               
-                $this->db->where('userid', $uid);
-                $this->db->update('wallet', $array);
-               
-            }else{
-                $this->db->where('userid', $uid);
-                $this->db->update('wallet', $array);
-                $get_fund_uid_pr_wallet = $this->db_model->select('balance', 'product_wallet', array('userid' => $uid));
-                $new_fund_prod_wallet = $get_fund_uid_pr_wallet + $balance;
-                $array2    = array(
-                    'balance' => $new_fund_prod_wallet,
+            
+            if ($selfid == $uid || $selfid == 'product_wallet') {
+                // Transfer from Main Wallet to Self Product Wallet
+                $chk_pw = $this->db->get_where('product_wallet', array('userid' => $uid))->row();
+                $cur_pw = $chk_pw ? (float)$chk_pw->balance : 0.0;
+                $new_pw = $cur_pw + $balance;
+                if ($chk_pw) {
+                    $this->db->where('userid', $uid)->update('product_wallet', array('balance' => $new_pw));
+                } else {
+                    $this->db->insert('product_wallet', array('userid' => $uid, 'balance' => $new_pw, 'type' => 'product'));
+                }
+
+                $w_transData = array(
+                    'userid'     => $uid,
+                    'type'       => 'Debit',
+                    'amount'     => $balance,
+                    'ref_id'     => $uid,
+                    'other'      => 'Transfer to Self Product Wallet',
                 );
-                $this->db->where('userid', $uid);
-                $this->db->update('product_wallet', $array2);
+                $this->db->insert('wallet_transaction', $w_transData);
+
+                $w_transData2 = array(
+                    'userid'     => $uid,
+                    'type'       => 'Credit',
+                    'amount'     => $balance,
+                    'ref_id'     => $uid,
+                    'other'      => 'Credit from Main Wallet to Product Wallet',
+                );
+                $this->db->insert('wallet_transaction', $w_transData2);
+
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Fund transferred to Product Wallet successfully.</div>');
+                redirect('wallet/withdraw-payouts');
+            } else {
+                // Bank / UPI Payout request
+                $admin_per  = (float)config_item('admin_charges');
+                $tds_per    = (float)config_item('payout_tax');
+                $total_ded  = $admin_per + $tds_per;
+                $tax_amt    = ($balance * $total_ded) / 100;
+
+                $data = array(
+                    'userid'      => $uid,
+                    'amount'      => $balance,
+                    'tax'         => $tax_amt,
+                    'withdraw_in' => $selfid, // 'other' (Bank) or 'upi'
+                    'status'      => 'Un-Paid',
+                    'date'        => date('Y-m-d'),
+                );
+                $this->db->insert('withdraw_request', $data);
+
+                $w_transData = array(
+                    'userid'     => $uid,
+                    'type'       => 'Debit',
+                    'amount'     => $balance,
+                    'ref_id'     => 'Withdrawal Request',
+                    'other'      => 'Payout Withdrawal (' . ($selfid == 'upi' ? 'UPI' : 'Bank Account') . ')',
+                );
+                $this->db->insert('wallet_transaction', $w_transData);
+
+                $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Fund withdraw request sent successfully.</div>');
+                redirect('wallet/withdraw-payouts');
             }
-           
-            $data = array(
-                'userid' => $uid,
-                'amount' => $balance,
-                'withdraw_in' => $selfid,
-                'date'   => date('Y-m-d'),
-            );
-            $this->db->insert('withdraw_request', $data);
-           
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Fund withdraw request sent sucessfully.</div>');
-            redirect('wallet/withdraw_payouts');
     }
 
     }
