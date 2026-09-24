@@ -217,9 +217,13 @@ class Cron extends CI_Controller
                 continue;
             }
 
-            $cur_balance = $this->db_model->select('balance', 'wallet', ['userid' => $grp['userid']]) + 0;
-            $this->db->where('userid', $grp['userid']);
-            $this->db->update('wallet', ['balance' => $cur_balance + $grp['total_balance']]);
+            $wallet_row = $this->db->where('userid', $grp['userid'])->get('wallet')->row();
+            if ($wallet_row) {
+                $cur_balance = floatval($wallet_row->balance);
+                $this->db->where('userid', $grp['userid'])->update('wallet', ['balance' => $cur_balance + $grp['total_balance']]);
+            } else {
+                $this->db->insert('wallet', ['userid' => $grp['userid'], 'balance' => $grp['total_balance']]);
+            }
 
             $this->db->where('userid', $grp['userid']);
             $this->db->where('status', 'Pending');
