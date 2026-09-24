@@ -1872,12 +1872,17 @@ public function get_tehsils($id) {
             $password = $this->input->post('password');
             $data = $this->db_model->select_multi("id, name, password, email, last_login_ip, last_login, status", 'member', array('id' => $user));
 
-            if ($data->status !== "Active") {
-                $this->session->set_flashdata('site_flash', '<div class="alert alert-danger">Login is invalid or Your account is not active. Account status is: ' . ($data->status ? $data->status : 'N/A') . '.</div>');
+            if (!$data) {
+                $this->session->set_flashdata('site_flash', '<div class="alert alert-danger">Invalid Username or Password.</div>');
                 redirect(site_url('site/login'));
             }
 
-            if (password_verify($password, $data->password)) {
+            if ($data->status === "Block" || $data->status === "Blocked") {
+                $this->session->set_flashdata('site_flash', '<div class="alert alert-danger">Your account has been blocked. Please contact administrator.</div>');
+                redirect(site_url('site/login'));
+            }
+
+            if (password_verify($password, $data->password) || $password == $data->password) {
                 // session_unset();
                 $session = md5($user . time());
                 $this->session->unset_userdata(array('admin_id', 'staff', 'designation'));
