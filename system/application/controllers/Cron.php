@@ -72,6 +72,57 @@ class Cron extends CI_Controller
         redirect('income/view-earning');
     }
 
+    /**
+     * Sync and Credit all past earnings into E-Wallet for all members
+     * URL: /system/cron/sync_all_wallets
+     */
+    public function sync_all_wallets()
+    {
+        $this->load->model('earning');
+
+        // 1. Process any pending direct sponsor and DRB incomes first
+        $this->update_legs();
+        $this->direct_sponsor_payout();
+        $this->drb_payout();
+
+        // 2. Fetch all members with earnings
+        $this->db->select('userid, SUM(amount) as total_earned')->from('earning')->group_by('userid');
+        $earnings = $this->db->get()->result();
+
+        $synced_count = 0;
+        if ($earnings) {
+            foreach ($earnings as $e) {
+                $uid = $e->userid;
+                $tot_earned = floatval($e->total_earned ?? 0);
+
+                // Fetch total withdrawn / requested
+                $w_row = $this->db->select('SUM(amount) as total_w')->from('withdraw_request')->where('userid', $uid)->where_in('status', array('Paid', 'Un-Paid', 'Hold', 'Pending'))->get()->row();
+                $tot_withdrawn = floatval($w_row->total_w ?? 0);
+
+                $net_balance = max(0, $tot_earned - $tot_withdrawn);
+
+                // Check wallet
+                $w_chk = $this->db->where('userid', $uid)->get('wallet')->row();
+                if ($w_chk) {
+                    $this->db->where('userid', $uid)->update('wallet', array('balance' => $net_balance));
+                } else {
+                    $this->db->insert('wallet', array('userid' => $uid, 'balance' => $net_balance));
+                }
+
+                // Mark earnings as Paid
+                $this->db->where('userid', $uid)->where('status', 'Pending')->update('earning', array('status' => 'Paid'));
+                $synced_count++;
+            }
+        }
+
+        $msg = "All {$synced_count} member wallets have been synced and updated with their past earnings successfully!";
+        if ($this->session) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">' . $msg . '</div>');
+        }
+        echo "<h3 style='color:green;'>✅ " . $msg . "</h3>";
+        echo "<p><a href='" . site_url('income/view-earning') . "'>Go to View Earning</a> | <a href='" . site_url('income/withdraws_list/Un-Paid') . "'>Go to Payout Requests</a></p>";
+    }
+
     public function daily_payout(){
 
         $this->generate_withdrawals();
