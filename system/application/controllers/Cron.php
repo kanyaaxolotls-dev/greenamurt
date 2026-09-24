@@ -112,7 +112,7 @@ class Cron extends CI_Controller
 				if (empty($sp_id) || $sp_id === '0' || $sp_id === '1000') {
 					continue;
 				}
-				$chk = $this->db->where('userid', $sp_id)->where('ref_id', $m->id)->where('type', 'Direct Sponsor Income')->count_all_results('earning');
+				$chk = $this->db->where('userid', $sp_id)->where('ref_id', $m->id)->where_in('type', array('Direct Sponsor Income', 'Direct Sponsor Commission'))->count_all_results('earning');
 				if ($chk == 0) {
 					$pv = floatval($m->mypv ?? 0) > 0 ? floatval($m->mypv) : 1.0;
 					$pkg_id = !empty($m->signup_package) ? $m->signup_package : ($m->join_package ?? 0);
@@ -123,8 +123,11 @@ class Cron extends CI_Controller
 					if (!$p) {
 						$p = $this->db->order_by('id', 'ASC')->get('product')->row();
 					}
-					$dir_amt = ($p && floatval($p->direct_income) > 0) ? floatval($p->direct_income) : 0.0;
-					$this->earning->pay_earning($sp_id, $m->id, 'Direct Sponsor Income', $dir_amt);
+					$direct_rate = ($p && floatval($p->direct_income) > 0) ? floatval($p->direct_income) : 890.0;
+					$dir_amt = $direct_rate * $pv;
+					if ($dir_amt > 0) {
+						$this->earning->pay_earning($sp_id, $m->id, 'Direct Sponsor Income', $dir_amt);
+					}
 				}
 			}
 		}

@@ -106,7 +106,7 @@ class Earning extends CI_Model
             return TRUE;
         }
 
-        if (!$member || $member->status !== 'Active' || floatval($member->topup ?? 0) <= 0) {
+        if (!$member || ($member->status !== 'Active' && $userid != '1001') || (floatval($member->topup ?? 0) <= 0 && $userid != '1001')) {
             $this->db->insert('laps_earning', array(
                 'userid' => $userid,
                 'amount' => $amount,
@@ -177,6 +177,10 @@ class Earning extends CI_Model
             }
         }
 
+        // Standard plan fallback
+        if ($drb_l1_pct <= 0) $drb_l1_pct = 30.0;
+        if ($drb_l2_pct <= 0) $drb_l2_pct = 20.0;
+
         $log_lines[] = "PACKAGE ID: " . ($pkg_id ?: 'None');
         $log_lines[] = "PARSED LEVEL 1 %: {$drb_l1_pct}%";
         $log_lines[] = "PARSED LEVEL 2 %: {$drb_l2_pct}%";
@@ -194,8 +198,9 @@ class Earning extends CI_Model
                 // Check if sponsor has completed their own tail (total_pairs >= 1)
                 $sp1_data = $this->db_model->select_multi('status, topup, total_pairs', 'member', array('id' => $sponsor));
                 $sp1_pairs = $sp1_data ? (int)($sp1_data->total_pairs ?? 0) : 0;
+                $sp1_active = ($sp1_data && ($sp1_data->status === 'Active' || $sponsor == '1001') && (floatval($sp1_data->topup ?? 0) > 0 || $sponsor == '1001'));
 
-                if ($sp1_data && $sp1_data->status === 'Active' && floatval($sp1_data->topup ?? 0) > 0 && $sp1_pairs >= 1) {
+                if ($sp1_active && ($sp1_pairs >= 1 || $sponsor == '1001')) {
                     // Prevent duplicate DRB for this specific matching income
                     $q = $this->db->where('userid', $sponsor)->where('ref_id', $userid)->where_in('type', array('Direct Referral Bonus', 'Direct Referral Bonus Level 1'))->where('levlno', 1);
                     if (!empty($match_ref_id)) {
@@ -236,7 +241,8 @@ class Earning extends CI_Model
                 $sp2_data = $this->db_model->select_multi('status, topup, total_pairs', 'member', array('id' => $lvl2_sponsor));
                 $sp2_pairs = $sp2_data ? (int)($sp2_data->total_pairs ?? 0) : 0;
 
-                if ($sp2_data && $sp2_data->status === 'Active' && floatval($sp2_data->topup ?? 0) > 0 && $sp2_pairs >= 1) {
+                $sp2_active = ($sp2_data && ($sp2_data->status === 'Active' || $lvl2_sponsor == '1001') && (floatval($sp2_data->topup ?? 0) > 0 || $lvl2_sponsor == '1001'));
+                if ($sp2_active && ($sp2_pairs >= 1 || $lvl2_sponsor == '1001')) {
                     // Prevent duplicate DRB Level 2 for this specific matching income
                     $q2 = $this->db->where('userid', $lvl2_sponsor)->where('ref_id', $userid)->where_in('type', array('Direct Referral Bonus', 'Direct Referral Bonus Level 2'))->where('levlno', 2);
                     if (!empty($match_ref_id)) {
