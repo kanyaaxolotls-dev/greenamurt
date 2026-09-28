@@ -100,35 +100,38 @@ class Shop extends CI_Controller
     {    
         if ($this->login->check_member() == FALSE) {
             redirect(site_url('site/login'));
-        }else{
-
-
-        if (config_item('wallet_type')!="Yes"){
-            $get_balance = $this->db_model->select('balance', 'wallet', array('userid' => $this->session->user_id));
-        }else{
-             $get_balance = $this->db_model->select('balance', 'product_wallet', array('userid' => $this->session->user_id));
+            return;
         }
-        if ($get_balance < $this->cart->total()) {
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Oops! you dont have sufficient fund in wallet, you can add Fund: '. config_item('currency') . $this->cart->total() . '</div>');
+
+        $cart_total = (float)$this->cart->total();
+        if ($cart_total <= 0) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Your shopping cart is empty.</div>');
             redirect('shop/pre_checkout');
+            return;
         }
 
-        $data = array(
-            'balance' => ($get_balance - $this->cart->total()),
-        );
+        $target_table = (config_item('wallet_type') == "Yes") ? 'product_wallet' : 'wallet';
+        $w_row = $this->db->get_where($target_table, array('userid' => $this->session->user_id))->row();
+        $get_balance = $w_row ? (float)$w_row->balance : 0.0;
 
-        $this->db->where('userid', $this->session->user_id);
-        if (config_item('wallet_type')!="Yes"){
-            $this->db->update('wallet', $data);
-        }else{
-            $this->db->update('product_wallet', $data);
+        if ($get_balance < $cart_total) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Oops! You do not have sufficient funds in your ' . ($target_table == 'product_wallet' ? 'Product Wallet' : 'E-Wallet') . '. Required: ' . config_item('currency') . number_format($cart_total, 2) . ', Available: ' . config_item('currency') . number_format($get_balance, 2) . '</div>');
+            redirect('shop/pre_checkout');
+            return;
         }
+
+        $this->db->trans_start();
+
+        // 1. Deduct balance
+        $new_bal = round($get_balance - $cart_total, 2);
+        $this->db->where('userid', $this->session->user_id)->update($target_table, array('balance' => $new_bal));
+
+        // 2. Generate Order and insert sales
+        $max_row_shop = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
+        $gen_orderid_shop = ($max_row_shop && $max_row_shop->maxid > 0) ? ($max_row_shop->maxid + 1) : 1001;
+
         if ($cart = $this->cart->contents()) {
-            $max_row_shop = $this->db->query('SELECT MAX(orderid) AS maxid FROM product_sale')->row();
-            $gen_orderid_shop = ($max_row_shop && $max_row_shop->maxid > 0) ? ($max_row_shop->maxid + 1) : 1001;
-
             foreach ($cart as $item):
-
                 $array = array(
                     'product_id' => $item['id'],
                     'userid'     => $this->session->user_id,
@@ -137,16 +140,31 @@ class Shop extends CI_Controller
                     'date'       => date('Y-m-d'),
                     'orderid'    => $gen_orderid_shop,
                 );
-
                 $this->db->insert('product_sale', $array);
-
             endforeach;
-
         }
-    }
 
+        // 3. Log debit in wallet_transaction ledger
+        $w_transData = array(
+            'userid'       => $this->session->user_id,
+            'type'         => 'Debit',
+            'amount'       => $cart_total,
+            'ref_id'       => 'ORDER_' . $gen_orderid_shop,
+            'other'        => 'Product Purchase (Order #' . $gen_orderid_shop . ' from ' . ($target_table == 'product_wallet' ? 'Product Wallet' : 'E-Wallet') . ')',
+            'created_date' => date('Y-m-d H:i:s'),
+        );
+        $this->db->insert('wallet_transaction', $w_transData);
 
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Thank you for Purchasing with us</div>');
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Checkout transaction failed. Please try again.</div>');
+            redirect('shop/pre_checkout');
+            return;
+        }
+
+        $this->cart->destroy();
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Thank you for purchasing with us! Order #' . $gen_orderid_shop . ' has been placed successfully.</div>');
         redirect('shop/checkout_complete');
     }
 

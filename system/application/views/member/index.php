@@ -107,14 +107,11 @@
                         </button>
                     </div>
 
-                    <div class="d-flex">
-                        <div class="dropdown  ms-1">
-                            <button type="button" class="btn header-item noti-icon position-relative" id="page-header-notifications-dropdown"
-                            data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                               <!-- akki 10-11-2025 <i class="fas fa-wallet"> <?php echo $get_balance = $this->db_model->select('balance', 'wallet', array('userid' => $this->session->user_id)); ?></i>-->
-                               <i class="fas fa-wallet"> <?php echo $get_balance = $this->db_model->select('balance', 'product_wallet', array('userid' => $this->session->user_id)); ?></i>
-                                <span class="badge bg-danger rounded-pill"></span>
-                            </button>
+                        <div class="dropdown ms-1 d-flex align-items-center">
+                            <a href="<?php echo site_url('wallet/withdraw_fund') ?>" class="btn header-item noti-icon position-relative d-inline-flex align-items-center px-2" title="Income Wallet">
+                                <i class="fas fa-wallet text-success me-1"></i>
+                                <span class="fw-bold text-success font-size-14">₹<?php $main_bal = $this->db_model->select('balance', 'wallet', array('userid' => $this->session->user_id)); echo number_format(floatval($main_bal), 2); ?></span>
+                            </a>
                         </div> 
   
                         <div class="dropdown d-inline-block">
@@ -409,7 +406,7 @@
                     <!-- New end-->
 
                         <div class="row">
-                            <div class="col-xl-2 col-md-2">
+                            <div class="col-xl-3 col-md-6 col-12">
                                 <!-- card -->
                                 <div class="card card-h-100">
                                     <!-- card body -->
@@ -427,10 +424,7 @@
                                                     <span class="text-dark"><?= $t_member ?></span> | 
                                                     <span class="text-success"><?= $t_active ?></span> |
                                                     <span style="color:red"><?= $t_inactive ?></span>
-                                                    <!--<span class="counter-value" data-target="<?php echo $sum; ?>"></span>-->
-                                                <!--    <span class="badge bg-soft-success text-success">+$20.9k</span>-->
-                                                <!--    <span class="ms-1 text-muted font-size-13">Since last week</span>-->
-                                                <!--</div>-->
+                                                </h4>
                                             </div>
                                             
                                         </div>
@@ -438,9 +432,7 @@
                                 </div><!-- end card -->
                             </div><!-- end col -->
         
-                            
-
-                            <div class="col-xl-2 col-md-2">
+                            <div class="col-xl-3 col-md-6 col-12">
                                 <!-- card -->
                                 <div class="card card-h-100">
                                     <!-- card body -->
@@ -457,7 +449,7 @@
                                 </div><!-- end card -->
                             </div><!-- end col -->
         
-                            <div class="col-xl-2 col-md-2">
+                            <div class="col-xl-3 col-md-6 col-12">
                                 <!-- card -->
                                 <div class="card card-h-100">
                                     <!-- card body -->
@@ -474,7 +466,7 @@
                                 </div><!-- end card -->
                             </div><!-- end col--> 
 
-                            <div class="col-xl-2 col-md-2">
+                            <div class="col-xl-3 col-md-6 col-12">
                                 <!-- card -->
                                 <div class="card card-h-100">
                                     <!-- card body -->
@@ -483,9 +475,8 @@
                                             <div class="flex-grow-1">
                                                 <span class="text-muted mb-3 lh-1 d-block text-truncate">Total Direct</span>
                                                 <h4 class="mb-3">
-                                                                                                                                                                                                                                    
-                                                    <span class="counter-value" data-target="   <?php
-                                                           $this->db->select('id'); $this->db->from('member');$this->db->where('sponsor',$this->session->user_id);echo $num_results = $this->db->count_all_results(); ?>">
+                                                    <span class="counter-value" data-target="<?php
+                                                            $this->db->select('id'); $this->db->from('member');$this->db->where('sponsor',$this->session->user_id);echo $num_results = $this->db->count_all_results(); ?>">
                                                     </span>
                                                 </h4>
                                             </div>
@@ -494,66 +485,6 @@
                                     </div><!-- end card body -->
                                 </div><!-- end card -->
                             </div><!-- end col--> 
-
-
-        
-                            <div class="col-xl-2 col-md-2">
-                                <!-- card -->
-                                <div class="card card-h-100">
-                                    <!-- card body -->
-                                    <div class="card-body"> 
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-grow-1">
-                                                <span class="text-muted mb-3 lh-1 d-block text-truncate">ID Topup Fund</span>
-                                                <h4 class="mb-3">
-                                                    <i class="fas fa-rupee-sign"></i> <span class="counter-value" data-target="<?php echo $reserve_fund = $this->db_model->select('reserve_fund', 'member', array('id' => $this->session->user_id)); ?>"></span> 
-                                                </h4>
-                                               
-                                            </div>
-                                            
-                                        </div> 
-                                    </div><!-- end card body -->
-                                </div><!-- end card -->
-                            </div><!-- end col -->
-                            
-                            <div class="col-xl-2 col-md-2">
-                                <!-- card -->
-                                                <?php
-                                                    // $date = new DateTime($detail->activation_date);
-                                                    // $date->modify('+28 days');
-                                                    // $date_after_28_days = $date->format('d/m/Y');
-                                                    // $today = new DateTime();
-                                                    // $interval = $today->diff($date);
-                                                    // $remaining_days = $interval->invert ? 0 : $interval->days;
-                                                    // if($remaining_days <= 0){
-                                                    //     $cllr = 'danger';
-                                                    //     $txxt = 'Inactive';
-                                                    // }else{
-                                                    //     $cllr = 'success';
-                                                    //     $txxt = 'Active';
-                                                    // }
-                                                ?>
-                                <div class="card card-h-100 ">
-                                    <!-- card body -->
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="flex-grow-1">
-                                                <span class="mb-3 lh-1 d-block text-dark">Social Welfare Fund</span>
-                                                <h4 class="mb-3">
-                                                <i class="fas fa-rupee-sign"></i> 
-                                                <span>
-                                                    <?php 
-                                                        $social_welfare_fund = $this->db_model->sum('amount', 'social_welfare_fund',array('userid' => $this->session->user_id));
-                                                        echo $social_welfare_fund ? $social_welfare_fund : 0;
-                                                    ?> 
-                                                    </span> 
-                                                </h4>
-                                            </div>
-                                            
-                                        </div>
-                                    </div><!-- end card body -->
-                                </div><!-- end card -->
-                            </div><!-- end col -->     
                         </div><!-- end row-->
 
                     

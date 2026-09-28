@@ -136,7 +136,17 @@ class Earning extends CI_Model
             'status'        => 'Pending',
         );
         $this->db->insert('earning', $data);
-        $log_lines[] = "ACTION: SUCCESS -> Earning record inserted (Secret: {$secret}, Status: Pending)";
+        $inserted_id = $this->db->insert_id();
+
+        // ONLY Direct Sponsor Income is credited immediately to wallet before cron runs.
+        // All other incomes (Matching, DRB Level 1/2, Royalty, etc.) stay 'Pending' until the midnight cron runs.
+        $is_direct_sponsor = (stripos($income_name, 'Direct Sponsor') !== false || stripos($income_name, 'Direct/Sponsor') !== false);
+        if ($inserted_id && $is_direct_sponsor) {
+            $this->credit_earning_to_wallet($inserted_id, $userid, $amount, $income_name, $ref_id, date('Y-m-d'));
+            $log_lines[] = "ACTION: SUCCESS -> Earning record inserted (ID: {$inserted_id}, Secret: {$secret}, Amount: ₹" . number_format($amount, 2) . ", Status: Credited to Wallet IMMEDIATELY - Direct Sponsor Income)";
+        } else {
+            $log_lines[] = "ACTION: SUCCESS -> Earning record inserted (ID: {$inserted_id}, Secret: {$secret}, Amount: ₹" . number_format($amount, 2) . ", Status: Pending - Will be credited to Wallet when Midnight Cron runs)";
+        }
         $log_lines[] = "----------------------------------------\n";
         $this->_write_payout_log($log_lines);
 
@@ -576,7 +586,7 @@ class Earning extends CI_Model
                     'date'       => date('Y-m-d'),
                     'pair_match' => 1,
                     'secret'     => $pair_secret,
-                    'status'     => 'Paid',
+                    'status'     => 'Pending',
                 );
                 $ins_ok = $this->db->insert('earning', $earning_data);
                 if ($ins_ok) {
@@ -588,22 +598,7 @@ class Earning extends CI_Model
                     break;
                 }
             }
-
-            // 2. WALLET CREDIT
-            $wallet_row = $this->db->get_where('wallet', array('userid' => $id))->row();
-            if ($wallet_row) {
-                $cur_bal = (float)$wallet_row->balance;
-                $new_bal = $cur_bal + $pay_amount;
-                $wallet_ok = $this->db->where('userid', $id)->update('wallet', array('balance' => $new_bal));
-            } else {
-                $cur_bal = 0;
-                $new_bal = $pay_amount;
-                $wallet_ok = $this->db->insert('wallet', array('userid' => $id, 'balance' => $new_bal));
-            }
-            if (!$wallet_ok) {
-                $db_err = $this->db->error();
-                $wallet_err = $db_err['message'] ?? 'Wallet credit failed';
-            }
+            $wallet_ok = true;
         } else {
             $earning_ok = true;
             $wallet_ok  = true;
@@ -646,6 +641,7 @@ class Earning extends CI_Model
             $tx_committed = true;
             if ($pay_amount > 0 && !empty($earning_ids)) {
                 foreach ($earning_ids as $eid) {
+                    $this->credit_earning_to_wallet($eid, $id, $per_pair, 'Matching Income', '', date('Y-m-d'));
                     $this->process_lvl($id, $per_pair, $eid);
                 }
             }
@@ -2967,6 +2963,95 @@ public function family_fund($data){
             ->row();
 
         return (float)($result->total_turnover ?? 0);
+    }
+
+    /**
+     * Credit earning directly and idempotently to Member's E-Wallet
+     */
+    public function credit_earning_to_wallet($earning_id, $userid, $amount, $income_type, $ref_id = '', $date = null)
+    {
+        $earning_id = (int)$earning_id;
+        $amount     = round((float)$amount, 2);
+        $userid     = trim((string)$userid);
+
+        if ($earning_id <= 0 || $amount <= 0 || empty($userid) || $userid === '0' || $userid === '1000') {
+            return FALSE;
+        }
+
+        if (empty($date)) {
+            $date = date('Y-m-d');
+        }
+
+        // Idempotency check 1: Has this earning ID already been credited in wallet_transaction?
+        $unique_ref = 'EARNING_' . $earning_id;
+        $this->db->select('id')->from('wallet_transaction')->where('userid', $userid);
+        $this->db->group_start();
+        $this->db->where('ref_id', $unique_ref);
+        $this->db->or_like('other', 'Earning #' . $earning_id);
+        $this->db->group_end();
+        $exists = $this->db->get()->row();
+
+        if ($exists) {
+            // Already credited -> Ensure earning status is Paid and exit safely
+            $this->db->where('id', $earning_id)->update('earning', array('status' => 'Paid'));
+            return TRUE;
+        }
+
+        // Verify earning row exists
+        $earning_row = $this->db->select('id, status, amount, userid, type')->where('id', $earning_id)->get('earning')->row();
+        if (!$earning_row) {
+            return FALSE;
+        }
+
+        $this->db->trans_start();
+
+        // 1. Credit wallet balance
+        $chk_w = $this->db->get_where('wallet', array('userid' => $userid))->row();
+        if ($chk_w) {
+            $cur_bal = (float)$chk_w->balance;
+            $new_bal = round($cur_bal + $amount, 2);
+            $this->db->where('userid', $userid)->update('wallet', array('balance' => $new_bal));
+        } else {
+            $new_bal = $amount;
+            $this->db->insert('wallet', array('userid' => $userid, 'balance' => $new_bal));
+        }
+
+        // 2. Insert into wallet_transaction ledger
+        $desc = $income_type . ' (Earning #' . $earning_id . (!empty($ref_id) ? ' Ref: ' . $ref_id : '') . ')';
+        $w_transData = array(
+            'userid'       => $userid,
+            'type'         => 'Credit',
+            'amount'       => $amount,
+            'ref_id'       => $unique_ref,
+            'other'        => $desc,
+            'created_date' => $date . ' ' . date('H:i:s'),
+        );
+        $this->db->insert('wallet_transaction', $w_transData);
+
+        $this->db->trans_complete();
+
+        return $this->db->trans_status();
+    }
+
+    public function sync_all_pending_earnings_to_wallet($userid = null)
+    {
+        $this->db->select('*')->from('earning');
+        if (!empty($userid)) {
+            $this->db->where('userid', $userid);
+        }
+        $pending = $this->db->order_by('id', 'ASC')->get()->result();
+
+        $count = 0;
+        foreach ($pending as $p) {
+            $amt = (float)$p->amount;
+            if ($amt > 0) {
+                $ok = $this->credit_earning_to_wallet($p->id, $p->userid, $amt, $p->type, $p->ref_id, $p->date);
+                if ($ok) {
+                    $count++;
+                }
+            }
+        }
+        return $count;
     }
 
     ######################End Royalty Income Send Functions

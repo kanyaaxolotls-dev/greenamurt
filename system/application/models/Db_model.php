@@ -261,5 +261,168 @@ class Db_model extends CI_Model
 
         return $this->db->count_all_results();
     }
+
+    public function check_and_update_wallet_schema()
+    {
+        // 1. Table: wallet
+        if (!$this->db->table_exists('wallet')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `wallet` (
+                `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `userid` VARCHAR(50) NOT NULL,
+                `balance` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `pan_no` VARCHAR(50) NULL DEFAULT '',
+                `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `idx_wallet_userid` (`userid`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+        } else {
+            $f_wallet = $this->db->list_fields('wallet');
+            if (!in_array('updated_at', $f_wallet)) {
+                $this->db->query("ALTER TABLE `wallet` ADD COLUMN `updated_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
+            }
+            if (!in_array('pan_no', $f_wallet)) {
+                $this->db->query("ALTER TABLE `wallet` ADD COLUMN `pan_no` VARCHAR(50) NULL DEFAULT '' AFTER `balance`");
+            }
+        }
+
+        // 2. Table: product_wallet
+        if (!$this->db->table_exists('product_wallet')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `product_wallet` (
+                `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `userid` VARCHAR(50) NOT NULL,
+                `balance` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `type` VARCHAR(50) NOT NULL DEFAULT 'product',
+                PRIMARY KEY (`id`),
+                KEY `idx_pwallet_userid` (`userid`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+        }
+
+        // 3. Table: wallet_transaction
+        if (!$this->db->table_exists('wallet_transaction')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `wallet_transaction` (
+                `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `userid` VARCHAR(50) NOT NULL,
+                `type` ENUM('Credit', 'Debit') NOT NULL DEFAULT 'Credit',
+                `amount` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `ref_id` VARCHAR(100) NULL DEFAULT '',
+                `other` TEXT NULL,
+                `created_date` DATETIME NOT NULL,
+                PRIMARY KEY (`id`),
+                KEY `idx_wtrans_userid` (`userid`),
+                KEY `idx_wtrans_ref` (`ref_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+        }
+
+        // 4. Table: withdraw_request
+        if (!$this->db->table_exists('withdraw_request')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `withdraw_request` (
+                `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `userid` VARCHAR(50) NOT NULL,
+                `amount` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `tax` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `admin_tax` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `tds_tax` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `net_paid` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `pan_no` VARCHAR(50) NULL DEFAULT '',
+                `date` DATE NOT NULL,
+                `paid_date` DATE NULL DEFAULT NULL,
+                `withdraw_in` VARCHAR(50) NOT NULL DEFAULT 'Bank',
+                `status` ENUM('Un-Paid', 'Pending', 'Hold', 'Paid', 'Rejected') NOT NULL DEFAULT 'Un-Paid',
+                `tid` VARCHAR(100) NULL DEFAULT '',
+                `hold_reason` TEXT NULL,
+                `reject_reason` TEXT NULL,
+                `processed_by` VARCHAR(100) NULL DEFAULT NULL,
+                PRIMARY KEY (`id`),
+                KEY `idx_wreq_userid` (`userid`),
+                KEY `idx_wreq_status` (`status`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+        } else {
+            $fields = $this->db->list_fields('withdraw_request');
+            if (!in_array('admin_tax', $fields)) {
+                $this->db->query("ALTER TABLE `withdraw_request` ADD COLUMN `admin_tax` DECIMAL(11,2) NOT NULL DEFAULT '0.00' AFTER `tax`");
+            }
+            if (!in_array('tds_tax', $fields)) {
+                $this->db->query("ALTER TABLE `withdraw_request` ADD COLUMN `tds_tax` DECIMAL(11,2) NOT NULL DEFAULT '0.00' AFTER `admin_tax`");
+            }
+            if (!in_array('net_paid', $fields)) {
+                $this->db->query("ALTER TABLE `withdraw_request` ADD COLUMN `net_paid` DECIMAL(11,2) NOT NULL DEFAULT '0.00' AFTER `tds_tax`");
+            }
+            if (!in_array('reject_reason', $fields)) {
+                $this->db->query("ALTER TABLE `withdraw_request` ADD COLUMN `reject_reason` TEXT NULL AFTER `hold_reason`");
+            }
+            if (!in_array('processed_by', $fields)) {
+                $this->db->query("ALTER TABLE `withdraw_request` ADD COLUMN `processed_by` VARCHAR(100) NULL AFTER `paid_date`");
+            }
+        }
+
+        // 5. Table: deposite
+        if (!$this->db->table_exists('deposite')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `deposite` (
+                `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `userid` VARCHAR(50) NOT NULL,
+                `amount` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `screenshot` VARCHAR(255) NULL DEFAULT '',
+                `status` ENUM('pending', 'Approved', 'Rejected') NOT NULL DEFAULT 'pending',
+                `date` DATE NOT NULL,
+                PRIMARY KEY (`id`),
+                KEY `idx_dep_userid` (`userid`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+        }
+
+        // 6. Table: transfer_balance_records
+        if (!$this->db->table_exists('transfer_balance_records')) {
+            $this->db->query("CREATE TABLE IF NOT EXISTS `transfer_balance_records` (
+                `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                `transfer_from` VARCHAR(50) NOT NULL,
+                `transfer_to` VARCHAR(50) NOT NULL,
+                `amount` DECIMAL(12,2) NOT NULL DEFAULT '0.00',
+                `time` DATETIME NOT NULL,
+                PRIMARY KEY (`id`),
+                KEY `idx_tbr_from` (`transfer_from`),
+                KEY `idx_tbr_to` (`transfer_to`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+        }
+    }
+
+    public function get_wallet_summary($userid)
+    {
+        $userid = trim($userid);
+        if (empty($userid)) {
+            return [
+                'total_earned'       => 0.0,
+                'wallet_balance'     => 0.0,
+                'pending_withdrawal' => 0.0,
+                'total_withdrawn'    => 0.0,
+                'available_balance'  => 0.0,
+            ];
+        }
+
+        // 1. Total Earned from earning table
+        $tot_e_row = $this->db->select_sum('amount')->where('userid', $userid)->get('earning')->row();
+        $total_earned = $tot_e_row ? floatval($tot_e_row->amount) : 0.0;
+
+        // 2. Current Wallet Balance from wallet table
+        $w_row = $this->db->select('balance')->where('userid', $userid)->get('wallet')->row();
+        $wallet_balance = $w_row ? floatval($w_row->balance) : 0.0;
+
+        // 3. Pending / Held withdrawals from withdraw_request
+        $pen_w_row = $this->db->select_sum('amount')->where('userid', $userid)->where_in('status', ['Un-Paid', 'Pending', 'Hold'])->get('withdraw_request')->row();
+        $pending_withdrawal = $pen_w_row ? floatval($pen_w_row->amount) : 0.0;
+
+        // 4. Total Paid withdrawals
+        $paid_w_row = $this->db->select_sum('amount')->where('userid', $userid)->where('status', 'Paid')->get('withdraw_request')->row();
+        $total_withdrawn = $paid_w_row ? floatval($paid_w_row->amount) : 0.0;
+
+        // Available balance is the current active wallet balance
+        $available_balance = max(0.0, $wallet_balance);
+
+        return [
+            'total_earned'       => $total_earned,
+            'wallet_balance'     => $wallet_balance,
+            'pending_withdrawal' => $pending_withdrawal,
+            'total_withdrawn'    => $total_withdrawn,
+            'available_balance'  => $available_balance,
+        ];
+    }
 }
 

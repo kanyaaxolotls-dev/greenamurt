@@ -1354,15 +1354,16 @@ public function certificate() {
                 }
         }
         
-        else if($wallet_data->balance > 0 && $paymethod=="wallet" && $epin == $prod_data->prod_price){
-                $wallet_balance = $wallet_data->balance - $epin;
+        else if($wallet_data && (float)$wallet_data->balance >= (float)$prod_data->prod_price && $paymethod == "wallet"){
+                $pkg_cost = (float)$prod_data->prod_price;
+                $wallet_balance = (float)$wallet_data->balance - $pkg_cost;
 
                 // 1. Order Creation & Order ID Generation (Saved FIRST)
                 if (config_item('prevent_join_product_entry') != "No") {
                     $sale_data = array(
                         'product_id'  => $prod_data->id,
                         'userid'      => $this->session->user_id,
-                        'cost'        => $epin,
+                        'cost'        => $pkg_cost,
                         'date'        => date('Y-m-d'), 
                         'order_by'    => 'Member',
                         'orderid'     => $orderid,
@@ -1374,7 +1375,7 @@ public function certificate() {
 
                     $item_data = array(
                         'product_id' => $prod_data->id,
-                        'cost'       => $epin,
+                        'cost'       => $pkg_cost,
                         'order_id'   => $orderid,
                     ); 
                     $this->db->insert('product_item_sale', $item_data);
@@ -1382,7 +1383,7 @@ public function certificate() {
 
                 // 2. Member Activation Update
                 $data = array(
-                    'topup'           => $epin,
+                    'topup'           => $pkg_cost,
                     'signup_package'  => $prod_data->id,
                     'epin'            => 'Wallet',
                     'activation_date' => date('Y-m-d'),
@@ -1398,14 +1399,24 @@ public function certificate() {
                 );
                 $this->db->where('userid', $this->session->user_id);
                 $this->db->update('wallet', $data);
+
+                // Transaction log
+                $w_transData = array(
+                    'userid'     => $this->session->user_id,
+                    'type'       => 'Debit',
+                    'amount'     => $pkg_cost,
+                    'ref_id'     => $orderid,
+                    'other'      => 'Account Activation Order #' . $orderid . ' via E-Wallet',
+                );
+                $this->db->insert('wallet_transaction', $w_transData);
                 
                 // 3. MLM / Payout Processing
                 $this->load->model('earning'); 
-                if (config_item('fix_income') == "Yes" && $epin > 0 && config_item('give_income_on_topup') == "Yes") {
-                    $this->earning->fix_income($this->session->user_id, $this->db_model->select('sponsor', 'member', array('id' => $this->session->user_id)),$epin);
+                if (config_item('fix_income') == "Yes" && $pkg_cost > 0 && config_item('give_income_on_topup') == "Yes") {
+                    $this->earning->fix_income($this->session->user_id, $this->db_model->select('sponsor', 'member', array('id' => $this->session->user_id)), $pkg_cost);
                     $this->earning->repurchase($orderid);
                     $this->earning->update_legs();
-                } else if (config_item('fix_income') !== "Yes" && $epin > 0 && config_item('give_income_on_topup') == "Yes") {
+                } else if (config_item('fix_income') !== "Yes" && $pkg_cost > 0 && config_item('give_income_on_topup') == "Yes") {
                     $this->earning->reg_earning($this->session->user_id, $this->db_model->select('sponsor', 'member', array('id' => $this->session->user_id)), $prod_data->id);
                     $this->earning->repurchase($orderid);
                     $this->earning->update_legs();
@@ -1799,46 +1810,47 @@ public function certificate() {
 
     public function deposite()
     {
-        $this->form_validation->set_rules('amount', 'amount', 'trim|required');
-        if($this->input->post('type')!='Cash'){
-            $this->form_validation->set_rules('tnumber', 'tnumber', 'trim|required');
+        $this->form_validation->set_rules('amount', 'Amount', 'trim|required|numeric|greater_than[0]');
+        if($this->input->post('type') != 'Cash'){
+            $this->form_validation->set_rules('tnumber', 'Transaction Number', 'trim|required');
         }
         if ($this->form_validation->run() == FALSE) {
             $data['title']  = 'Fund Deposit Details';
             $data['layout'] = 'support/deposit.php';
             $this->load->view('member/index', $data);
         } 
-        else  {
-            if($this->input->post('type')=='Cash'){
-                $recepit='default.jpg';
-            }
-            else{
-                if (trim($_FILES['receipt']['name'] !== "")) {
-                    $receipt='';
-                    $this->load->library('upload');
-                    if (!$this->upload->do_upload('recepit')) {
-                        $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">receipt not uploaded..<br/>' . $this->upload->display_errors() . '</div>');
+        else {
+            $recepit = 'default.jpg';
+            if($this->input->post('type') != 'Cash'){
+                $input_file_name = !empty($_FILES['recepit']['name']) ? 'recepit' : (!empty($_FILES['receipt']['name']) ? 'receipt' : '');
+                if ($input_file_name != '') {
+                    $config['upload_path']   = './uploads/';
+                    $config['allowed_types'] = 'gif|jpg|png|jpeg|pdf';
+                    $config['max_size']      = 10240; // 10MB
+                    $this->load->library('upload', $config);
+                    $this->upload->initialize($config);
+                    if (!$this->upload->do_upload($input_file_name)) {
+                        $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Receipt upload failed: ' . $this->upload->display_errors() . '</div>');
                         redirect('member/deposite');
-                    } 
-                    else {
+                        return;
+                    } else {
                         $image_data = $this->upload->data();
                         $recepit    = $image_data['file_name'];
-                        unlink('uploads/'.$data['data']->recepit);
                     }
                 }
             }
+
             $array = array(
                 'userid'        => $this->session->user_id,
-                'amount'        => $this->input->post('amount'),
+                'amount'        => floatval($this->input->post('amount')),
                 'type'          => $this->input->post('type'),
                 'tnumber'       => $this->input->post('tnumber'),
                 'recepit'       => $recepit,
+                'status'        => 'pending',
                 'date'          => date('Y-m-d')
-               
             );
-            // $this->db->where('userid', $this->session->user_id);
             $this->db->insert('deposite', $array);
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Deposit request Added Successfully</div>');
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Deposit request submitted successfully. It will be credited once approved by Admin.</div>');
             redirect('member/deposite');
         }
     }

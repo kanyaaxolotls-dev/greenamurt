@@ -119,14 +119,13 @@
                         </select>
                     </div> -->
                     <?php } ?>
-                    <!--
                     <div class="form-check mb-3">
-                        <input class="form-check-input" type="radio" name="paymentmethod" value="wallet" checked>
-                        <label class="form-check-label">Cash Wallet [ <span class="text-success"><?= $this->db_model->select('balance', 'wallet', array('userid' => $this->session->user_id)) ?></span> ]</label>
-                    </div>-->
+                        <input class="form-check-input" type="radio" id="pay_cash_wallet" name="paymentmethod" value="wallet" checked>
+                        <label class="form-check-label" for="pay_cash_wallet">Cash Wallet (E-Wallet) [ <span class="text-success font-weight-bold">₹<?= number_format((float)($this->db_model->select('balance', 'wallet', array('userid' => $this->session->user_id)) ?? 0), 2) ?></span> ]</label>
+                    </div>
                     <div class="form-check mb-3">
-                            <input class="form-check-input" type="radio" name="paymentmethod" value="product_wallet" checked>
-                        <label class="form-check-label">Repurchase Wallet [ <span class="text-success"><?= $this->db_model->select('balance', 'product_wallet', array('userid' => $this->session->user_id)) ?></span> ]</label>
+                        <input class="form-check-input" type="radio" id="pay_product_wallet" name="paymentmethod" value="product_wallet">
+                        <label class="form-check-label" for="pay_product_wallet">Repurchase / Product Wallet [ <span class="text-success font-weight-bold">₹<?= number_format((float)($this->db_model->select('balance', 'product_wallet', array('userid' => $this->session->user_id)) ?? 0), 2) ?></span> ]</label>
                     </div>
                     <input type="hidden" name="amount" id="hidden-total" value="<?php echo $this->cart->format_number($this->cart->total()); ?>" />
                     <button id="checkoutBtn" class="btn btn-success mt-1"><i class="mdi mdi-cart-arrow-right me-1"></i> Checkout</button>

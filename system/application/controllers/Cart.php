@@ -484,81 +484,51 @@ public function pre_checkout()
             $o_id = ($max_row && $max_row->maxid > 0) ? ($max_row->maxid + 1) : 1001;
         }
         $this->load->model('earning');
-		$get_balance = $this->db_model->select('balance', $wallet, array('userid' => $this->session->user_id));
-		$wallet_prod = $this->db_model->select('balance', 'product_wallet', array('userid' => $this->session->user_id));
+
+        $wallet_table = ($wallet == 'product_wallet') ? 'product_wallet' : 'wallet';
+        $wallet_label = ($wallet_table == 'product_wallet') ? 'Repurchase Wallet' : 'Cash Wallet';
+
+        $chk_w = $this->db->get_where($wallet_table, array('userid' => $this->session->user_id))->row();
+        $get_balance = $chk_w ? floatval($chk_w->balance) : 0.0;
+        
         $userinfo    = $this->db_model->select_multi('name,phone,username', 'member', array('id' => $this->session->user_id));
         $coupon_id   = $this->input->post('coupon');
-        $coupon_data = $this->db_model->select_multi('*', 'coupon', array('id' => $coupon_id));
-        $coupon      = $coupon_data->coupon_amt;
-        $prod_wall   = $this->input->post('prod_wallet');
-        $percent_20  = $this->cart->total() * 0.10;
-        /* The franchise assignment logic has been moved to the Franchise Controller for this project only, as per the client’s requirement.
-        if(empty($selected_franchisee_id) or $selected_franchisee_id == null){
-            $selected_franchisee_id = 1;
-        }*/
-        
-        /** Calculation for Cart To get final amount for next part **/
-        
-        if($coupon != NULL and $prod_wall != NULL){
-            $coupn_wallet = $coupon + $wallet_prod_amt;
-            $cart_total   = $this->cart->total() - $coupn_wallet;
+        $coupon      = 0.0;
+        if (!empty($coupon_id)) {
+            $coupon_data = $this->db_model->select_multi('*', 'coupon', array('id' => $coupon_id));
+            $coupon      = ($coupon_data && isset($coupon_data->coupon_amt)) ? floatval($coupon_data->coupon_amt) : 0.0;
         }
         
-        elseif($coupon != NULL){
-            $cart_total  = $this->cart->total() - $coupon;
-        }
-        
-        elseif($prod_wall != NULL){
-            $cart_total  = $this->cart->total() - $wallet_prod_amt;
-        }
-        
-        else{
-            $cart_total = $this->cart->total();
-        }
-        
-        /***************************************************** END  ***********************************************/
+        $cart_total = max(0, floatval($this->cart->total()) - $coupon);
 
         if ($get_balance < $cart_total){
             $add_money = $cart_total - $get_balance; 
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Your Wallet donot have suficient fund to complete this purchase. Wallet need to have atleast: ' . config_item('currency') . $add_money . '<a href="../gateway/registration_form"> Add Money</a></div>');
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Your ' . $wallet_label . ' does not have sufficient balance. Required: ₹' . number_format($cart_total, 2) . ', Available: ₹' . number_format($get_balance, 2) . '. Shortfall: ₹' . number_format($add_money, 2) . '</div>');
             $this->session->set_userdata('_order_id_', $o_id);
-            $this->session->set_userdata('_user_name_', $userinfo->name);
-            $this->session->set_userdata('_phone_', $userinfo->phone);
+            $this->session->set_userdata('_user_name_', $userinfo ? $userinfo->name : '');
+            $this->session->set_userdata('_phone_', $userinfo ? $userinfo->phone : '');
             $this->session->set_userdata('_price_', $add_money);
             redirect(site_url('cart/pre_checkout'));
+            return;
         }
-        else{
-                $this->session->set_userdata('_order_id_', $o_id);
-                #The franchise assignment logic has been moved to the Franchise Controller for this project only, as per the client’s requirement.
-                /*
-                if($this->db_model->select('franchisee', 'global_setting', array('id' => 1)) == 1){
-                    if ($cart = $this->cart->contents()){
-                        foreach ($cart as $item):
-                            $stock = $this->db->get_where('franchisee_stock', ['franchisee_id' => $selected_franchisee_id, 'product_id'  => $item['id']])->row();
-                            if (!$stock || $stock->available_qty < $item['qty']) {
-                                $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Insufficient stock for product: ' . $item['name'] . '. Available: ' . ($stock ? $stock->available_qty : 0) . '</div>');
-                                redirect(site_url('cart/pre_checkout'));
-                                return;
-                            }
-                        endforeach;
-                    }
-                }*/
-                ###########
-                $data = array(
-                    'balance' => ($get_balance - $cart_total),                   
-                );
-                $this->db->where('userid', $this->session->user_id);
-                $this->db->update($wallet, $data);
-                
-                if($prod_wall != NULL){ 
-                    $data = array(
-                        'balance' => $wallet_prod - $wallet_prod_amt,                   
-                    );
-                    $this->db->where('userid', $this->session->user_id);
-                    $this->db->update('product_wallet', $data);
-                }   
-                if ($cart = $this->cart->contents()){
-                    foreach ($cart as $item):
+        else {
+            $this->session->set_userdata('_order_id_', $o_id);
+            
+            // Deduct balance from chosen wallet
+            $new_balance = $get_balance - $cart_total;
+            $this->db->where('userid', $this->session->user_id)->update($wallet_table, array('balance' => $new_balance));
+
+            // Log wallet transaction
+            $w_transData = array(
+                'userid'     => $this->session->user_id,
+                'type'       => 'Debit',
+                'amount'     => $cart_total,
+                'ref_id'     => $o_id,
+                'other'      => 'Product Purchase Order #' . $o_id . ' (' . $wallet_label . ')',
+            );
+            $this->db->insert('wallet_transaction', $w_transData);
+            if ($cart = $this->cart->contents()){
+                foreach ($cart as $item):
 
                     ## Franchisee stock handles code start 
                     ##The franchise assignment logic has been moved to the Franchise Controller for this project only, as per the client’s requirement.

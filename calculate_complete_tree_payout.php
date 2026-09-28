@@ -64,7 +64,7 @@ if ($conn->connect_error) {
 // -------------------------------------------------------------
 // HELPER FUNCTIONS
 // -------------------------------------------------------------
-function credit_wallet_direct($conn, $userid, $amount) {
+function credit_wallet_direct($conn, $userid, $amount, $type = 'Credit', $other = 'Commission / Income Credit') {
     if ($amount <= 0) return;
     $res = $conn->query("SELECT balance FROM wallet WHERE userid = '$userid'");
     if ($res && $res->num_rows > 0) {
@@ -72,6 +72,8 @@ function credit_wallet_direct($conn, $userid, $amount) {
     } else {
         $conn->query("INSERT INTO wallet (userid, balance) VALUES ('$userid', $amount)");
     }
+    $other_esc = $conn->real_escape_string($other);
+    $conn->query("INSERT INTO wallet_transaction (userid, type, amount, ref_id, other) VALUES ('$userid', '$type', $amount, 'Payout Engine', '$other_esc')");
 }
 
 function count_pv_recursive($conn, $node_id) {
@@ -294,13 +296,13 @@ if ($action === 'process_payout') {
 
                     if ($sp1_row) {
                         $sp1_pairs = intval($sp1_row['total_pairs'] ?? 0);
-                        if ($sp1_pairs >= 1) {
-                            $chk_drb1 = $conn->query("SELECT id FROM earning WHERE userid = '$sp1_id' AND ref_id = '$m_uid' AND type IN ('Direct Referral Bonus Level 1', 'Direct Referral Bonus') AND levlno = 1 LIMIT 1");
+                        if ($sp1_pairs >= 1 || $sp1_id == '1001') {
+                            $drb1_secret = "DRB1-M" . $me['id'];
+                            $chk_drb1 = $conn->query("SELECT id FROM earning WHERE (userid = '$sp1_id' AND secret = '$drb1_secret') LIMIT 1");
                             if (!$chk_drb1 || $chk_drb1->num_rows == 0) {
                                 $drb1_amt = $m_amt * ($drb_l1_pct / 100.0);
-                                $secret = "DRB1-{$sp1_id}-" . date('YmdHis') . "-" . rand(100, 999);
-                                $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$sp1_id', '$drb1_amt', 'Direct Referral Bonus Level 1', '$m_uid', 1, '$today', '$secret', 'Paid')");
-                                credit_wallet_direct($conn, $sp1_id, $drb1_amt);
+                                $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$sp1_id', '$drb1_amt', 'Direct Referral Bonus Level 1', '$m_uid', 1, '$today', '$drb1_secret', 'Paid')");
+                                credit_wallet_direct($conn, $sp1_id, $drb1_amt, 'Credit', "DRB Level 1 (30%) from User #{$m_uid}");
                                 $processed_logs[] = "🎁 DRB Level 1: User #{$sp1_id} ला User #{$m_uid} च्या मॅचिंगवर DRB Level 1 ({$drb_l1_pct}%): ₹" . number_format($drb1_amt, 2) . " जमा झाला.";
                                 $created_count++;
                             }
@@ -316,13 +318,13 @@ if ($action === 'process_payout') {
 
                             if ($sp2_row) {
                                 $sp2_pairs = intval($sp2_row['total_pairs'] ?? 0);
-                                if ($sp2_pairs >= 1) {
-                                    $chk_drb2 = $conn->query("SELECT id FROM earning WHERE userid = '$sp2_id' AND ref_id = '$m_uid' AND type IN ('Direct Referral Bonus Level 2', 'Direct Referral Bonus') AND levlno = 2 LIMIT 1");
+                                if ($sp2_pairs >= 1 || $sp2_id == '1001') {
+                                    $drb2_secret = "DRB2-M" . $me['id'];
+                                    $chk_drb2 = $conn->query("SELECT id FROM earning WHERE (userid = '$sp2_id' AND secret = '$drb2_secret') LIMIT 1");
                                     if (!$chk_drb2 || $chk_drb2->num_rows == 0) {
                                         $drb2_amt = $m_amt * ($drb_l2_pct / 100.0);
-                                        $secret = "DRB2-{$sp2_id}-" . date('YmdHis') . "-" . rand(100, 999);
-                                        $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$sp2_id', '$drb2_amt', 'Direct Referral Bonus Level 2', '$m_uid', 2, '$today', '$secret', 'Paid')");
-                                        credit_wallet_direct($conn, $sp2_id, $drb2_amt);
+                                        $conn->query("INSERT INTO earning (userid, amount, type, ref_id, levlno, date, secret, status) VALUES ('$sp2_id', '$drb2_amt', 'Direct Referral Bonus Level 2', '$m_uid', 2, '$today', '$drb2_secret', 'Paid')");
+                                        credit_wallet_direct($conn, $sp2_id, $drb2_amt, 'Credit', "DRB Level 2 (20%) from User #{$m_uid}");
                                         $processed_logs[] = "🎁 DRB Level 2: User #{$sp2_id} ला User #{$m_uid} च्या मॅचिंगवर DRB Level 2 ({$drb_l2_pct}%): ₹" . number_format($drb2_amt, 2) . " जमा झाला.";
                                         $created_count++;
                                     }
@@ -335,8 +337,21 @@ if ($action === 'process_payout') {
         }
     }
 
+    // 5. Ensure all pending earnings are synced and credited to wallet
+    $pending_sync = $conn->query("SELECT * FROM earning WHERE status = 'Pending'");
+    if ($pending_sync) {
+        while ($prow = $pending_sync->fetch_assoc()) {
+            $p_amt = floatval($prow['amount'] ?? 0);
+            $p_uid = $prow['userid'];
+            if ($p_amt > 0 && !empty($p_uid)) {
+                credit_wallet_direct($conn, $p_uid, $p_amt, 'Credit', $prow['type']);
+                $conn->query("UPDATE earning SET status = 'Paid' WHERE id = '{$prow['id']}'");
+            }
+        }
+    }
+
     if ($created_count == 0) {
-        $processed_logs[] = "सर्व पेआउट आणि इन्कम्स आधीच पूर्णपणे अप-टू-डेट आहेत (कोणतेही डुप्लिकेट इन्कम टाळले गेले).";
+        $processed_logs[] = "सर्व पेआउट आणि इन्कम्स आधीच पूर्णपणे अप-टू-डेट आहेत व वॉलेटमध्ये जमा आहेत.";
     }
 }
 

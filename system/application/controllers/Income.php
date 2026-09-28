@@ -86,41 +86,91 @@ class Income extends CI_Controller
 
     public function process_payouts()
     {
+        $this->db_model->check_and_update_wallet_schema();
         $selected_ids = $this->input->post('selected_ids');
         $status       = $this->input->post('status');
-        #echo "<pre>";print_r($_POST);die();
+
         if ($selected_ids) {
             $id_array = explode(',', $selected_ids);
+            $processed_count = 0;
+            $admin_pct = floatval(config_item('admin_charges'));
+            $tds_pct   = floatval(config_item('payout_tax'));
+
             foreach ($id_array as $id) {
-                $amount  = $this->db_model->select_multi('userid,amount', 'withdraw_request', array('id' => $id));
-                $total_deduction_rate = (float)config_item('admin_charges') + (float)config_item('payout_tax');
-                $data = array(
-                    'status'    => $status,
-                    'paid_date' => date('Y-m-d'),
-                    'tid'       => '',
-                    'tax'       => ($amount->amount * $total_deduction_rate / 100),
-                );
-                $this->db->where('id', $id);
-                $result = $this->db->update('withdraw_request', $data);
-        
-                if($status == 'Paid'){
-                #if($result && $this->db->affected_rows() > 0){
+                $id = trim($id);
+                if (empty($id)) continue;
+
+                $req = $this->db->get_where('withdraw_request', array('id' => $id))->row();
+                if (!$req) continue;
+
+                // Idempotency: only process pending/un-paid/hold items
+                if ($status == 'Paid') {
+                    if ($req->status == 'Paid' || $req->status == 'Rejected') continue;
+
+                    $gross      = floatval($req->amount);
+                    $admin_tax  = round(($gross * $admin_pct) / 100.0, 2);
+                    $tds_tax    = round(($gross * $tds_pct) / 100.0, 2);
+                    $total_tax  = round($admin_tax + $tds_tax, 2);
+                    $net_paid   = round($gross - $total_tax, 2);
+
                     $data = array(
-                        'userid'     => $amount->userid,
-                        'amount'     => $amount->amount,
+                        'status'       => 'Paid',
+                        'paid_date'    => date('Y-m-d'),
+                        'tid'          => 'BATCH-' . date('YmdHis') . '-' . $id,
+                        'tax'          => $total_tax,
+                        'admin_tax'    => $admin_tax,
+                        'tds_tax'      => $tds_tax,
+                        'net_paid'     => $net_paid,
+                        'processed_by' => 'Admin #' . ($this->session->admin_id ?? '1'),
+                    );
+                    $this->db->where('id', $id)->update('withdraw_request', $data);
+
+                    // Deduct from member's wallet balance
+                    $chk_w = $this->db->get_where('wallet', array('userid' => $req->userid))->row();
+                    if ($chk_w) {
+                        $new_bal = max(0, round((float)$chk_w->balance - $gross, 2));
+                        $this->db->where('userid', $req->userid)->update('wallet', array('balance' => $new_bal));
+                    }
+
+                    // Insert debit into wallet_transaction ledger
+                    $w_transData = array(
+                        'userid'       => $req->userid,
+                        'type'         => 'Debit',
+                        'amount'       => $gross,
+                        'ref_id'       => 'PAYOUT_' . $id,
+                        'other'        => 'Payout Paid by Admin (Net: ₹' . number_format($net_paid, 2) . ', Tax: ₹' . number_format($total_tax, 2) . ')',
+                        'created_date' => date('Y-m-d H:i:s'),
+                    );
+                    $this->db->insert('wallet_transaction', $w_transData);
+
+                    // Mark user's earnings as Paid
+                    $this->db->where('userid', $req->userid)->where('status', 'Pending')->update('earning', array('status' => 'Paid'));
+
+                    // Insert TDS tax report audit entry
+                    $tax_data = array(
+                        'userid'     => $req->userid,
+                        'amount'     => $gross,
                         'payout_id'  => $id,
-                        'tax_amount' => ($amount->amount * config_item('payout_tax') / 100),
-                        'tax_percnt' => config_item('payout_tax'),
+                        'tax_amount' => $tds_tax,
+                        'tax_percnt' => $tds_pct,
                         'date'       => date('Y-m-d'),
                     );
-                    $this->db->insert('tax_report', $data);
+                    $this->db->insert('tax_report', $tax_data);
+                    $processed_count++;
+                } elseif ($status == 'Hold') {
+                    if ($req->status == 'Paid' || $req->status == 'Rejected') continue;
+                    $this->db->where('id', $id)->update('withdraw_request', array(
+                        'status'      => 'Hold',
+                        'hold_reason' => 'Batch Put on Hold by Admin',
+                    ));
+                    $processed_count++;
                 }
             }
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Selected payouts processed successfully.</div>');
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">' . $processed_count . ' payout(s) marked as ' . $status . ' successfully.</div>');
         } else {
-            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">No payouts selected.</div>');
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">No payouts selected.</div>');
         }
-        redirect('income/withdraws_list/'.$status);
+        redirect('income/withdraws_list/' . $status);
     }
 
     public function withdraws_list($type = 'All')
@@ -702,82 +752,281 @@ public function autopool_four(){
 
     public function pay() 
     {
+        $this->db_model->check_and_update_wallet_schema();
         $payid   = $this->input->post('payid');
-        $tdetail = $this->input->post('tdetail');
-        $amount  = $this->db_model->select_multi('userid,amount', 'withdraw_request', array('id' => $payid));
+        $tdetail = trim($this->input->post('tdetail') ?? '');
+        $req     = $this->db->get_where('withdraw_request', array('id' => $payid))->row();
+
+        if (!$req) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Payout request not found.</div>');
+            redirect('income/withdraws_list/Un-Paid');
+            return;
+        }
+
+        if ($req->status == 'Paid') {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">This payout request has already been marked as Paid.</div>');
+            redirect('income/withdraws_list/Paid');
+            return;
+        }
+
+        if ($req->status == 'Rejected') {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Cannot approve a Rejected payout request.</div>');
+            redirect('income/withdraws_list/Reject');
+            return;
+        }
+
+        $gross      = floatval($req->amount);
+        $admin_pct  = floatval(config_item('admin_charges'));
+        $tds_pct    = floatval(config_item('payout_tax'));
+        $admin_tax  = round(($gross * $admin_pct) / 100.0, 2);
+        $tds_tax    = round(($gross * $tds_pct) / 100.0, 2);
+        $total_tax  = round($admin_tax + $tds_tax, 2);
+        $net_paid   = round($gross - $total_tax, 2);
 
         $data = array(
-            'status'    => 'Paid',
-            'paid_date' => date('Y-m-d'),
-            'tid'       => $tdetail,
-            'tax'       => ($amount->amount * config_item('payout_tax') / 100),
+            'status'       => 'Paid',
+            'paid_date'    => date('Y-m-d'),
+            'tid'          => $tdetail ?: ('TXN-' . date('YmdHis') . '-' . $payid),
+            'tax'          => $total_tax,
+            'admin_tax'    => $admin_tax,
+            'tds_tax'      => $tds_tax,
+            'net_paid'     => $net_paid,
+            'processed_by' => 'Admin #' . ($this->session->admin_id ?? '1'),
         );
         $this->db->where('id', $payid);
         $this->db->update('withdraw_request', $data);
 
-        $data = array(
-            'userid'     => $amount->userid,
-            'amount'     => $amount->amount,
+        // Mark user's earnings as Paid
+        $this->db->where('userid', $req->userid)->where('status', 'Pending')->update('earning', array('status' => 'Paid'));
+
+        // Record TDS in tax_report for auditing
+        $tax_data = array(
+            'userid'     => $req->userid,
+            'amount'     => $gross,
             'payout_id'  => $payid,
-            'tax_amount' => ($amount->amount * config_item('payout_tax') / 100),
-            'tax_percnt' => config_item('payout_tax'),
+            'tax_amount' => $tds_tax,
+            'tax_percnt' => $tds_pct,
             'date'       => date('Y-m-d'),
         );
-        $this->db->insert('tax_report', $data);
+        $this->db->insert('tax_report', $tax_data);
 
-        $user_data = $this->db_model->select_multi('name, phone, email', 'member', array('id' => $amount->userid));
+        $user_data = $this->db_model->select_multi('name, phone, email', 'member', array('id' => $req->userid));
+        if ($user_data && !empty($user_data->phone)) {
+            $sms_msg = 'Hi ' . $user_data->name . ', Your payout of ' . config_item('currency') . number_format($net_paid, 2) . ' (Gross ' . config_item('currency') . number_format($gross, 2) . ', TDS: ' . config_item('currency') . number_format($tds_tax, 2) . ', Admin Fee: ' . config_item('currency') . number_format($admin_tax, 2) . ') has been approved & paid. --' . config_item('company_name');
+            $this->common_model->sms($user_data->phone, $sms_msg);
+        }
 
-        $this->common_model->sms($user_data->phone, 'Hi, ' . $user_data->name . ', Your payout of ' . config_item('currency') . $amount->amount . ' has been generated and paid. Please check your account. --' . config_item('company_name'));
-          $email=$user_data->email;
-            $sub = "Payout Generated";
-            $msg ="Hi, " . $user_data->name . ", Your payout of " . config_item('currency') . $amount->amount . " has been generated and paid. Please check your account. <hr/>--" . config_item('company_name');
-            $this->load->config('email');
-           
-            if (trim(config_item('smtp_host')) !== "") {
-                var_dump($email);var_dump($sub);var_dump($msg);
-             $this->common_model->mail($email, $sub, $msg);
-            } 
-
-       // $this->common_model->mail($user_data->email, 'Payout Generated', 'Hi, ' . $user_data->name . ', Your payout of ' . config_item('currency') . $amount->amount . ' has been generated and paid. Please check your account. <hr/>--' . config_item('company_name'));
-
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Marked as Paid successfully.</div>');
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Payout marked as Paid successfully (Net Paid: ' . config_item('currency') . number_format($net_paid, 2) . ').</div>');
         redirect('income/withdraws_list/Un-Paid');
     }
 
     public function pay_ajax()
     {
+        $this->db_model->check_and_update_wallet_schema();
         header('Content-Type: application/json');
         $payid   = $this->input->post('id') ?? $this->input->post('payid');      
-        $tdetail = $this->input->post('detail') ?? $this->input->post('tdetail') ?? '';  
+        $tdetail = trim($this->input->post('detail') ?? $this->input->post('tdetail') ?? '');  
     
-        $amount  = $this->db_model->select_multi('userid,amount', 'withdraw_request', array('id' => $payid));
-    
-        if (!$amount) {
-            echo json_encode(['status' => 'error', 'message' => 'Invalid request ID']);
+        $req = $this->db->get_where('withdraw_request', array('id' => $payid))->row();
+        if (!$req) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid payout request ID']);
             exit;
         }
 
-        $total_deduction_rate = (float)config_item('admin_charges') + (float)config_item('payout_tax');
-    
+        if ($req->status == 'Paid') {
+            echo json_encode(['status' => 'error', 'message' => 'Payout already approved/paid.']);
+            exit;
+        }
+
+        if ($req->status == 'Rejected') {
+            echo json_encode(['status' => 'error', 'message' => 'Cannot approve a rejected payout.']);
+            exit;
+        }
+
+        $gross      = floatval($req->amount);
+        $admin_pct  = floatval(config_item('admin_charges'));
+        $tds_pct    = floatval(config_item('payout_tax'));
+        $admin_tax  = round(($gross * $admin_pct) / 100.0, 2);
+        $tds_tax    = round(($gross * $tds_pct) / 100.0, 2);
+        $total_tax  = round($admin_tax + $tds_tax, 2);
+        $net_paid   = round($gross - $total_tax, 2);
+
         $data = array(
-            'status'    => 'Paid',
-            'paid_date' => date('Y-m-d'),
-            'tid'       => $tdetail,
-            'tax'       => ($amount->amount * $total_deduction_rate / 100),
+            'status'       => 'Paid',
+            'paid_date'    => date('Y-m-d'),
+            'tid'          => $tdetail ?: ('TXN-' . date('YmdHis') . '-' . $payid),
+            'tax'          => $total_tax,
+            'admin_tax'    => $admin_tax,
+            'tds_tax'      => $tds_tax,
+            'net_paid'     => $net_paid,
+            'processed_by' => 'Admin #' . ($this->session->admin_id ?? '1'),
         );
         $this->db->where('id', $payid)->update('withdraw_request', $data);
-    
+
+        // Mark user's earnings as Paid
+        $this->db->where('userid', $req->userid)->where('status', 'Pending')->update('earning', array('status' => 'Paid'));
+
+        // Record TDS in tax_report
         $tax_data = array(
-            'userid'     => $amount->userid,
-            'amount'     => $amount->amount,
+            'userid'     => $req->userid,
+            'amount'     => $gross,
             'payout_id'  => $payid,
-            'tax_amount' => ($amount->amount * config_item('payout_tax') / 100),
-            'tax_percnt' => config_item('payout_tax'),
+            'tax_amount' => $tds_tax,
+            'tax_percnt' => $tds_pct,
             'date'       => date('Y-m-d'),
         );
         $this->db->insert('tax_report', $tax_data);
     
-        echo json_encode(['status' => 'success', 'message' => 'Payout marked as Paid successfully.']);
+        echo json_encode([
+            'status'   => 'success', 
+            'message'  => 'Payout marked as Paid successfully (Net Paid: ' . config_item('currency') . number_format($net_paid, 2) . ').'
+        ]);
+        exit;
+    }
+
+    public function reject_payout($id = null)
+    {
+        $this->db_model->check_and_update_wallet_schema();
+        $id     = $id ?: $this->input->post('reject_id');
+        $reason = trim($this->input->post('reject_reason') ?? '');
+
+        $req = $this->db->get_where('withdraw_request', array('id' => $id))->row();
+        if (!$req) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Withdrawal request not found.</div>');
+            redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'income/withdraws_list/Un-Paid');
+            return;
+        }
+
+        if ($req->status == 'Rejected') {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-warning">This withdrawal is already rejected.</div>');
+            redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'income/withdraws_list/Reject');
+            return;
+        }
+
+        if ($req->status == 'Paid') {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Cannot reject an already Paid payout.</div>');
+            redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'income/withdraws_list/Paid');
+            return;
+        }
+
+        $gross = floatval($req->amount);
+        $uid   = $req->userid;
+
+        $this->db->trans_start();
+
+        // 1. Update withdraw_request status to Rejected
+        $this->db->where('id', $id)->update('withdraw_request', array(
+            'status'        => 'Rejected',
+            'reject_reason' => $reason ?: 'Rejected by Admin',
+            'paid_date'     => date('Y-m-d'),
+            'processed_by'  => 'Admin #' . ($this->session->admin_id ?? '1'),
+        ));
+
+        // 2. Refund held balance back into member's wallet
+        $chk_w = $this->db->get_where('wallet', array('userid' => $uid))->row();
+        if ($chk_w) {
+            $cur_bal = (float)$chk_w->balance;
+            $new_bal = round($cur_bal + $gross, 2);
+            $this->db->where('userid', $uid)->update('wallet', array('balance' => $new_bal));
+        } else {
+            $new_bal = $gross;
+            $this->db->insert('wallet', array('userid' => $uid, 'balance' => $new_bal));
+        }
+
+        // 3. Ledger credit entry for refund
+        $w_transData = array(
+            'userid'       => $uid,
+            'type'         => 'Credit',
+            'amount'       => $gross,
+            'ref_id'       => 'WITHDRAW_REJ_' . $id,
+            'other'        => 'Withdrawal Request #' . $id . ' Rejected & Refunded' . (!empty($reason) ? ' (Reason: ' . $reason . ')' : ''),
+            'created_date' => date('Y-m-d H:i:s'),
+        );
+        $this->db->insert('wallet_transaction', $w_transData);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-danger">Failed to process rejection.</div>');
+        } else {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Withdrawal rejected and ' . config_item('currency') . number_format($gross, 2) . ' refunded to user wallet successfully.</div>');
+        }
+        redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : 'income/withdraws_list/Reject');
+    }
+
+    public function reject_ajax()
+    {
+        $this->db_model->check_and_update_wallet_schema();
+        header('Content-Type: application/json');
+        $id     = $this->input->post('id') ?? $this->input->post('reject_id');
+        $reason = trim($this->input->post('reason') ?? $this->input->post('reject_reason') ?? '');
+
+        if (empty($id)) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request ID']);
+            exit;
+        }
+
+        $req = $this->db->get_where('withdraw_request', array('id' => $id))->row();
+        if (!$req) {
+            echo json_encode(['status' => 'error', 'message' => 'Withdrawal request not found.']);
+            exit;
+        }
+
+        if ($req->status == 'Rejected') {
+            echo json_encode(['status' => 'error', 'message' => 'Withdrawal is already rejected.']);
+            exit;
+        }
+
+        if ($req->status == 'Paid') {
+            echo json_encode(['status' => 'error', 'message' => 'Cannot reject an already paid withdrawal.']);
+            exit;
+        }
+
+        $gross = floatval($req->amount);
+        $uid   = $req->userid;
+
+        $this->db->trans_start();
+
+        // 1. Update withdraw_request status to Rejected
+        $this->db->where('id', $id)->update('withdraw_request', array(
+            'status'        => 'Rejected',
+            'reject_reason' => $reason ?: 'Rejected by Admin',
+            'paid_date'     => date('Y-m-d'),
+            'processed_by'  => 'Admin #' . ($this->session->admin_id ?? '1'),
+        ));
+
+        // 2. Refund held balance back into member's wallet
+        $chk_w = $this->db->get_where('wallet', array('userid' => $uid))->row();
+        if ($chk_w) {
+            $cur_bal = (float)$chk_w->balance;
+            $new_bal = round($cur_bal + $gross, 2);
+            $this->db->where('userid', $uid)->update('wallet', array('balance' => $new_bal));
+        } else {
+            $new_bal = $gross;
+            $this->db->insert('wallet', array('userid' => $uid, 'balance' => $new_bal));
+        }
+
+        // 3. Ledger credit entry for refund
+        $w_transData = array(
+            'userid'       => $uid,
+            'type'         => 'Credit',
+            'amount'       => $gross,
+            'ref_id'       => 'WITHDRAW_REJ_' . $id,
+            'other'        => 'Withdrawal Request #' . $id . ' Rejected & Refunded' . (!empty($reason) ? ' (Reason: ' . $reason . ')' : ''),
+            'created_date' => date('Y-m-d H:i:s'),
+        );
+        $this->db->insert('wallet_transaction', $w_transData);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            echo json_encode(['status' => 'error', 'message' => 'Transaction failed during rejection.']);
+        } else {
+            echo json_encode([
+                'status'  => 'success', 
+                'message' => 'Withdrawal rejected and ' . config_item('currency') . number_format($gross, 2) . ' refunded to user wallet successfully.'
+            ]);
+        }
         exit;
     }
 

@@ -654,11 +654,47 @@ public function get_tehsils($id) {
 
             }
         } else {
+            // Determine Sponsor, Placement, and Leg from URL / Parameters
+            $url_leg = '';
+            $url_sponsor = '';
+            $url_position = '';
+
+            $s3 = $this->uri->segment(3);
+            $s4 = $this->uri->segment(4);
+
+            if (in_array(strtoupper($s3), array('A', 'B', 'C', 'D', 'E', 'L', 'R', 'LEFT', 'RIGHT'))) {
+                $url_leg = (in_array(strtoupper($s3), array('B', 'R', 'RIGHT'))) ? 'B' : 'A';
+                if (!empty($s4)) {
+                    $url_sponsor = preg_replace("/[^0-9]+/", "", $s4);
+                    $url_position = $url_sponsor;
+                }
+            } elseif (!empty($s3)) {
+                $url_sponsor = preg_replace("/[^0-9]+/", "", $s3);
+                $url_position = (!empty($s4)) ? preg_replace("/[^0-9]+/", "", $s4) : $url_sponsor;
+            }
+
+            if (empty($url_sponsor)) {
+                if ($this->input->get('sponsor')) {
+                    $url_sponsor = preg_replace("/[^0-9]+/", "", $this->input->get('sponsor'));
+                } elseif ($this->input->get('ref')) {
+                    $url_sponsor = preg_replace("/[^0-9]+/", "", $this->input->get('ref'));
+                }
+            }
+            if (empty($url_position) && $this->input->get('position')) {
+                $url_position = preg_replace("/[^0-9]+/", "", $this->input->get('position'));
+            }
+            if (empty($url_leg) && $this->input->get('leg')) {
+                $url_leg = trim($this->input->get('leg'));
+            }
+
             // Initial form load
             $this->db->select('id, prod_name, prod_price, gst')->where('status', 'Selling')->order_by('prod_name', 'ASC');
-            $layout['products'] = $this->db->get('product')->result_array();
-            $layout['countries'] = $this->db->order_by('name','ASC')->get('geo_countries')->result_array();
-            $layout['layout']   = "register.php";
+            $layout['products']   = $this->db->get('product')->result_array();
+            $layout['countries']  = $this->db->order_by('name','ASC')->get('geo_countries')->result_array();
+            $layout['sponsor_id']  = $url_sponsor;
+            $layout['position_id'] = $url_position;
+            $layout['leg']         = $url_leg ?: 'A';
+            $layout['layout']      = "register.php";
             $this->load->view('theme/default/index', $layout);
         }
     }

@@ -20,11 +20,13 @@
                             <?= $this->session->flashdata('site_flash'); ?>
                         <?php endif; ?>
 
+                        <input type="hidden" name="leg" value="<?= !empty($leg) ? htmlspecialchars($leg) : 'A'; ?>">
                         <div class="row">
                             <!-- Optional Sponsor Section -->
                             <div class="col-md-6 mb-3" id="sponsor_sec">
                                 <label class="form-label fw-bold">Sponsor ID</label>
                                 <input type="text" id="sponsor" name="sponsor" class="form-control border-primary" 
+                                       value="<?= !empty($sponsor_id) ? htmlspecialchars($sponsor_id) : set_value('sponsor'); ?>"
                                        placeholder="Leave blank for Default" oninput="get_user_name('#sponsor', '#spn_res')">
                                 <small id="spn_res" class="text-success"></small>
                             </div>
@@ -33,6 +35,7 @@
                             <div class="col-md-6 mb-3" id="placement_sec">
                                 <label class="form-label fw-bold">Placement ID</label>
                                 <input type="text" id="position" name="position" class="form-control" 
+                                       value="<?= !empty($position_id) ? htmlspecialchars($position_id) : set_value('position'); ?>"
                                        placeholder="Leave blank for Auto-Fill" oninput="get_user_name('#position', '#pos_res')">
                                 <small id="pos_res" class="text-success"></small>
                             </div>
@@ -183,6 +186,14 @@ $(function () {
             $('#tehsil').html(html).prop('disabled', false);
         });
     });
+
+    // Auto-trigger name check if pre-populated from referral link
+    if ($('#sponsor').val() && $('#sponsor').val().trim() !== '') {
+        get_user_name('#sponsor', '#spn_res');
+    }
+    if ($('#position').val() && $('#position').val().trim() !== '') {
+        get_user_name('#position', '#pos_res');
+    }
 
 });
 

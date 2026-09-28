@@ -41,9 +41,13 @@ class Cron extends CI_Controller
         $this->drb_payout();
         $this->rank_update();
 
-        $this->update_payout_new();
+        // Sync and credit all earnings into E-Wallets
+        $this->earning->sync_all_pending_earnings_to_wallet();
+
+        // Generate Payout Requests for all members with balance (Status: Un-Paid)
         $this->generate_withdrawals();
 
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Income Calculated & Payout Requests Populated to Un-Paid List Successfully!</div>');
 		redirect('income/withdraws_list/Un-Paid');
     }
 
@@ -57,6 +61,7 @@ class Cron extends CI_Controller
         $this->db->query("TRUNCATE TABLE earning");
         $this->db->query("TRUNCATE TABLE laps_earning");
         $this->db->query("TRUNCATE TABLE wallet");
+        $this->db->query("TRUNCATE TABLE wallet_transaction");
         $this->db->query("DELETE FROM withdraw_request WHERE status = 'Un-Paid' OR status = 'Pending'");
 
         // 3. Update legs & recalculate cleanly
@@ -65,11 +70,11 @@ class Cron extends CI_Controller
         $this->binary_payout();
         $this->drb_payout();
         $this->rank_update();
-        $this->update_payout_new();
+        $this->earning->sync_all_pending_earnings_to_wallet();
         $this->generate_withdrawals();
 
-        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">All Payouts Cleaned & Recalculated Successfully!</div>');
-        redirect('income/view-earning');
+        $this->session->set_flashdata('common_flash', '<div class="alert alert-success">All Incomes Cleaned, Recalculated & Generated to Payout Requests Successfully!</div>');
+        redirect('income/withdraws_list/Un-Paid');
     }
 
     /**
@@ -85,37 +90,10 @@ class Cron extends CI_Controller
         $this->direct_sponsor_payout();
         $this->drb_payout();
 
-        // 2. Fetch all members with earnings
-        $this->db->select('userid, SUM(amount) as total_earned')->from('earning')->group_by('userid');
-        $earnings = $this->db->get()->result();
+        // 2. Sync all pending earnings idempotently to wallets
+        $synced_count = $this->earning->sync_all_pending_earnings_to_wallet();
 
-        $synced_count = 0;
-        if ($earnings) {
-            foreach ($earnings as $e) {
-                $uid = $e->userid;
-                $tot_earned = floatval($e->total_earned ?? 0);
-
-                // Fetch total withdrawn / requested
-                $w_row = $this->db->select('SUM(amount) as total_w')->from('withdraw_request')->where('userid', $uid)->where_in('status', array('Paid', 'Un-Paid', 'Hold', 'Pending'))->get()->row();
-                $tot_withdrawn = floatval($w_row->total_w ?? 0);
-
-                $net_balance = max(0, $tot_earned - $tot_withdrawn);
-
-                // Check wallet
-                $w_chk = $this->db->where('userid', $uid)->get('wallet')->row();
-                if ($w_chk) {
-                    $this->db->where('userid', $uid)->update('wallet', array('balance' => $net_balance));
-                } else {
-                    $this->db->insert('wallet', array('userid' => $uid, 'balance' => $net_balance));
-                }
-
-                // Mark earnings as Paid
-                $this->db->where('userid', $uid)->where('status', 'Pending')->update('earning', array('status' => 'Paid'));
-                $synced_count++;
-            }
-        }
-
-        $msg = "All {$synced_count} member wallets have been synced and updated with their past earnings successfully!";
+        $msg = "All member wallets have been synced with {$synced_count} pending earnings successfully!";
         if ($this->session) {
             $this->session->set_flashdata('common_flash', '<div class="alert alert-success">' . $msg . '</div>');
         }
@@ -125,10 +103,21 @@ class Cron extends CI_Controller
 
     public function daily_payout(){
 
+        $this->load->model('earning');
+        $this->update_legs();
+        $this->direct_sponsor_payout();
+        $this->binary_payout();
+        $this->drb_payout();
+        $this->rank_update();
+        $this->earning->sync_all_pending_earnings_to_wallet();
         $this->generate_withdrawals();
-        $this->fran_update_payout_new();
 
-		redirect('income/withdraws_list/Un-Paid');
+        if ($this->session && $this->session->userdata('admin_id')) {
+            $this->session->set_flashdata('common_flash', '<div class="alert alert-success">Daily Incomes Evaluated & Payout Requests Populated to Un-Paid List Successfully!</div>');
+		    redirect('income/withdraws_list/Un-Paid');
+        } else {
+            echo "Daily Payout Run Completed Successfully at " . date('Y-m-d H:i:s');
+        }
     }
 
     public function weekly_payout(){
@@ -256,6 +245,10 @@ class Cron extends CI_Controller
 	
 	public function update_payout_new()
     {
+        $admin_charge = floatval(config_item('admin_charges'));
+        $payout_tax   = floatval(config_item('payout_tax'));
+        $deduct_pc    = $admin_charge + $payout_tax;
+
         $this->db->select('userid, SUM(amount) AS total_balance');
         $this->db->from('earning');
         $this->db->where('status', 'Pending');
@@ -264,19 +257,30 @@ class Cron extends CI_Controller
 
         foreach ($groups as $grp)
         {
-            if ($grp['total_balance'] <= 0) {
+            $gross = floatval($grp['total_balance'] ?? 0);
+            if ($gross <= 0) {
                 continue;
             }
 
-            $wallet_row = $this->db->where('userid', $grp['userid'])->get('wallet')->row();
-            if ($wallet_row) {
-                $cur_balance = floatval($wallet_row->balance);
-                $this->db->where('userid', $grp['userid'])->update('wallet', ['balance' => $cur_balance + $grp['total_balance']]);
-            } else {
-                $this->db->insert('wallet', ['userid' => $grp['userid'], 'balance' => $grp['total_balance']]);
-            }
+            $user_id    = $grp['userid'];
+            $member_row = $this->db->select('pan_no')->where('id', $user_id)->get('member')->row();
+            $pan_no     = !empty($member_row->pan_no) ? $member_row->pan_no : '';
+            $tax_amount = round($gross * $deduct_pc / 100, 2);
 
-            $this->db->where('userid', $grp['userid']);
+            // Generate Un-Paid payout request (Amount will ONLY go to user wallet when Admin approves/transfers)
+            $withdraw_data = array(
+                'userid'      => $user_id,
+                'amount'      => round($gross, 2),
+                'tax'         => $tax_amount,
+                'pan_no'      => $pan_no,
+                'date'        => date('Y-m-d'),
+                'withdraw_in' => 'Bank',
+                'status'      => 'Un-Paid',
+            );
+            $this->db->insert('withdraw_request', $withdraw_data);
+
+            // Mark earnings as processed
+            $this->db->where('userid', $user_id);
             $this->db->where('status', 'Pending');
             $this->db->update('earning', ['status' => 'Paid']);
         }
@@ -284,32 +288,17 @@ class Cron extends CI_Controller
 
 	public function generate_withdrawals()
     {
+        $this->db_model->check_and_update_wallet_schema();
         $min          = floatval(config_item('min_withdraw'));
         $admin_charge = floatval(config_item('admin_charges'));
         $payout_tax   = floatval(config_item('payout_tax'));
-        $deduct_pc    = $admin_charge + $payout_tax;
-
-        $log_dir = APPPATH . 'logs';
-        if (!is_dir($log_dir)) {
-            @mkdir($log_dir, 0777, true);
-        }
-        $log_file         = $log_dir . DIRECTORY_SEPARATOR . 'payout_daily_' . date('Y-m-d') . '.log';
-        $payout_debug_log = $log_dir . DIRECTORY_SEPARATOR . 'payout_debug.log';
 
         $this->db->select('userid, balance, pan_no')->where('balance >=', $min);
         $res = $this->db->get('wallet')->result();
-        $eligible_count = is_array($res) ? count($res) : 0;
 
-        $log_header = "\n========================================\n"
-                    . "[DAILY PAYOUT START]\n"
-                    . "TIME: " . date('Y-m-d H:i:s') . "\n"
-                    . "MIN WITHDRAW: " . $min . "\n"
-                    . "DEDUCT %: " . $deduct_pc . "% (Admin Charge: {$admin_charge}%, Payout Tax: {$payout_tax}%)\n"
-                    . "ELIGIBLE WALLET COUNT: " . $eligible_count . "\n"
-                    . "========================================\n";
-
-        @file_put_contents($log_file, $log_header, FILE_APPEND);
-        @file_put_contents($payout_debug_log, $log_header, FILE_APPEND);
+        if (empty($res)) {
+            return;
+        }
 
         foreach ($res as $row) {
             $user_id = $row->userid;
@@ -318,66 +307,39 @@ class Cron extends CI_Controller
                 continue;
             }
 
-            $this->db->trans_begin();
-
             $wallet_fresh = $this->db->select('balance, pan_no')->where('userid', $user_id)->get('wallet')->row();
             if (!$wallet_fresh || (float)$wallet_fresh->balance < $min) {
-                $this->db->trans_rollback();
-                $entry = "USER ID: {$user_id} | SKIPPED: Balance below minimum threshold ({$min})\n";
-                @file_put_contents($log_file, $entry, FILE_APPEND);
-                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
                 continue;
             }
 
             $cur_balance = (float)$wallet_fresh->balance;
-            $tax_amount  = round($cur_balance * $deduct_pc / 100, 2);
+            $admin_tax   = round(($cur_balance * $admin_charge) / 100.0, 2);
+            $tds_tax     = round(($cur_balance * $payout_tax) / 100.0, 2);
+            $total_tax   = round($admin_tax + $tds_tax, 2);
+            $net_paid    = round($cur_balance - $total_tax, 2);
             $pan_no      = !empty($wallet_fresh->pan_no) ? $wallet_fresh->pan_no : ($row->pan_no ?? '');
+
+            // Check if there is already an Un-Paid request for this user
+            $existing = $this->db->where('userid', $user_id)->where('status', 'Un-Paid')->get('withdraw_request')->row();
 
             $withdraw_data = array(
                 'userid'      => $user_id,
-                'amount'      => round($cur_balance),
-                'tax'         => $tax_amount,
+                'amount'      => round($cur_balance, 2),
+                'tax'         => $total_tax,
+                'admin_tax'   => $admin_tax,
+                'tds_tax'     => $tds_tax,
+                'net_paid'    => $net_paid,
                 'pan_no'      => $pan_no,
                 'date'        => date('Y-m-d'),
                 'withdraw_in' => 'Bank',
                 'status'      => 'Un-Paid',
+                'tid'         => 'PAYOUT-' . date('Ymd') . '-' . $user_id,
             );
 
-            $insert_ok = $this->db->insert('withdraw_request', $withdraw_data);
-            $insert_id = $this->db->insert_id();
-
-            if (!$insert_ok || !$insert_id) {
-                $db_err = $this->db->error();
-                $this->db->trans_rollback();
-                $entry = "USER ID: {$user_id} | WITHDRAW INSERT FAILED: " . json_encode($db_err) . " | TRANSACTION ROLLBACK\n";
-                @file_put_contents($log_file, $entry, FILE_APPEND);
-                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
-                continue;
-            }
-
-            $this->db->where('userid', $user_id);
-            $update_ok = $this->db->update('wallet', array('balance' => 0));
-
-            if (!$update_ok) {
-                $db_err = $this->db->error();
-                $this->db->trans_rollback();
-                $entry = "USER ID: {$user_id} | WALLET UPDATE FAILED: " . json_encode($db_err) . " | TRANSACTION ROLLBACK\n";
-                @file_put_contents($log_file, $entry, FILE_APPEND);
-                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
-                continue;
-            }
-
-            if ($this->db->trans_status() === FALSE) {
-                $db_err = $this->db->error();
-                $this->db->trans_rollback();
-                $entry = "USER ID: {$user_id} | TRANSACTION STATUS FALSE: " . json_encode($db_err) . " | TRANSACTION ROLLBACK\n";
-                @file_put_contents($log_file, $entry, FILE_APPEND);
-                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
+            if ($existing) {
+                $this->db->where('id', $existing->id)->update('withdraw_request', $withdraw_data);
             } else {
-                $this->db->trans_commit();
-                $entry = "USER ID: {$user_id} | WALLET BALANCE: {$cur_balance} | GROSS: {$withdraw_data['amount']} | TAX: {$tax_amount} | INSERT ID: {$insert_id} | WALLET UPDATE: SUCCESS (New Balance: 0) | TRANSACTION COMMITTED\n";
-                @file_put_contents($log_file, $entry, FILE_APPEND);
-                @file_put_contents($payout_debug_log, $entry, FILE_APPEND);
+                $this->db->insert('withdraw_request', $withdraw_data);
             }
         }
     }
