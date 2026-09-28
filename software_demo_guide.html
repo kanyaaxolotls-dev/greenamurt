@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Amrut Ayurveda - अधिकृत सॉफ्टवेअर डेमो व युझर मॅन्युअल</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #15803d;
+            --primary-dark: #166534;
+            --primary-light: #dcfce7;
+            --admin-theme: #1e3a8a;
+            --admin-light: #dbeafe;
+            --member-theme: #047857;
+            --member-light: #d1fae5;
+            --accent: #d97706;
+            --dark: #0f172a;
+            --gray-bg: #f8fafc;
+            --border: #cbd5e1;
+            --text: #334155;
+            --heading: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Mukta', 'Poppins', sans-serif;
+            background-color: #e2e8f0;
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 14.5px;
+        }
+
+        .print-btn-bar {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            z-index: 9999;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.18);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #15803d, #166534);
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 25px;
+            font-size: 14.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(21, 128, 61, 0.35);
+        }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+        }
+
+        .page-container {
+            max-width: 950px;
+            margin: 30px auto;
+            background: white;
+            padding: 45px 55px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+            border-radius: 12px;
+        }
+
+        /* Header */
+        .doc-header {
+            text-align: center;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 22px;
+            margin-bottom: 30px;
+        }
+
+        .brand-badge {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 5px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .doc-title {
+            font-size: 30px;
+            color: var(--heading);
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .doc-subtitle {
+            font-size: 16px;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        /* Roles Header Badges */
+        .role-section-header {
+            padding: 14px 20px;
+            border-radius: 8px;
+            color: white;
+            margin: 35px 0 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            page-break-before: always;
+        }
+
+        .role-admin {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            border-left: 6px solid #f59e0b;
+        }
+
+        .role-member {
+            background: linear-gradient(135deg, #065f46, #047857);
+            border-left: 6px solid #10b981;
+        }
+
+        .role-title {
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-tag {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Section Headings */
+        .section-block {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+
+        .section-heading {
+            font-size: 17px;
+            color: var(--heading);
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8fafc;
+            padding-top: 6px;
+            padding-bottom: 6px;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .card-box {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 15px;
+        }
+
+        .step-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .step-item {
+            position: relative;
+            padding-left: 32px;
+            margin-bottom: 12px;
+        }
+
+        .step-num {
+            position: absolute;
+            left: 0;
+            top: 2px;
+            width: 22px;
+            height: 22px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 22px;
+            font-size: 11.5px;
+            font-weight: bold;
+        }
+
+        .step-num-admin {
+            background: var(--admin-theme);
+        }
+
+        .route-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid #bae6fd;
+        }
+
+        .highlight-box {
+            background: #fffbeb;
+            border-left: 4px solid var(--accent);
+            padding: 12px 16px;
+            border-radius: 0 6px 6px 0;
+            margin: 12px 0;
+            font-size: 13.5px;
+        }
+
+        .success-box {
+            background: #f0fdf4;
+            border-left: 4px solid var(--primary);
+            padding: 12px 16px;
+            border-radius: 0 6px 6px 0;
+            margin: 12px 0;
+            font-size: 13.5px;
+        }
+
+        .alert-box {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 12px 16px;
+            border-radius: 0 6px 6px 0;
+            margin: 12px 0;
+            font-size: 13.5px;
+        }
+
+        /* Flow Diagrams */
+        .flow-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 12px 8px;
+            margin: 12px 0;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .flow-step {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--heading);
+            text-align: center;
+            flex: 1;
+            min-width: 110px;
+        }
+
+        .flow-arrow {
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+
+        .data-table th {
+            background: #f1f5f9;
+            color: var(--heading);
+            padding: 8px 10px;
+            text-align: left;
+            border: 1px solid var(--border);
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+        }
+
+        .data-table tr:nth-child(even) {
+            background: #fbfcfd;
+        }
+
+        .footer-note {
+            text-align: center;
+            border-top: 1px solid var(--border);
+            padding-top: 18px;
+            margin-top: 35px;
+            font-size: 12.5px;
+            color: #64748b;
+        }
+
+        /* Print Media Query */
+        @media print {
+            body {
+                background: white;
+                font-size: 12px;
+            }
+            .print-btn-bar {
+                display: none;
+            }
+            .page-container {
+                margin: 0;
+                padding: 0;
+                max-width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .section-block {
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+            }
+            .role-section-header {
+                page-break-before: always;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .section-heading, .highlight-box, .success-box, .alert-box, .brand-badge, .route-badge {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            @page {
+                size: A4;
+                margin: 10mm 12mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Print Button -->
+    <div class="print-btn-bar">
+        <button class="btn-print" onclick="window.print()">
+            <i class="fa fa-file-pdf"></i> संपूर्ण मॅन्युअल PDF डाऊनलोड करा (Ctrl+P)
+        </button>
+    </div>
+
+    <div class="page-container">
+
+        <!-- Header -->
+        <div class="doc-header">
+            <span class="brand-badge"><i class="fa fa-leaf"></i> 100% Actual Code Flow</span>
+            <h1 class="doc-title">Green Amrut Ayurveda</h1>
+            <p class="doc-subtitle">MLM & Direct Selling Software — Admin & Member Complete User Guide (मराठी)</p>
+        </div>
+
+        <!-- System Core Rules Notice -->
+        <div class="alert-box" style="margin-bottom: 25px;">
+            <strong>⚠️ सॉफ्टवेअरमधील ऍक्टिव्हेशनचे अचूक नियम (Code Rules):</strong>
+            <ul style="padding-left: 20px; margin-top: 5px;">
+                <li><strong>ID Activation पद्धती:</strong> आयडी ऍक्टिव्हेट फक्त <strong>E-Pin</strong> द्वारे किंवा <strong>Online Exam (Pass / Skip Exam)</strong> द्वारे होतो. <em>(E-Wallet द्वारे आयडी Active केला जात नाही).</em></li>
+                <li><strong>E-Wallet चा वापर:</strong> E-Wallet चा वापर फंड डिपॉझिट (Add Money), Member-to-Member ट्रान्सफर आणि पेआउट विड्रॉलसाठी होतो.</li>
+            </ul>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PART 1: PUBLIC REGISTRATION & LOGIN FLOW -->
+        <!-- ========================================== -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-user-plus"></i> १. Registration & Login (नोंदणी व लॉगिन)</h2>
+            <div class="card-box">
+                <p><strong>नोंदणी URL:</strong> <span class="route-badge">site/register</span> | <strong>लॉगिन URL:</strong> <span class="route-badge">site/login</span></p>
+                <ul class="step-list" style="margin-top: 10px;">
+                    <li class="step-item">
+                        <span class="step-num">१</span>
+                        <strong>Sponsor ID:</strong> कोणाच्या रेफरलने जॉईन होत आहे तो ID टाकल्यावर स्पॉन्सरचे नाव आपोआप येते.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">२</span>
+                        <strong>Position:</strong> बायनरी लेगसाठी <strong>Left (A)</strong> किंवा <strong>Right (B)</strong> सिलेक्ट करा.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">३</span>
+                        <strong>फॉर्म डिटेल्स:</strong> Name, Phone No, Email, Password (min 5 chars), Country, State, District, Tehsil आणि Package निवडा.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">४</span>
+                        <strong>३-IDs नियम (Code Rule):</strong> एका व्यक्तीच्या माहितीवर जास्तीत जास्त ३ आयडी अलाऊड आहेत. पहिला मेन आयडी, दुसरा डाव्या बाजूला आणि तिसरा उजव्या बाजूला ऑटो-प्लेस होतो.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">५</span>
+                        <strong>नोंदणीनंतर:</strong> सिस्टीम युनिक <strong>Member ID</strong> देते. सुरुवातीला स्टेटस <strong>Inactive (Pending)</strong> असतो.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PART 2: ADMIN PANEL GUIDE -->
+        <!-- ========================================== -->
+        <div class="role-section-header role-admin">
+            <div class="role-title"><i class="fa fa-user-shield"></i> ॲडमिन पॅनल गाईड (Admin Side Walkthrough)</div>
+            <span class="role-tag">Admin Role</span>
+        </div>
+
+        <!-- Admin E-Pin -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-key"></i> Admin: E-Pin Management (पिन बनवणे व पाठवणे)</h2>
+            <div class="card-box">
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">१</span>
+                        <strong>E-Pin तयार करणे (<span class="route-badge">admin/generate_epin</span>):</strong> Amount / Package निवडा, पिन्सची संख्या (Quantity) टाका आणि Generate करा. या पिन्स 'Un-used' म्हणून तयार होतात.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">२</span>
+                        <strong>E-Pin ट्रान्सफर करणे (<span class="route-badge">admin/transfer_epin</span>):</strong> मेंबरचा User ID टाका आणि तयार केलेल्या पिन्स त्या मेंबरच्या खात्यात ट्रान्सफर करा.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">३</span>
+                        <strong>Pin Reports:</strong> <span class="route-badge">admin/unused_epin</span> (शिल्लक पिन्स) व <span class="route-badge">admin/used_epin</span> (वापरलेल्या पिन्सची हिस्ट्री).
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Admin Quiz & Approvals -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-graduation-cap"></i> Admin: Quiz & Activation Approvals</h2>
+            <div class="card-box">
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">१</span>
+                        <strong>Quiz Payment Requests (<span class="route-badge">admin/quiz_payment_requests</span>):</strong> मेंबर्सने भरलेल्या एक्झाम फीचे स्क्रीनशॉट व UTR तपासा आणि <strong>'Approve'</strong> करा.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">२</span>
+                        <strong>Direct Exam Access (<span class="route-badge">admin/manual_quiz_approve</span>):</strong> पेमेंट न घेता एखाद्या मेंबरला थेट एक्झाम ऍक्सेस द्यायचा असल्यास User ID टाकून मॅन्युअली अप्रूव्ह करा.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Admin Wallet & Deposit Requests -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-wallet"></i> Admin: E-Wallet & Bank Deposit Requests</h2>
+            <div class="card-box">
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">१</span>
+                        <strong>Bank Deposit Requests (<span class="route-badge">admin/deposit_history</span> / <span class="route-badge">wallet/wallet_requests</span>):</strong> मेंबर्सने बँक खात्यात भरलेल्या पैशांची विनंती तपासा आणि 'Approve' करा. रक्कम लगेच मेंबरच्या वॉलेटमध्ये जमा होते.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">२</span>
+                        <strong>Manage Wallet Fund (<span class="route-badge">wallet/manage-wallet-fund</span>):</strong> ॲडमिन कोणत्याही मेंबरच्या खात्यात मॅन्युअली पैसे ॲड (Credit) किंवा कट (Debit) करू शकतो.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Admin Payouts & Withdrawals -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-money-bill-wave"></i> Admin: Payouts & Withdrawal Release</h2>
+            <div class="card-box">
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">१</span>
+                        <strong>Make Payment / Pending Withdrawals (<span class="route-badge">income/make-payment</span> किंवा <span class="route-badge">income/withdraws_list/Un-Paid</span>):</strong> येथे विड्रॉल मागितलेल्या सर्व मेंबर्सची यादी (बँक तपशील, IFSC, पॅन, नेट रक्कम) दिसते.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">२</span>
+                        <strong>Excel Export:</strong> ही फाईल Excel मध्ये डाऊनलोड करून बँकेतून NEFT / IMPS ट्रान्सफर करा.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num step-num-admin">३</span>
+                        <strong>Mark as Paid:</strong> पैसे पाठवल्यावर ॲडमिन 'Paid' मार्क करतो.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- PART 3: MEMBER PANEL GUIDE -->
+        <!-- ========================================== -->
+        <div class="role-section-header role-member">
+            <div class="role-title"><i class="fa fa-user"></i> मेंबर पॅनल गाईड (Member Side Walkthrough)</div>
+            <span class="role-tag">Member Role</span>
+        </div>
+
+        <!-- Member Activation Method 1: E-Pin -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-key"></i> Member: E-Pin द्वारे आयडी Active करणे</h2>
+            <div class="card-box">
+                <p><strong>मेनू:</strong> <code>e-PINs</code> ➡️ <code>Active e-PINs</code> (<span class="route-badge">member/unused-epin</span>)</p>
+                <ul class="step-list" style="margin-top: 10px;">
+                    <li class="step-item">
+                        <span class="step-num">१</span>
+                        Active e-PINs पेजवर जा.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">२</span>
+                        ज्याचा आयडी ऍक्टिव्हेट करायचा तो <strong>User ID</strong> टाका (स्वतःचा किंवा डाऊनलाईनचा).
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">३</span>
+                        उपलब्ध <strong>E-Pin</strong> निवडा आणि <strong>'Activate ID'</strong> वर क्लिक करा.
+                    </li>
+                </ul>
+                <div class="success-box">
+                    <strong>काय होते?</strong> आयडी Active होतो, पिन 'Used' मार्क होते, `product_sale` मध्ये ऑर्डर तयार होते आणि स्पॉन्सरला Direct Income व PV/BV क्रेडिट होतात.
+                </div>
+            </div>
+        </div>
+
+        <!-- Member Activation Method 2: Quiz & Skip Quiz -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-graduation-cap"></i> Member: Quiz Center द्वारे ID Activation (Package 1)</h2>
+            <div class="card-box">
+                <p><strong>मेनू:</strong> <code>Quiz Center</code> (<span class="route-badge">member/quiz_center</span>)</p>
+                
+                <div class="flow-container">
+                    <div class="flow-step">१. Submit Payment</div>
+                    <div class="flow-arrow"><i class="fa fa-arrow-right"></i></div>
+                    <div class="flow-step">२. Admin Approves</div>
+                    <div class="flow-arrow"><i class="fa fa-arrow-right"></i></div>
+                    <div class="flow-step">३. Choose Option</div>
+                    <div class="flow-arrow"><i class="fa fa-arrow-right"></i></div>
+                    <div class="flow-step">४. Account Active</div>
+                </div>
+
+                <table class="data-table">
+                    <tr>
+                        <th style="width: 50%;">पर्याय A: Start Exam (परीक्षा देऊन Active)</th>
+                        <th style="width: 50%;">पर्याय B: Skip Exam (थेट Active)</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            • <strong>Start Quiz (<span class="route-badge">member/start_quiz</span>)</strong> वर क्लिक करा.<br>
+                            • ५० MCQ प्रश्न सोडवा. किमान २० उत्तरे बरोबर आल्यास <strong>'Pass'</strong> होतो.<br>
+                            • आयडी Active होतो + <span class="route-badge">member/certificate</span> मधून <strong>Official Certificate</strong> मिळते.
+                        </td>
+                        <td>
+                            • <strong>Skip Exam (<span class="route-badge">member/skip_quiz</span>)</strong> वर क्लिक करा.<br>
+                            • कन्फर्मेशनला 'OK' करा.<br>
+                            • सिस्टीम १ सेकंदात 50/50 मार्क देऊन आयडी <strong>Active</strong> करते आणि बिझनेस कमिशन चालू होते.
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Member E-Wallet Module -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-wallet"></i> Member: E-Wallet Module चा वापर</h2>
+            <div class="card-box">
+                <ul class="step-list">
+                    <li class="step-item">
+                        <span class="step-num">१</span>
+                        <strong>Add Money / Topup (<span class="route-badge">member/topup-wallet</span>):</strong> कंपनीच्या बँकेत पैसे पाठवून UTR व स्क्रीनशॉट सबमिट करा. ॲडमिनने अप्रूव्ह केल्यावर वॉलेटमध्ये बॅलन्स वाढेल.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">२</span>
+                        <strong>Wallet Transfer (<span class="route-badge">wallet/transfer-balance</span>):</strong> इतर कोणत्याही मेंबरचा User ID टाकून वॉलेटमधील फंड ट्रान्सफर करा.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">३</span>
+                        <strong>Wallet Transactions (<span class="route-badge">wallet/trans_history</span>):</strong> क्रेडिट-डेबिट पासबुक तपासा.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Member Withdrawal Flow -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-hand-holding-usd"></i> Member: Payouts & Bank Withdrawal</h2>
+            <div class="card-box">
+                <p><strong>मेनू:</strong> <code>E-Wallet</code> ➡️ <code>Withdraw payout request</code> (<span class="route-badge">wallet/withdraw-payouts</span>)</p>
+                <ul class="step-list" style="margin-top: 10px;">
+                    <li class="step-item">
+                        <span class="step-num">१</span>
+                        <strong>अटी:</strong> प्रोफाइलमध्ये <strong>PAN Card Number</strong> आणि <strong>Bank A/C Details</strong> सेव्ह असणे बंधनकारक आहे. वॉलेट बॅलन्स किमान विड्रॉल मर्यादेपेक्षा (Min Withdraw) जास्त असावे.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">२</span>
+                        <strong>Deductions:</strong> सिस्टीम आपोआप <strong>TDS</strong> आणि <strong>Admin Charges</strong> वजा करून Net Payable दाखवते.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">३</span>
+                        <strong>Submit Request:</strong> बँक निवडून रिक्वेस्ट सबमिट करा. ती ॲडमिनकडे जाते.
+                    </li>
+                    <li class="step-item">
+                        <span class="step-num">४</span>
+                        <strong>Payout Report (<span class="route-badge">wallet/withdrawal-list</span>):</strong> बँक खात्यात पैसे जमा झाल्यावर स्टेटस 'Paid' दिसेल.
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Other Modules -->
+        <div class="section-block">
+            <h2 class="section-heading"><i class="fa fa-sitemap"></i> इतर मॉड्यूल्स (Other Features)</h2>
+            <div class="card-box">
+                <table class="data-table">
+                    <tr>
+                        <th>मॉड्यूल</th>
+                        <th>मेनू पाथ</th>
+                        <th>काय काम करते?</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Genealogy Tree</strong></td>
+                        <td><span class="route-badge">tree/my-tree</span></td>
+                        <td>संपूर्ण बायनरी ट्री आणि टीम व्ह्यू.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Direct Team List</strong></td>
+                        <td><span class="route-badge">tree/level_direct_data</span></td>
+                        <td>स्वतःच्या डायरेक्ट स्पॉन्सर मेंबर्सची यादी.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Earnings</strong></td>
+                        <td><span class="route-badge">member/view-earning</span></td>
+                        <td>Direct Income, Matching Income, Level Income चे स्टेटमेंट.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Shop & Repurchase</strong></td>
+                        <td><span class="route-badge">cart/new-purchase</span></td>
+                        <td>आयुर्वेदिक प्रॉडक्ट खरेदी करणे व बिल प्रिंट करणे.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Welcome Letter</strong></td>
+                        <td><span class="route-badge">member/welcome-letter</span></td>
+                        <td>अधिकृत जॉईनिंग लेटर डाऊनलोड करणे.</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-note">
+            <p><strong>Green Amrut Ayurveda</strong> — सिस्टीम सॉफ्टवेअर डॉक्युमेंटेशन व संपूर्ण डेमो गाईड</p>
+            <p>© All Rights Reserved | तयार केले: Actual Code Architecture नुसार</p>
+        </div>
+
+    </div>
+
+</body>
+</html>
