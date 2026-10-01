@@ -100,18 +100,31 @@ class Site extends CI_Controller
 
     }
     
-    private function find_vacant_node($start_id) {
-    $queue = array($start_id);
-    while (!empty($queue)) {
-        $id = array_shift($queue);
-        $row = $this->db->select('id, A, B')->where('id', $id)->get('member')->row();
-        if (!$row) continue;
-        if (empty($row->A)) return array('id' => $id, 'leg' => 'A');
-        if (empty($row->B)) return array('id' => $id, 'leg' => 'B');
-        $queue[] = $row->A; $queue[] = $row->B;
+    private function find_vacant_node($start_id, $preferred_leg = '') {
+        $start_row = $this->db->select('id, A, B')->where('id', $start_id)->get('member')->row();
+        if (!$start_row) return array('id' => $start_id, 'leg' => 'A');
+
+        $queue = array();
+        if ($preferred_leg == 'A') {
+            if (empty($start_row->A)) return array('id' => $start_id, 'leg' => 'A');
+            $queue[] = $start_row->A;
+        } elseif ($preferred_leg == 'B') {
+            if (empty($start_row->B)) return array('id' => $start_id, 'leg' => 'B');
+            $queue[] = $start_row->B;
+        } else {
+            $queue[] = $start_id;
+        }
+
+        while (!empty($queue)) {
+            $id = array_shift($queue);
+            $row = $this->db->select('id, A, B')->where('id', $id)->get('member')->row();
+            if (!$row) continue;
+            if (empty($row->A)) return array('id' => $id, 'leg' => 'A');
+            if (empty($row->B)) return array('id' => $id, 'leg' => 'B');
+            $queue[] = $row->A; $queue[] = $row->B;
+        }
+        return array('id' => $start_id, 'leg' => (!empty($preferred_leg) ? $preferred_leg : 'A'));
     }
-    return array('id' => $start_id, 'leg' => 'A');
-}
 
 public function get_states($id) {
     echo json_encode($this->db->where('country_id', $id)->get('geo_states')->result());
@@ -397,24 +410,49 @@ public function get_tehsils($id) {
 
                 $main_id = $main_member->id;
 
-                if ($person_count == 1) {
-                    // Creating ID 2 -> Place on ID 1's Left / A leg
-                    if (!empty($main_member->A)) {
-                        $this->session->set_flashdata('site_flash', '<div class="alert alert-danger">Left (A) leg of Main ID is already occupied.</div>');
-                        redirect(site_url('site/register'));
+                // Determine chosen Leg (A or B)
+                $chosen_leg = $this->input->post('leg') ? trim($this->input->post('leg')) : ($person_count == 1 ? 'A' : 'B');
+                if (!in_array($chosen_leg, ['A', 'B'])) {
+                    $chosen_leg = 'A';
+                }
+
+                $pos_input = trim($this->input->post('position'));
+                if (!empty($pos_input)) {
+                    $posnumber = preg_replace("/[^0-9]+/", "", $pos_input);
+                    $pos_row = $this->db->select('id, A, B')->where('id', $posnumber)->get('member')->row();
+                    if ($pos_row) {
+                        if ($chosen_leg == 'A' && empty($pos_row->A)) {
+                            $position = $pos_row->id;
+                            $leg      = 'A';
+                        } elseif ($chosen_leg == 'B' && empty($pos_row->B)) {
+                            $position = $pos_row->id;
+                            $leg      = 'B';
+                        } else {
+                            $auto_data = $this->find_vacant_node($posnumber, $chosen_leg);
+                            $position  = $auto_data['id'];
+                            $leg       = $auto_data['leg'];
+                        }
+                    } else {
+                        $auto_data = $this->find_vacant_node($main_id, $chosen_leg);
+                        $position  = $auto_data['id'];
+                        $leg       = $auto_data['leg'];
                     }
-                    $leg = 'A';
                 } else {
-                    // Creating ID 3 -> Place on ID 1's Right / B leg
-                    if (!empty($main_member->B)) {
-                        $this->session->set_flashdata('site_flash', '<div class="alert alert-danger">Right (B) leg of Main ID is already occupied.</div>');
-                        redirect(site_url('site/register'));
+                    if ($chosen_leg == 'A' && empty($main_member->A)) {
+                        $position = $main_id;
+                        $leg      = 'A';
+                    } elseif ($chosen_leg == 'B' && empty($main_member->B)) {
+                        $position = $main_id;
+                        $leg      = 'B';
+                    } else {
+                        // If direct main ID leg is occupied, find next open spot down that leg
+                        $auto_data = $this->find_vacant_node($main_id, $chosen_leg);
+                        $position  = $auto_data['id'];
+                        $leg       = $auto_data['leg'];
                     }
-                    $leg = 'B';
                 }
 
                 $sponsor  = $main_id;
-                $position = $main_id;
 
                 // Package & Pricing
                 $package_input = $this->input->post('join_package');
@@ -556,35 +594,35 @@ public function get_tehsils($id) {
 
                 // D. Auto-Placement Logic
                 $pos_input = trim($this->input->post('position'));
+                $req_leg   = $this->input->post('leg') ? trim($this->input->post('leg')) : '';
                 if (!empty($pos_input)) {
                     $posnumber = preg_replace("/[^0-9]+/", "", $pos_input);
                     $pos_row = $this->db->select('id, A, B')->where('id', $posnumber)->get('member')->row();
                     if ($pos_row) {
-                        $req_leg = $this->input->post('leg') ? trim($this->input->post('leg')) : '';
                         if ($req_leg == 'A' && empty($pos_row->A)) {
                             $position = $pos_row->id;
                             $leg = 'A';
                         } elseif ($req_leg == 'B' && empty($pos_row->B)) {
                             $position = $pos_row->id;
                             $leg = 'B';
-                        } elseif (empty($pos_row->A)) {
+                        } elseif (empty($pos_row->A) && empty($req_leg)) {
                             $position = $pos_row->id;
                             $leg = 'A';
-                        } elseif (empty($pos_row->B)) {
+                        } elseif (empty($pos_row->B) && empty($req_leg)) {
                             $position = $pos_row->id;
                             $leg = 'B';
                         } else {
-                            $auto_data = $this->find_vacant_node($posnumber);
+                            $auto_data = $this->find_vacant_node($posnumber, $req_leg);
                             $position  = $auto_data['id'];
                             $leg       = $auto_data['leg'];
                         }
                     } else {
-                        $auto_data = $this->find_vacant_node($sponsor);
+                        $auto_data = $this->find_vacant_node($sponsor, $req_leg);
                         $position  = $auto_data['id'];
                         $leg       = $auto_data['leg'];
                     }
                 } else {
-                    $auto_data = $this->find_vacant_node($sponsor); 
+                    $auto_data = $this->find_vacant_node($sponsor, $req_leg); 
                     $position  = $auto_data['id'];
                     $leg       = $auto_data['leg'];
                 }

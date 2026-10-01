@@ -20,10 +20,9 @@
                             <?= $this->session->flashdata('site_flash'); ?>
                         <?php endif; ?>
 
-                        <input type="hidden" name="leg" value="<?= !empty($leg) ? htmlspecialchars($leg) : 'A'; ?>">
                         <div class="row">
                             <!-- Optional Sponsor Section -->
-                            <div class="col-md-6 mb-3" id="sponsor_sec">
+                            <div class="col-md-4 mb-3" id="sponsor_sec">
                                 <label class="form-label fw-bold">Sponsor ID</label>
                                 <input type="text" id="sponsor" name="sponsor" class="form-control border-primary" 
                                        value="<?= !empty($sponsor_id) ? htmlspecialchars($sponsor_id) : set_value('sponsor'); ?>"
@@ -32,12 +31,22 @@
                             </div>
 
                             <!-- Optional Placement Section -->
-                            <div class="col-md-6 mb-3" id="placement_sec">
+                            <div class="col-md-4 mb-3" id="placement_sec">
                                 <label class="form-label fw-bold">Placement ID</label>
                                 <input type="text" id="position" name="position" class="form-control" 
                                        value="<?= !empty($position_id) ? htmlspecialchars($position_id) : set_value('position'); ?>"
                                        placeholder="Leave blank for Auto-Fill" oninput="get_user_name('#position', '#pos_res')">
                                 <small id="pos_res" class="text-success"></small>
+                            </div>
+
+                            <!-- Position / Leg Section -->
+                            <div class="col-md-4 mb-3" id="leg_sec">
+                                <label class="form-label fw-bold">Position / Leg</label>
+                                <?php $current_leg = !empty($leg) ? $leg : set_value('leg', 'A'); ?>
+                                <select class="form-select border-primary" id="leg" name="leg">
+                                    <option value="A" <?= (strtoupper($current_leg) == 'A' || strtoupper($current_leg) == 'L' || strtoupper($current_leg) == 'LEFT') ? 'selected' : ''; ?>>Left (A)</option>
+                                    <option value="B" <?= (strtoupper($current_leg) == 'B' || strtoupper($current_leg) == 'R' || strtoupper($current_leg) == 'RIGHT') ? 'selected' : ''; ?>>Right (B)</option>
+                                </select>
                             </div>
 
                             <hr class="my-3">

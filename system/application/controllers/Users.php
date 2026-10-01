@@ -553,9 +553,9 @@ public function upgrade(){
     public function edit_user($id)
     {
         $this->form_validation->set_rules('name', 'Name', 'trim|required');
-        $this->form_validation->set_rules('join_time', 'Date of Join', 'trim|required');
+        $this->form_validation->set_rules('join_time', 'Date of Join', 'trim');
         $this->form_validation->set_rules('phone', 'Phone No', 'trim|required');
-        $this->form_validation->set_rules('address', 'Address', 'trim|required');
+        $this->form_validation->set_rules('address', 'Address', 'trim');
         if ($this->form_validation->run() == TRUE) {
             $name            = $this->input->post('name');
             $sponsor         = $this->input->post('sponsor');
@@ -571,7 +571,7 @@ public function upgrade(){
             $total_a_pv      = $this->input->post('total_a_pv');
             $total_b_pv      = $this->input->post('total_b_pv');
             
-            if($this->db_model->count_all('member', array('id' => $sponsor)) == 0 and $id != 1001){
+            if(!empty($sponsor) && $this->db_model->count_all('member', array('id' => $sponsor)) == 0 && $id != 1001){
                 $this->session->set_flashdata("common_flash", "<div class='alert alert-danger'>Invalid sponsor id</div>");
                 redirect(site_url('users/edit_user/'.$id));
             }
@@ -582,7 +582,7 @@ public function upgrade(){
                 'email'            => $email,
                 'phone'            => $phone,
                 'address'          => $address,
-                'join_time'        => $join_time,
+                'join_time'        => !empty($join_time) ? $join_time : date('Y-m-d'),
                 'status'           => $status,
                 'signup_package'   => $signup_package, 
                 'mypv'             => $mypv,
@@ -599,7 +599,7 @@ public function upgrade(){
             $this->db->where('id', $this->input->post('id'));
             $this->db->update('member', $array);
 
-            $array = array(
+            $profile_data = array(
                 'tax_no'           => $this->input->post('tax_no'),
                 'date_of_birth'    => $this->input->post('birthdate'),
                 'gstin'            => $this->input->post('gstin'),
@@ -613,68 +613,78 @@ public function upgrade(){
                 'nominee_add'      => $this->input->post('nominee_add'),
                 'nominee_relation' => $this->input->post('nominee_relation'),
             );
-            $this->db->where('userid', $this->input->post('id'));
-            $this->db->update('member_profile', $array);
-            if(config_item('auto_payout') == "Yes"){
+            
+            $prof_exists = $this->db_model->count_all('member_profile', array('userid' => $this->input->post('id')));
+            if ($prof_exists > 0) {
+                $this->db->where('userid', $this->input->post('id'));
+                $this->db->update('member_profile', $profile_data);
+            } else {
+                $profile_data['userid'] = $this->input->post('id');
+                $this->db->insert('member_profile', $profile_data);
+            }
+
+            if(config_item('auto_payout') == "Yes" && !empty($this->input->post('bank_ac_no')) && !empty($this->input->post('bank_ifsc'))){
                 $bank_ifsc=$this->input->post('bank_ifsc');
                 $bank_acc=$this->input->post('bank_ac_no');
                 $name=$this->db_model->select_multi("name,contact_id", 'member', array('id' =>$this->input->post('id')));
                 
-                $detail=array (
-                    'contact_id'   => $name->contact_id,
-                    'account_type' => 'bank_account',
-                    'bank_account' => 
-                    array (
-                      'name'           => $name->name,
-                      'ifsc'           => $bank_ifsc,
-                      'account_number' => $bank_acc,
-                    ),
-                );
+                if (!empty($name) && !empty($name->contact_id)) {
+                    $detail=array (
+                        'contact_id'   => $name->contact_id,
+                        'account_type' => 'bank_account',
+                        'bank_account' => 
+                        array (
+                          'name'           => $name->name,
+                          'ifsc'           => $bank_ifsc,
+                          'account_number' => $bank_acc,
+                        ),
+                    );
 
-                $url = 'https://api.razorpay.com/v1/fund_accounts';
-        
-                $fields_string = json_encode($detail);
-         
-                //open connection
-                $ch = curl_init();
+                    $url = 'https://api.razorpay.com/v1/fund_accounts';
             
-                //set the url, number of POST vars, POST data
-                curl_setopt($ch,CURLOPT_URL,$url);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                curl_setopt($ch, CURLOPT_POST, 1);
-                curl_setopt($ch,CURLOPT_POSTFIELDS,$fields_string);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                    'X-Payout-Idempotency: ',
-                    'Authorization: Basic cnpwX3Rlc3RfRGVjOVBjSEVuSVdsNE46RWU1cnBpU0R5bXRwM2toM0haTzlmb29J',
-                    'Content-Type: application/json'
-                  ));
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-            
-                //execute post
-                $result = curl_exec($ch);
+                    $fields_string = json_encode($detail);
+             
+                    //open connection
+                    $ch = curl_init();
                 
-                $data = json_decode($result,true);
-              //  var_dump($data);
-                $cid=$data['id'];
-                $fund_id = array(
-                    'fund_account'=>$cid,
-                 );
-                 $this->db->where('id',$this->input->post('id'));
-                 $this->db->update('member', $fund_id);
-                // //close connection
-                curl_close($ch);
-              // return $data;
-            
-              }
+                    //set the url, number of POST vars, POST data
+                    curl_setopt($ch,CURLOPT_URL,$url);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                    curl_setopt($ch, CURLOPT_POST, 1);
+                    curl_setopt($ch,CURLOPT_POSTFIELDS,$fields_string);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+                        'X-Payout-Idempotency: ',
+                        'Authorization: Basic cnpwX3Rlc3RfRGVjOVBjSEVuSVdsNE46RWU1cnBpU0R5bXRwM2toM0haTzlmb29J',
+                        'Content-Type: application/json'
+                      ));
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+                
+                    //execute post
+                    $result = curl_exec($ch);
+                    
+                    $data = json_decode($result,true);
+                    if (isset($data['id']) && !empty($data['id'])) {
+                        $cid=$data['id'];
+                        $fund_id = array(
+                            'fund_account'=>$cid,
+                        );
+                        $this->db->where('id',$this->input->post('id'));
+                        $this->db->update('member', $fund_id);
+                    }
+                    curl_close($ch);
+                }
+            }
+
             $email=$this->input->post('email');
             $sub = "profile updated";
             $msg = "Profile is updated by admin";
             $this->load->config('email');
-            if (trim(config_item('smtp_host')) !== "") {
-             $this->common_model->mail($email, $sub, $msg);
+            if (!empty($email) && trim(config_item('smtp_host')) !== "") {
+                @$this->common_model->mail($email, $sub, $msg);
             } 
 
-            $this->session->set_flashdata("common_flash", "<div class='alert alert-success'>User has been updated.</div>");
+            $this->session->set_flashdata("common_flash", "<div class='alert alert-success'>User has been updated successfully.</div>");
             redirect(site_url('users/view_members'));
         }
         else {
