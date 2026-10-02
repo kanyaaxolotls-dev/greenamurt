@@ -39,14 +39,19 @@
       <h4 class="mt-2">Admin Dashboard Login</h4>
     </div>
 
+    <!-- Static Payment Notice Banner -->
+    <div class="alert alert-danger shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); border-left: 5px solid #e53e3e !important; border-radius: 8px;">
+        <div class="d-flex align-items-center">
+            <div>
+                <div class="fw-bold text-danger" style="font-size: 14px;">⚠️ महत्त्वाची सूचना (Important Notice)</div>
+                <div class="text-dark fw-bold" style="font-size: 13px;">कृपया आपले पेमेंट आज १२:०० च्या अगोदर पूर्ण करा.</div>
+                <div class="text-muted" style="font-size: 11px;">Please complete your payment today before 12:00.</div>
+            </div>
+        </div>
+    </div>
+
     <?php echo validation_errors('<div class="alert alert-danger">', '</div>'); ?>
     <?php echo $this->session->flashdata('admin_flash'); ?>
-    <?php if (config_item('is_demo') != TRUE): ?>
-      <div class="alert alert-danger">
-        Please Pay your remaining balance to remove this banner!<br>
-        इस बैनर को हटाने के लिए कृपया अपनी शेष राशि का भुगतान करें!
-      </div>
-    <?php endif; ?>
 
     <div class="login-card">
       <h5 class="text-center mb-3">Sign in to your account</h5>

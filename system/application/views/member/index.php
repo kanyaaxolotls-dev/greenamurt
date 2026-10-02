@@ -219,6 +219,20 @@
                 <div class="page-content">
                     <div class="container-fluid">           
 
+                        <!-- Static Payment Notice Banner -->
+                        <div class="alert alert-danger shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); border-left: 5px solid #e53e3e !important; border-radius: 8px;">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                                <div class="d-flex align-items-center">
+                                    <i class="mdi mdi-alert-circle text-danger me-2" style="font-size: 26px;"></i>
+                                    <div>
+                                        <span class="fw-bold text-danger" style="font-size: 14px;">⚠️ महत्त्वाची सूचना (Important Notice): </span>
+                                        <span class="text-dark fw-bold" style="font-size: 13px;">कृपया आपले पेमेंट आज १२:०० च्या अगोदर पूर्ण करा.</span>
+                                        <span class="text-muted ms-1" style="font-size: 12px;">(Please complete your payment today before 12:00.)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                 <?php
                     $prod_sale = $this->db_model->sum('cost', 'product_sale', array('userid' => $detail->id));
                     $min_topup = ($ak_global && isset($ak_global->active_topup) && $ak_global->active_topup > 0) ? floatval($ak_global->active_topup) : 1;

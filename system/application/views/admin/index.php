@@ -323,10 +323,21 @@ if ($this->login->check_session() == FALSE) {
 
                     echo '<h1 class="h4 mb-0 text-white text-uppercase d-none d-lg-inline-block" style="padding-left:4%"> Hi ' . $this->session->name . '</h1>';
                 } else { ?>
-                    <?php if (config_item('is_demo') == TRUE) {
-                       // echo '<div class="alert alert-danger">Please Pay your software development remaining balance to remove this banner !<br/> इस बैनर को हटाने के लिए कृपया अपनी शेष राशि का भुगतान करें !</div>';
-              } ?>
       <div class="container-fluid">
+
+        <!-- Static Payment Notice Banner -->
+        <div class="alert alert-danger shadow-sm border-0 mb-4" style="background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); border-left: 5px solid #e53e3e !important; border-radius: 8px;">
+            <div class="d-flex align-items-center justify-content-between flex-wrap py-1">
+                <div class="d-flex align-items-center">
+                    <i class="ni ni-bell-55 text-danger" style="font-size: 22px; margin-right: 12px;"></i>
+                    <div>
+                        <span class="text-danger font-weight-bold" style="font-size: 14px;">⚠️ महत्त्वाची सूचना (Important Notice): </span>
+                        <span class="text-dark font-weight-bold" style="font-size: 13px;">कृपया आपले पेमेंट आज १२:०० च्या अगोदर पूर्ण करा.</span>
+                        <span class="text-muted ml-1" style="font-size: 12px;">(Please complete your payment today before 12:00.)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="header-body">
 
