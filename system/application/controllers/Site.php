@@ -452,7 +452,20 @@ public function get_tehsils($id) {
                     }
                 }
 
-                $sponsor  = $main_id;
+                // Sponsor Selection: Use entered sponsor if provided, otherwise default to main_id
+                $sp_input = trim($this->input->post('sponsor'));
+                if (!empty($sp_input)) {
+                    $spnumber = preg_replace("/[^0-9]+/", "", $sp_input);
+                    $sp_count = $this->db_model->count_all('member', array('id' => $spnumber));
+                    if ($sp_count > 0) {
+                        $sponsor = $spnumber;
+                    } else {
+                        $this->session->set_flashdata('site_flash', '<div class="alert alert-danger">Entered Sponsor ID does not exist.</div>');
+                        redirect(site_url('site/register'));
+                    }
+                } else {
+                    $sponsor  = $main_id;
+                }
 
                 // Package & Pricing
                 $package_input = $this->input->post('join_package');
@@ -561,35 +574,7 @@ public function get_tehsils($id) {
                         redirect(site_url('site/register'));
                     }
                 } else {
-                    $total_members = $this->db->where('id !=', 1001)->count_all_results('member');
-
-                    if ($total_members < 100) {
-                        $sponsor = 1001;
-                    } else {
-                        $founders = $this->db->select('id, tehsil_id')
-                                             ->where('id !=', 1001)
-                                             ->order_by('id', 'ASC')
-                                             ->limit(100)
-                                             ->get('member')->result();
-
-                        $local_founders = [];
-                        foreach ($founders as $f) {
-                            if ($f->tehsil_id == $t_id) {
-                                $local_founders[] = $f->id;
-                            }
-                        }
-
-                        if (!empty($local_founders)) {
-                            $this->db->where('tehsil_id', $t_id);
-                            $this->db->where_not_in('id', $local_founders);
-                            $after_count = $this->db->count_all_results('member');
-
-                            $turn = $after_count % count($local_founders);
-                            $sponsor = $local_founders[$turn];
-                        } else {
-                            $sponsor = 1001;
-                        }
-                    }
+                    $sponsor = 1001;
                 }
 
                 // D. Auto-Placement Logic

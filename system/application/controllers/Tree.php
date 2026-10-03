@@ -763,4 +763,31 @@ class Tree extends CI_Controller
         $this->load->view('member/index', $data);
     }
 
+    public function full_tree($root_id = null)
+    {
+        if ($this->login->check_session() == FALSE) {
+            redirect(site_url('site/admin'));
+        }
+
+        $top_id = config_item('top_id') ? config_item('top_id') : 1001;
+        if (!empty($root_id)) {
+            $top_id = intval($root_id);
+        }
+
+        // Fetch all members with relevant details
+        $this->db->select('m.id, m.name, m.phone, m.sponsor, m.position, m.placement_leg, m.A, m.B, m.status, m.join_time, m.activation_date, m.topup, m.rank, m.signup_package, m.mypv, m.total_a_pv, m.total_b_pv, p.prod_name');
+        $this->db->from('member m');
+        $this->db->join('product p', 'p.id = m.signup_package', 'left');
+        $this->db->order_by('m.id', 'ASC');
+        $members = $this->db->get()->result_array();
+
+        $data['members_json'] = json_encode($members);
+        $data['root_id']      = $top_id;
+        $data['title']        = 'All Members Full Tree View';
+        $data['breadcrumb']   = 'Full Tree';
+        $data['layout']       = 'tree/full_tree.php';
+        $this->load->view('admin/index', $data);
+    }
+
 }
+

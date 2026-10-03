@@ -125,24 +125,6 @@ class Income extends CI_Controller
                     );
                     $this->db->where('id', $id)->update('withdraw_request', $data);
 
-                    // Deduct from member's wallet balance
-                    $chk_w = $this->db->get_where('wallet', array('userid' => $req->userid))->row();
-                    if ($chk_w) {
-                        $new_bal = max(0, round((float)$chk_w->balance - $gross, 2));
-                        $this->db->where('userid', $req->userid)->update('wallet', array('balance' => $new_bal));
-                    }
-
-                    // Insert debit into wallet_transaction ledger
-                    $w_transData = array(
-                        'userid'       => $req->userid,
-                        'type'         => 'Debit',
-                        'amount'       => $gross,
-                        'ref_id'       => 'PAYOUT_' . $id,
-                        'other'        => 'Payout Paid by Admin (Net: ₹' . number_format($net_paid, 2) . ', Tax: ₹' . number_format($total_tax, 2) . ')',
-                        'created_date' => date('Y-m-d H:i:s'),
-                    );
-                    $this->db->insert('wallet_transaction', $w_transData);
-
                     // Mark user's earnings as Paid
                     $this->db->where('userid', $req->userid)->where('status', 'Pending')->update('earning', array('status' => 'Paid'));
 

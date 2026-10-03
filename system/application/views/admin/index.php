@@ -222,6 +222,12 @@ if ($this->login->check_session() == FALSE) {
                     <span class="nav-link-text">Manage Login Popup</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href="<?php echo site_url('tree/full_tree') ?>">
+                    <i class="fas fa-sitemap text-success"></i> 
+                    <span class="nav-link-text font-weight-bold">All Members Full Tree</span>
+                </a>
+            </li>
         </ul>
         
       </div>
