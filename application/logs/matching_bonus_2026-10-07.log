@@ -1,0 +1,618 @@
+
+========================================
+[MATCHING BONUS / BINARY RUN]
+TIME: 2026-10-07 00:00:09
+MEMBERS EVALUATED: 8
+========================================
+========================================
+[BINARY DEBUG]
+TIME: 2026-10-07 00:00:09
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 32
+Paid Left PV: 4
+Available Left PV: 28
+
+Total Right PV: 4
+Paid Right PV: 3
+Available Right PV: 1
+
+Lifetime Paid Pairs: 3
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 1
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 28
+Right Available: 1
+Lifetime Previous Pairs: 3
+
+Checking 2:1:
+Left >= 2? YES (Left = 28 >= 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 28 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio: 1:1
+Pairs Calculated: 1
+Left PV To Consume: 1
+Right PV To Consume: 1
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: 1
+Matching Income Configuration: 
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 
+User ID: 1001
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-1001-20261007000009-4744
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 1001
+Previous Balance: 0
+Credit Amount: 890
+New Balance: 0
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 4
+Before Paid Right: 3
+Left PV Consumed: 1
+Right PV Consumed: 1
+After Paid Left: 5
+After Paid Right: 4
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 3
+Added: 1
+After: 4
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 27
+Right PV Remaining = 0
+========================================
+
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-10-07 00:00:09
+USER ID: 388783
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 388783
+Member Name: Swati Jagtap
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 0
+Available Left PV: 1
+
+Total Right PV: 2
+Paid Right PV: 0
+Available Right PV: 2
+
+Lifetime Paid Pairs: 0
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 1
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 2
+Lifetime Previous Pairs: 0
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 2 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? YES (Right = 2 >= 2)
+
+Selected Ratio: 1:2
+Pairs Calculated: 1
+Left PV To Consume: 1
+Right PV To Consume: 2
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: 1
+Matching Income Configuration: 
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 
+User ID: 388783
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-388783-20261007000009-4263
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 388783
+Previous Balance: 0
+Credit Amount: 890
+New Balance: 0
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 0
+Before Paid Right: 0
+Left PV Consumed: 1
+Right PV Consumed: 2
+After Paid Left: 1
+After Paid Right: 2
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 0
+Added: 1
+After: 1
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-10-07 00:00:09
+USER ID: 440216
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 440216
+Member Name: Shubham jadhav
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 5
+Paid Left PV: 2
+Available Left PV: 3
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 1
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 3
+Right Available: 0
+Lifetime Previous Pairs: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 3 >= 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 3 >= 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio: NONE
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 3
+Right PV Remaining = 0
+========================================
+
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-10-07 00:00:09
+USER ID: 717190
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 717190
+Member Name: SANDIP PATIL
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 18
+Paid Left PV: 2
+Available Left PV: 16
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 1
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 16
+Right Available: 0
+Lifetime Previous Pairs: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 16 >= 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 16 >= 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio: NONE
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 16
+Right PV Remaining = 0
+========================================
+
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-10-07 00:00:09
+USER ID: 763256
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 763256
+Member Name: Sneha nar
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 1
+Available Left PV: 0
+
+Total Right PV: 2
+Paid Right PV: 2
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 1
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+Lifetime Previous Pairs: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio: NONE
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-10-07 00:00:09
+USER ID: 819651
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 819651
+Member Name: Santosh dhondu jadhav
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 8
+Paid Left PV: 7
+Available Left PV: 1
+
+Total Right PV: 7
+Paid Right PV: 6
+Available Right PV: 1
+
+Lifetime Paid Pairs: 6
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 4
+Direct Right: 3
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 1
+Right Available: 1
+Lifetime Previous Pairs: 6
+
+Checking 2:1:
+Left >= 2? NO (Left = 1 < 2)
+Right >= 1? YES (Right = 1 >= 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 1 >= 1)
+Right >= 2? NO (Right = 1 < 2)
+
+Selected Ratio: 1:1
+Pairs Calculated: 1
+Left PV To Consume: 1
+Right PV To Consume: 1
+PAYOUT CALCULATION:
+BINARY PAYOUT CALCULATION:
+Package ID: 1
+Matching Income Configuration: 
+Payout Per Pair: 890
+Daily Cap: 14240
+Pairs Calculated: 1
+Pairs Allowed By Cap: 16
+Payable Pairs: 1
+Total Payout: 890
+
+DATABASE TRANSACTION:
+[BINARY TRANSACTION]
+BEGIN
+
+1. EARNING INSERT
+BINARY EARNING INSERT:
+SUCCESS
+Insert ID: 
+User ID: 819651
+Amount: 890
+Type: Matching Income
+Pair Count: 1
+Transaction Reference: BIN-819651-20261007000009-7709
+
+2. WALLET CREDIT
+WALLET CREDIT:
+SUCCESS
+User ID: 819651
+Previous Balance: 0
+Credit Amount: 890
+New Balance: 0
+
+3. PV CONSUMPTION
+PV UPDATE:
+Before Paid Left: 7
+Before Paid Right: 6
+Left PV Consumed: 1
+Right PV Consumed: 1
+After Paid Left: 8
+After Paid Right: 7
+
+4. LIFETIME PAIR UPDATE
+LIFETIME PAIR UPDATE:
+Before: 6
+Added: 1
+After: 7
+
+5. TRANSACTION
+BINARY TRANSACTION:
+COMMITTED
+
+FINAL RESULT = PAYOUT GENERATED
+Pairs Generated = 1
+Payout Generated = 890
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-10-07 00:00:09
+USER ID: 917700
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 917700
+Member Name: Santosh dhondu jadhav
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 1
+Paid Left PV: 1
+Available Left PV: 0
+
+Total Right PV: 5
+Paid Right PV: 2
+Available Right PV: 3
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 1
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 3
+Lifetime Previous Pairs: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? YES (Right = 3 >= 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? YES (Right = 3 >= 2)
+
+Selected Ratio: NONE
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 3
+========================================
+
+
+========================================
+[BINARY DEBUG]
+TIME: 2026-10-07 00:00:09
+USER ID: 930251
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 930251
+Member Name: Swati Jagtap
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 20
+Paid Left PV: 2
+Available Left PV: 18
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 3
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 18
+Right Available: 0
+Lifetime Previous Pairs: 1
+
+Checking 2:1:
+Left >= 2? YES (Left = 18 >= 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? YES (Left = 18 >= 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio: NONE
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 18
+Right PV Remaining = 0
+========================================
+
+

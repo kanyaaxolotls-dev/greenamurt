@@ -1,0 +1,63 @@
+
+========================================
+[MATCHING BONUS / BINARY RUN]
+TIME: 2026-09-29 00:00:03
+MEMBERS EVALUATED: 1
+========================================
+========================================
+[BINARY DEBUG]
+TIME: 2026-09-29 00:00:03
+USER ID: 1001
+FUNCTION: process_binary
+========================================
+
+MEMBER INFORMATION:
+Member ID: 1001
+Member Name: Green Amrut Herbal Multitrade Private Limited
+Status: Active
+Rank: Member
+Topup: 8900.00
+Package: 1
+
+TREE / PV INFORMATION:
+Total Left PV: 2
+Paid Left PV: 2
+Available Left PV: 0
+
+Total Right PV: 1
+Paid Right PV: 1
+Available Right PV: 0
+
+Lifetime Paid Pairs: 1
+
+DIRECT SPONSOR INFORMATION:
+Direct Left: 1
+Direct Right: 1
+(Informational ONLY - Does not block 2:1 / 1:2 PV matching)
+
+PAIR CALCULATION:
+BINARY RATIO CHECK:
+Left Available: 0
+Right Available: 0
+Lifetime Previous Pairs: 1
+
+Checking 2:1:
+Left >= 2? NO (Left = 0 < 2)
+Right >= 1? NO (Right = 0 < 1)
+
+Checking 1:2:
+Left >= 1? NO (Left = 0 < 1)
+Right >= 2? NO (Right = 0 < 2)
+
+Selected Ratio: NONE
+Pairs Calculated: 0
+Left PV To Consume: 0
+Right PV To Consume: 0
+FINAL RESULT = NO PAIR FORMED
+Pairs Generated = 0
+Payout Generated = 0
+Left PV Remaining = 0
+Right PV Remaining = 0
+========================================
+
+
