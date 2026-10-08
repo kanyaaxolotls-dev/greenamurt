@@ -18,7 +18,7 @@
         </div>
         <div class="col-sm-6"><label>Dealer/Franchisee
                 Price: </label> <?php echo config_item('currency') . $data->dealer_price ?></div>
-        <div class="col-sm-6"><label>BV/PV: </label> <?php echo $data->pv ?></div>
+        <div class="col-sm-6"><label>PV: </label> <?php echo $data->pv ?></div>
         <div class="col-sm-6"><label>GST / Tax: </label> <?php echo $data->gst ?></div>
         <div class="col-sm-6"><label>Available Qty: </label> <?php echo $data->qty ?></div>
     </div>  

@@ -80,7 +80,7 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-sm-3">
-                            <label class="prolabel">Business Value or PV</label>
+                            <label class="prolabel">Point Value (PV)</label>
                             <input type="text" class="form-control form-control-alternative" name="pv" value="<?php echo set_value('pv') ?>">
                         </div>
                         <div class="col-sm-3">

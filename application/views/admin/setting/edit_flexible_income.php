@@ -44,9 +44,9 @@
     <div class="col-sm-6">
         <label>Counting Based On</label>
         <select class="form-control form-control-alternative form-control-alternative-alternative" name="based_on">
-            <option selected><?php echo $result->based_on ?></option>
+            <option selected><?php echo ($result->based_on == 'BV' ? 'PV' : $result->based_on) ?></option>
             <option>Member</option>
-            <option>PV</option>
+            <option value="PV">PV</option>
         </select>
     </div> 
     <div class="col-sm-6">

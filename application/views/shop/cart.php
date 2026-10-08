@@ -104,7 +104,7 @@
                                             <span class="col-12 col-sm-6 text-right"><span class="money"><?php echo config_item('currency') . number_format($subtotal) ?></span></span>
                                         </div>
                                         <div class="row border-bottom pb-2 pt-2">
-                                            <span class="col-12 col-sm-6 cart__subtotal-title">Total Points(BV)</span>
+                                            <span class="col-12 col-sm-6 cart__subtotal-title">Total Points(PV)</span>
                                             <span class="col-12 col-sm-6 text-right"><?php echo $sub_bvs;?></span>
                                         </div>
                                         <div class="row border-bottom pb-2 pt-2">

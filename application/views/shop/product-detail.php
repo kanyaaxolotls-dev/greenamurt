@@ -89,7 +89,7 @@
                                             <?php } ?>
                                             <!--<div class="product__policies rte" data-product-policies="">Tax included.</div>-->
                                         </div>
-                                       <span class="text-success">BV : <?php echo $bv  = $this->db_model->select('pv', 'product', array('id' => $product->id)); ?></span>
+                                       <span class="text-success">PV : <?php echo $bv  = $this->db_model->select('pv', 'product', array('id' => $product->id)); ?></span>
 
                                         <div class="orderMsg mb-2 pb-1 d-flex flex-wrap align-items-center" data-user="17" data-time="16">
                                             <img src="<?php echo base_url('assets2/images/order-icon.jpg') ?>" alt="order" />
@@ -259,7 +259,7 @@
                                         <div class="product-price">
                                             <span class="old-price"><?php echo config_item('currency') . $prodd['prod_price'] ?></span>
                                             <span class="price"><?php echo config_item('currency') . $prodd['prod_price'] ?></span></br>
-                                            <span class="text-success">BV : <?php echo config_item('pv') . $prodd['pv'] ?></span>
+                                            <span class="text-success">PV : <?php echo config_item('pv') . $prodd['pv'] ?></span>
                                         </div>
                                         <div class="product-review">
                                             <i class="an an-star"></i>

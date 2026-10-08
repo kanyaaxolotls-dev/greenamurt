@@ -54,7 +54,7 @@
         <tr>
             <th>Sn./Level</th>
             <th>Income Name</th>
-            <th>Total Distributor/PV/BV</th>
+            <th>Total Distributor/PV</th>
             <th>Commission (%)</th>
             <th>Action</th>
         </tr>

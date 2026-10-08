@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Green Amrut Ayurveda - E-Pin, E-Wallet & Withdrawal Documentation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #15803d;
+            --primary-dark: #14532d;
+            --primary-light: #dcfce7;
+            --secondary: #0284c7;
+            --accent: #d97706;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --bg-light: #f8fafc;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Mukta', 'Outfit', sans-serif;
+            color: var(--text-main);
+            background-color: #f1f5f9;
+            line-height: 1.6;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        }
+
+        /* Action Bar for PDF Download */
+        .no-print-bar {
+            position: sticky;
+            top: 10px;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-print {
+            background: #16a34a;
+            color: #ffffff;
+            border: none;
+            padding: 10px 22px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-print:hover {
+            background: #15803d;
+            transform: translateY(-1px);
+        }
+
+        /* Header styling */
+        .doc-header {
+            text-align: center;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+
+        .brand-title {
+            color: var(--primary-dark);
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .doc-subtitle {
+            color: var(--text-muted);
+            font-size: 16px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .badge-system {
+            display: inline-block;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            font-size: 13px;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        /* Section Styling */
+        .section-card {
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 28px;
+            background: #ffffff;
+            page-break-inside: avoid;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+        }
+
+        .section-badge {
+            background: var(--primary);
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .role-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .role-box {
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .role-box.admin {
+            border-left: 4px solid var(--secondary);
+        }
+
+        .role-box.customer {
+            border-left: 4px solid var(--accent);
+        }
+
+        .role-heading {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .admin .role-heading { color: var(--secondary); }
+        .customer .role-heading { color: var(--accent); }
+
+        ul.step-list {
+            padding-left: 20px;
+            font-size: 14px;
+        }
+
+        ul.step-list li {
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .step-list strong {
+            color: #0f172a;
+        }
+
+        .code-tag {
+            background: #e2e8f0;
+            color: #0f172a;
+            font-family: monospace;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Formula Box */
+        .calc-box {
+            background: #f0fdf4;
+            border: 1px dashed #86efac;
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-top: 14px;
+            font-size: 14px;
+        }
+
+        .calc-title {
+            font-weight: 700;
+            color: #166534;
+            margin-bottom: 6px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            font-size: 13.5px;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        /* Diagram / Flowchart */
+        .flowchart-container {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .flow-step {
+            display: inline-block;
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            color: var(--primary-dark);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13.5px;
+            margin: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .flow-arrow {
+            display: inline-block;
+            color: var(--text-muted);
+            font-weight: 800;
+            margin: 0 8px;
+            font-size: 16px;
+        }
+
+        /* Footer */
+        .doc-footer {
+            text-align: center;
+            margin-top: 36px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Print Specific Styling */
+        @media print {
+            body {
+                background: #ffffff;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+            .no-print-bar {
+                display: none !important;
+            }
+            .section-card {
+                border: 1px solid #cbd5e1;
+                page-break-inside: avoid;
+            }
+            @page {
+                size: A4;
+                margin: 15mm 12mm 15mm 12mm;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Bar with Print / PDF button for user -->
+        <div class="no-print-bar">
+            <div>
+                <strong>📄 PDF Export Ready:</strong> उजवीकडील बटण दाबून ही फाईल थेट PDF म्हणून सेव्ह करा (Save as PDF).
+            </div>
+            <button class="btn-print" onclick="window.print()">
+                🖨️ Download / Print as PDF
+            </button>
+        </div>
+
+        <!-- Header -->
+        <div class="doc-header">
+            <div class="brand-title">GREEN AMRUT AYURVEDA</div>
+            <div class="doc-subtitle">E-Pin, E-Wallet आणि Withdrawal सिस्टीम फ्लो व टेक्निकल डॉक्युमेंटेशन</div>
+            <span class="badge-system">Application Flow & Logic Documentation</span>
+        </div>
+
+        <!-- SECTION 1: E-PIN -->
+        <div class="section-card">
+            <div class="section-title">
+                <span class="section-badge">1</span>
+                <span>E-PIN (इलेक्ट्रॉनिक पिन) चे काम व संपूर्ण फ्लो</span>
+            </div>
+            <p style="font-size: 14.5px; color: #334155;">
+                <strong>E-PIN काय आहे?</strong> E-PIN हा एक सुरक्षित युनिक डिजिटल कोड (Token/Voucher) असतो, ज्यामध्ये विशिष्ट रक्कम किंवा पॅकेज व्हॅल्यू असते. नवीन मेंबरचे रजिस्ट्रेशन/ॲक्टिव्हेशन आणि वॉलेट रिचार्ज करण्यासाठी याचा वापर होतो.
+            </p>
+
+            <div class="role-grid">
+                <!-- Admin Role -->
+                <div class="role-box admin">
+                    <div class="role-heading">👨‍💼 Admin Flow</div>
+                    <ul class="step-list">
+                        <li><strong>Generate E-Pin (<span class="code-tag">admin/generate_epin</span>):</strong> ॲडमिन विशिष्ट पॅकेज व रक्कमेचे अनेक युनिक पिन एका क्लिकवर तयार करू शकतो.</li>
+                        <li><strong>Request Approval (<span class="code-tag">admin/epinn</span>):</strong> मेंबर्सनी पाठवलेल्या पेमेंट रिक्वेस्ट्स तपासून ॲडमिन पिन Issue / Approve करतो.</li>
+                        <li><strong>E-Pin Management:</strong> सर्व <span class="code-tag">Un-used</span> आणि <span class="code-tag">Used</span> पिन्सचा रिपोर्ट पाहणे, एडिट किंवा डिलीट करणे.</li>
+                    </ul>
+                </div>
+
+                <!-- Customer Role -->
+                <div class="role-box customer">
+                    <div class="role-heading">👤 Customer / Member Flow</div>
+                    <ul class="step-list">
+                        <li><strong>E-Pin Request:</strong> मेंबर बँक किंवा UPI द्वारे पेमेंट करून ॲडमिनकडे E-Pin ची मागणी करू शकतो.</li>
+                        <li><strong>Account Activation:</strong> नवीन मेंबरची नोंदणी किंवा आयडी अपग्रेड करण्यासाठी E-PIN वापरला जातो (<span class="code-tag">site/register</span>).</li>
+                        <li><strong>Wallet Top-Up:</strong> पिन टाकून थेट स्वतःचे मेन किंवा प्रॉडक्ट वॉलेट रिचार्ज करता येते.</li>
+                        <li><strong>E-Pin Transfer:</strong> शिल्लक पिन आपल्या डाऊनलाईन मेंबर्सना ट्रान्सफर करता येतात.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2: E-WALLET -->
+        <div class="section-card">
+            <div class="section-title">
+                <span class="section-badge">2</span>
+                <span>E-WALLET (इलेक्ट्रॉनिक वॉलेट) चे काम व संपूर्ण फ्लो</span>
+            </div>
+            <p style="font-size: 14.5px; color: #334155;">
+                <strong>E-Wallet काय आहे?</strong> सॉफ्टवेअरमधील प्रत्येक मेंबरचे डिजिटल लेजर खाते म्हणजे E-Wallet. सिस्टीममध्ये २ मुख्य वॉलेट्स आहेत:
+                <br>• <strong>Main Wallet:</strong> सर्व कमिशन (Direct, Level, Binary) जमा होते; यातून बँक विड्रॉल करता येते.
+                <br>• <strong>Product Wallet:</strong> केवळ ई-कॉमर्स / होमशॉपवरून प्रॉडक्ट्स खरेदी करण्यासाठी वापरले जाते.
+            </p>
+
+            <div class="role-grid">
+                <!-- Admin Role -->
+                <div class="role-box admin">
+                    <div class="role-heading">👨‍💼 Admin Flow</div>
+                    <ul class="step-list">
+                        <li><strong>Manage Funds (<span class="code-tag">wallet/manage_wallet_fund</span>):</strong> कोणत्याही युझरच्या खात्यात रक्कम Credit (जमा) किंवा Debit (कमी) करणे.</li>
+                        <li><strong>Deposit Approval (<span class="code-tag">wallet/support</span>):</strong> ऑफलाइन बँक डिपॉझिट रिक्वेस्ट्स तपासून अप्रूव्ह/रिजेक्ट करणे.</li>
+                        <li><strong>Fund Transfer:</strong> दोन मेंबर्समध्ये फंड ट्रान्सफर करणे.</li>
+                        <li><strong>Audit Logs:</strong> सर्व ट्रॅन्झॅक्शन्सचा संपूर्ण ऑडिट ट्रेल पाहणे (<span class="code-tag">wallet_transaction</span>).</li>
+                    </ul>
+                </div>
+
+                <!-- Customer Role -->
+                <div class="role-box customer">
+                    <div class="role-heading">👤 Customer / Member Flow</div>
+                    <ul class="step-list">
+                        <li><strong>Add Funds:</strong> E-Pin, Razorpay गेटवे किंवा QR कोड द्वारे वॉलेट टॉप-अप करणे.</li>
+                        <li><strong>Wallet-to-Wallet Transfer:</strong> मेन वॉलेटमधील इन्कम प्रॉडक्ट वॉलेटमध्ये शॉपिंगसाठी हलवणे (<span class="code-tag">wallet/withdraw_payouts</span>).</li>
+                        <li><strong>Product Purchase:</strong> होमशॉप किंवा कार्टमध्ये पेमेंट करताना वॉलेट शिल्लक वापरणे.</li>
+                        <li><strong>Transaction Passbook:</strong> क्रेडिट/डेबिट इतिहास तपासणे.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: WITHDRAWAL -->
+        <div class="section-card">
+            <div class="section-title">
+                <span class="section-badge">3</span>
+                <span>WITHDRAWAL (विड्रॉल / पे-आउट) चे काम व संपूर्ण फ्लो</span>
+            </div>
+            <p style="font-size: 14.5px; color: #334155;">
+                <strong>Withdrawal काय आहे?</strong> मेंबर्सनी कमवलेले कमिशन कायदेशीर टॅक्स वजा करून सुरक्षितपणे त्यांच्या बँक किंवा UPI खात्यात ट्रान्सफर करण्याची ही प्रक्रिया आहे.
+            </p>
+
+            <div class="role-grid">
+                <!-- Admin Role -->
+                <div class="role-box admin">
+                    <div class="role-heading">👨‍💼 Admin Flow</div>
+                    <ul class="step-list">
+                        <li><strong>Payout List (<span class="code-tag">income/withdraws_list</span>):</strong> सर्व प्रलंबित (<span class="code-tag">Un-Paid</span>) विड्रॉल रिक्वेस्ट्स, बँक डिटेल्स व Net रक्कम तपासणे.</li>
+                        <li><strong>Process & Mark Paid (<span class="code-tag">income/pay</span>):</strong> प्रत्यक्ष बँक ट्रान्सफर (NEFT/IMPS) करून UTR/Txn ID नोंदवून स्टेटस <span class="code-tag">Paid</span> करणे.</li>
+                        <li><strong>Reject & Auto Refund (<span class="code-tag">income/reject_withdraw</span>):</strong> डिटेल्स चुकीच्या असल्यास रिजेक्ट करणे; रिजेक्ट होताच रक्कम मेंबरच्या वॉलेटमध्ये <strong>परत जमा (Auto Refund)</strong> होते.</li>
+                    </ul>
+                </div>
+
+                <!-- Customer Role -->
+                <div class="role-box customer">
+                    <div class="role-heading">👤 Customer / Member Flow</div>
+                    <ul class="step-list">
+                        <li><strong>KYC Validation:</strong> विड्रॉलसाठी प्रोफाइलमध्ये व्हॅलिड <strong>PAN Card (<span class="code-tag">tax_no</span>)</strong> असणे आवश्यक.</li>
+                        <li><strong>Request Amount:</strong> रक्कम किमान मर्यादेपेक्षा (<span class="code-tag">min_withdraw</span>) जास्त असावी.</li>
+                        <li><strong>Instant Wallet Lock:</strong> रिक्वेस्ट सबमिट होताच वॉलेटमधून रक्कम तात्काळ Debit होते.</li>
+                        <li><strong>Status Tracking:</strong> पे-आउटचे स्टेटस (<span class="code-tag">Un-Paid / Paid / Rejected</span>) पाहणे.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Calculation Box -->
+            <div class="calc-box">
+                <div class="calc-title">📊 कोडमधील टॅक्स व निव्वळ रक्कमेचे सूत्र (Deduction Calculation):</div>
+                <div>• <strong>Admin Tax:</strong> (Gross Amount × Admin Charge %) / 100</div>
+                <div>• <strong>TDS Tax:</strong> (Gross Amount × Payout Tax %) / 100</div>
+                <div>• <strong>Total Deductions:</strong> Admin Tax + TDS Tax</div>
+                <div>• <strong>Net Payable (बँकेत जमा होणारी रक्कम):</strong> Gross Amount − Total Deductions</div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: DETAILED STEP-BY-STEP FLOWS -->
+        <div class="section-card">
+            <div class="section-title">
+                <span class="section-badge">4</span>
+                <span>सविस्तर स्टेप-बाय-स्टेप फ्लोचार्ट्स (Detailed Step-by-Step Flow)</span>
+            </div>
+
+            <!-- Flow 1: E-PIN FLOW -->
+            <div style="margin-bottom: 24px;">
+                <h3 style="color: var(--primary-dark); font-size: 16px; margin-bottom: 8px;">🔹 1. E-PIN Lifecycle Flow:</h3>
+                <div class="flowchart-container" style="text-align: left;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="background:#fff; border-left:4px solid var(--secondary); padding:8px 12px; border-radius:4px;">
+                            <strong>पायरी १:</strong> ॲडमिन <span class="code-tag">admin/generate_epin</span> वरून E-Pin तयार करतो किंवा युझरने केलेली विनंती <span class="code-tag">admin/epinn_approve</span> द्वारे मंजूर करतो.
+                        </div>
+                        <div style="text-align:center; color:var(--text-muted);">⬇️ (डेटाबेस: <code>epin</code> टेबलमध्ये <code>status = 'Un-used'</code>)</div>
+                        <div style="background:#fff; border-left:4px solid var(--accent); padding:8px 12px; border-radius:4px;">
+                            <strong>पायरी २:</strong> मेंबर आपल्या डॅशबोर्डवर (<span class="code-tag">member/unused_epin</span>) पिन पाहतो किंवा डाऊनलाईनला ट्रान्सफर (<span class="code-tag">member/epin_transfer</span>) करतो.
+                        </div>
+                        <div style="text-align:center; color:var(--text-muted);">⬇️ (पिन वापरताना)</div>
+                        <div style="background:#fff; border-left:4px solid var(--primary); padding:8px 12px; border-radius:4px;">
+                            <strong>पायरी ३:</strong> रजिस्ट्रेशन (<span class="code-tag">site/register</span>) किंवा वॉलेट टॉप-अप (<span class="code-tag">wallet/topup_epin_wallet</span>) मध्ये पिन वापरला जातो.
+                        </div>
+                        <div style="text-align:center; color:var(--text-muted);">⬇️ (अंतिम स्थिती)</div>
+                        <div style="background:#f0fdf4; border:1px solid #86efac; padding:8px 12px; border-radius:4px;">
+                            <strong>पायरी ४:</strong> सिस्टीम पिनचे स्टेटस <span class="code-tag">status = 'Used'</span>, <span class="code-tag">used_by</span> आणि <span class="code-tag">used_time</span> अपडेट करते.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flow 2: E-WALLET FLOW -->
+            <div style="margin-bottom: 24px;">
+                <h3 style="color: var(--primary-dark); font-size: 16px; margin-bottom: 8px;">🔹 2. E-Wallet Fund Flow:</h3>
+                <div class="flowchart-container" style="text-align: left;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="background:#fff; border-left:4px solid var(--secondary); padding:8px 12px; border-radius:4px;">
+                            <strong>फंड येणे (Credit):</strong> कमिशन इन्कम (Direct, Level, Binary) किंवा E-Pin/Gateway/Admin डिपॉझिट ➔ <code>wallet</code> (Main Balance) मध्ये जमा.
+                        </div>
+                        <div style="text-align:center; color:var(--text-muted);">⬇️ (वापराचे दोन मार्ग)</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                            <div style="background:#fff; border:1px solid var(--border-color); padding:10px; border-radius:6px;">
+                                <strong style="color:var(--accent);">मार्ग A (Shopping):</strong>
+                                <br>Main Wallet ➔ Product Wallet Transfer (<span class="code-tag">wallet/withdraw_payouts</span>) ➔ HomeShop/Cart द्वारे खरेदी.
+                            </div>
+                            <div style="background:#fff; border:1px solid var(--border-color); padding:10px; border-radius:6px;">
+                                <strong style="color:var(--primary);">मार्ग B (Cash Out):</strong>
+                                <br>Main Wallet ➔ Bank Withdrawal Request (<span class="code-tag">wallet/withdraw_payouts</span>) ➔ थेट बँक खात्यात.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flow 3: WITHDRAWAL FLOW -->
+            <div>
+                <h3 style="color: var(--primary-dark); font-size: 16px; margin-bottom: 8px;">🔹 3. Withdrawal / Payout Flow:</h3>
+                <div class="flowchart-container" style="text-align: left;">
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div style="background:#fff; border-left:4px solid var(--accent); padding:8px 12px; border-radius:4px;">
+                            <strong>पायरी १ (मेंबर रिक्वेस्ट):</strong> मेंबर PAN Card तपासून विड्रॉल रिक्वेस्ट टाकतो. Gross Amount लगेच Main Wallet मधून वजा (Debit) होते.
+                        </div>
+                        <div style="text-align:center; color:var(--text-muted);">⬇️ (डेटाबेस: <code>withdraw_request</code> मध्ये <code>status = 'Un-Paid'</code>)</div>
+                        <div style="background:#fff; border-left:4px solid var(--secondary); padding:8px 12px; border-radius:4px;">
+                            <strong>पायरी २ (ॲडमिन पडताळणी):</strong> ॲडमिन <span class="code-tag">income/withdraws_list</span> मध्ये बँक तपशील आणि Net Payable रक्कम पाहतो.
+                        </div>
+                        <div style="text-align:center; color:var(--text-muted);">⬇️ (ॲडमिन ॲक्शन)</div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+                            <div style="background:#f0fdf4; border:1px solid #86efac; padding:10px; border-radius:6px;">
+                                <strong style="color:#166534;">✅ मंजूर (Paid):</strong>
+                                <br>ॲडमिन बँकेतून NEFT/UPI द्वारे पेमेंट करतो व UTR/Txn ID टाकून स्टेटस <span class="code-tag">Paid</span> करतो.
+                            </div>
+                            <div style="background:#fef2f2; border:1px solid #fca5a5; padding:10px; border-radius:6px;">
+                                <strong style="color:#991b1b;">❌ नामंजूर (Rejected):</strong>
+                                <br>स्टेटस <span class="code-tag">Rejected</span> होते आणि मूळ रक्कम युझरच्या वॉलेटमध्ये <strong>Auto-Refund</strong> होते.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>घटक (Module)</th>
+                        <th>डेटाबेस टेबल्स (DB Tables)</th>
+                        <th>मुख्य कार्य (Primary Purpose)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>E-PIN</strong></td>
+                        <td><code>epin</code>, <code>epin_request</code></td>
+                        <td>आयडी ॲक्टिव्हेशन, रजिस्ट्रेशन आणि व्हाउचर Top-Up साठी.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>E-Wallet</strong></td>
+                        <td><code>wallet</code>, <code>product_wallet</code>, <code>wallet_transaction</code></td>
+                        <td>कमिशन साठवणे, बॅलन्स मॅनेजमेंट आणि प्रॉडक्ट शॉपिंग.</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Withdrawal</strong></td>
+                        <td><code>withdraw_request</code>, <code>member_profile</code></td>
+                        <td>PAN व KYC पडताळणीनंतर TDS वजा करून बँकेत पैसे पाठवणे.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="doc-footer">
+            Green Amrut Ayurveda Project Documentation • Generated for Administrative & Technical Reference
+        </div>
+
+    </div>
+
+</body>
+</html>

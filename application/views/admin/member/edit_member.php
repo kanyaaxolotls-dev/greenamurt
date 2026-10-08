@@ -70,7 +70,7 @@
 
     </div>
     <div class="form-group col-sm-6">
-        <label for="text" class="control-label">BV/PV</label>
+        <label for="text" class="control-label">PV</label>
         <input type="text" class="form-control form-control-alternative form-control-alternative-alternative" value="<?php echo set_value('mypv', isset($data->mypv) ? $data->mypv : '') ?>" id="mypv"
                name="mypv"> 
     </div>
@@ -81,7 +81,7 @@
     </div>
 
     <div class="form-group col-sm-6">
-        <label for="text" class="control-label">Total B/Right BV/PV</label>
+        <label for="text" class="control-label">Total B/Right PV</label>
         <input readonly type="text" class="form-control form-control-alternative form-control-alternative-alternative" value="<?php echo set_value('total_b_pv', isset($data->total_b_pv) ? $data->total_b_pv : '') ?>" id="total_b_pv" name="total_b_pv"> 
     </div>
 

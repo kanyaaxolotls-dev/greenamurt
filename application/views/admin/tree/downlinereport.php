@@ -32,12 +32,12 @@ $data   = $this->db_model->select_multi('total_a, total_b, total_c, total_d, tot
                         <td><?php echo $data->total_a ?> </td>
                     </tr>
                     <tr>
-                        <td style="color: #90111a;">Total Business Value:</td>
+                        <td style="color: #90111a;">Total Point Value:</td>
                         <td><?php echo $data->total_a_pv ?></td>
                     </tr>
                     <tr>
                         <td style="color: #90111a;">Own Purchase Value:</td>
-                        <td colspan="2"><?php echo $data->mypv ?> PV/BV</td>
+                        <td colspan="2"><?php echo $data->mypv ?> PV</td>
                     </tr>
                     </tbody>
                 </table>
@@ -60,7 +60,7 @@ $data   = $this->db_model->select_multi('total_a, total_b, total_c, total_d, tot
                         <td><?php echo $data->total_b ?></td>
                     </tr>
                     <tr>
-                        <td>Total Business Value:</td>
+                        <td>Total Point Value:</td>
                         <td><?php echo $data->total_a_pv ?></td>
                         <td><?php echo $data->total_b_pv ?></td>
                     </tr>
@@ -76,7 +76,7 @@ $data   = $this->db_model->select_multi('total_a, total_b, total_c, total_d, tot
                     </tr>
                     <tr>
                         <td>Own Purchase Value:</td>
-                        <td colspan="2"><?php echo $data->mypv ?> PV/BV</td>
+                        <td colspan="2"><?php echo $data->mypv ?> PV</td>
                     </tr>
                     </tbody>
                   
@@ -102,7 +102,7 @@ $data   = $this->db_model->select_multi('total_a, total_b, total_c, total_d, tot
                         <td><?php echo $data->total_c ?></td>
                     </tr>
                     <tr>
-                        <td>Total Business Value:</td>
+                        <td>Total Point Value:</td>
                         <td><?php echo $data->total_a_pv ?></td>
                         <td><?php echo $data->total_b_pv ?></td>
                         <td><?php echo $data->total_c_pv ?></td>
@@ -115,7 +115,7 @@ $data   = $this->db_model->select_multi('total_a, total_b, total_c, total_d, tot
                     </tr>
                     <tr>
                         <td>Own Purchase Value:</td>
-                        <td colspan="2"><?php echo $data->mypv ?> PV/BV</td>
+                        <td colspan="2"><?php echo $data->mypv ?> PV</td>
                     </tr>
                     </tbody>
                 </table>

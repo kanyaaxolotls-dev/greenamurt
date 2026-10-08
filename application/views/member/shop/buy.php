@@ -65,7 +65,7 @@
                                                 </div>
                                                 <div class="card-footer">
                                                     <p class="text-success h5">
-                                                        BV : <?= $e->pv  ?>
+                                                        PV : <?= $e->pv  ?>
                                                     </p>
                                                 <div class="d-flex justify-content-between align-items-end mt-1">
                                                  <p class="text-muted mb-0">

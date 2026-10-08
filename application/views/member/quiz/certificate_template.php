@@ -1,3 +1,52 @@
+<?php
+// Auto-clean the pre-printed black line from certificate template image file if present
+$possible_paths = [
+    FCPATH . 'assets/images/certificate_template.png',
+    FCPATH . 'system/assets/images/certificate_template.png',
+    APPPATH . '../system/assets/images/certificate_template.png',
+    APPPATH . '../assets/images/certificate_template.png'
+];
+foreach ($possible_paths as $p) {
+    if (file_exists($p) && is_writable($p) && !file_exists($p . '.cleaned_v2')) {
+        $img = @imagecreatefrompng($p);
+        if ($img) {
+            $w = imagesx($img);
+            $h = imagesy($img);
+            $y1 = (int)($h * 0.46);
+            $y2 = (int)($h * 0.51);
+            $x1 = (int)($w * 0.20);
+            $x2 = (int)($w * 0.80);
+            for ($y = $y1; $y <= $y2; $y++) {
+                for ($x = $x1; $x <= $x2; $x++) {
+                    $rgb = imagecolorat($img, $x, $y);
+                    $r = ($rgb >> 16) & 0xFF;
+                    $g = ($rgb >> 8) & 0xFF;
+                    $b = $rgb & 0xFF;
+                    if ($r < 150 && $g < 150 && $b < 150) {
+                        $aboveRgb = imagecolorat($img, $x, max(0, $y - 7));
+                        $ar = ($aboveRgb >> 16) & 0xFF;
+                        $ag = ($aboveRgb >> 8) & 0xFF;
+                        $ab = $aboveRgb & 0xFF;
+                        $belowRgb = imagecolorat($img, $x, min($h - 1, $y + 7));
+                        $br = ($belowRgb >> 16) & 0xFF;
+                        $bg = ($belowRgb >> 8) & 0xFF;
+                        $bb = $belowRgb & 0xFF;
+                        if ($ar > 200 && $br > 200) {
+                            $patchColor = imagecolorallocate($img, (int)(($ar + $br)/2), (int)(($ag + $bg)/2), (int)(($ab + $bb)/2));
+                            for ($dy = -3; $dy <= 3; $dy++) {
+                                imagesetpixel($img, $x, $y + $dy, $patchColor);
+                            }
+                        }
+                    }
+                }
+            }
+            @imagepng($img, $p);
+            @imagedestroy($img);
+            @file_put_contents($p . '.cleaned_v2', '1');
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,53 +158,66 @@
             z-index: 1;
         }
 
-        /* DYNAMIC FIELD OVERLAYS FOR PRE-PRINTED TEMPLATE */
+        /* Seamless mask to completely erase any pre-printed black line from template */
+        .name-line-mask {
+            position: absolute;
+            z-index: 2;
+            top: 378px;
+            left: 290px;
+            width: 520px;
+            height: 6px;
+            background: #faf7ef;
+            pointer-events: none;
+        }
+
+        /* DYNAMIC CANDIDATE NAME - Clean text with transparent background */
         .dynamic-name {
             position: absolute;
             z-index: 10;
-            top: 368px;
+            top: 358px;
             left: 50%;
             transform: translateX(-50%);
-            width: 600px;
+            width: 750px;
             text-align: center;
             font-family: 'Cinzel', 'Poppins', serif;
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 800;
             color: #8b0000;
             letter-spacing: 2px;
             text-transform: uppercase;
+            line-height: 1.2;
+            background: transparent;
+        }
+        .dynamic-name .name-text {
+            background: transparent;
+            padding: 0;
+            box-shadow: none;
+            display: inline-block;
         }
 
         /* 5 Data Boxes Overlays */
-        .box-val-duration {
-            position: absolute; z-index: 10; top: 573px; left: 158px; width: 100px;
-            font-size: 12px; font-weight: 700; color: #8b0000; text-align: center;
-        }
-        .box-val-period {
-            position: absolute; z-index: 10; top: 573px; left: 322px; width: 110px;
-            font-size: 11px; font-weight: 700; color: #8b0000; text-align: center;
-        }
-        .box-val-examdate {
-            position: absolute; z-index: 10; top: 573px; left: 495px; width: 120px;
-            font-size: 12px; font-weight: 700; color: #8b0000; text-align: center;
-        }
-        .box-val-score {
-            position: absolute; z-index: 10; top: 573px; left: 685px; width: 110px;
-            font-size: 12px; font-weight: 700; color: #8b0000; text-align: center;
-        }
+        .box-val-duration,
+        .box-val-period,
+        .box-val-examdate,
+        .box-val-score,
         .box-val-batch {
-            position: absolute; z-index: 10; top: 573px; left: 852px; width: 120px;
-            font-size: 11px; font-weight: 700; color: #8b0000; text-align: center;
+            position: absolute;
+            z-index: 10;
+            top: 572px;
+            font-weight: 700;
+            color: #8b0000;
+            text-align: center;
         }
+        .box-val-duration { left: 158px; width: 100px; font-size: 12px; }
+        .box-val-period { left: 322px; width: 110px; font-size: 11px; }
+        .box-val-examdate { left: 495px; width: 120px; font-size: 12px; }
+        .box-val-score { left: 685px; width: 110px; font-size: 12px; }
+        .box-val-batch { left: 852px; width: 120px; font-size: 11px; }
 
         /* Bottom Row Overlays */
         .qr-box-overlay {
             position: absolute; z-index: 10; top: 602px; left: 66px; width: 78px; height: 78px;
             display: flex; align-items: center; justify-content: center; background: #fff;
-        }
-        .val-cert-no {
-            position: absolute; z-index: 10; top: 663px; left: 158px; width: 220px;
-            font-size: 11px; font-weight: 800; color: #8b0000; text-align: left;
         }
         .val-issued-date {
             position: absolute; z-index: 10; top: 648px; left: 535px; width: 140px;
@@ -184,17 +246,20 @@
     <div class="cert-outer-wrapper" id="certOuterWrapper">
         <div id="certificate-area">
             <!-- Pre-printed Blank Graphic Template -->
-            <img src="<?= base_url('assets/images/certificate_template.png'); ?>" class="bg-img" alt="Certificate Background">
+            <img src="<?= base_url('assets/images/certificate_template.png?v=' . time()); ?>" class="bg-img" alt="Certificate Background">
+
+            <!-- Clean line eraser to remove black line underneath -->
+            <div class="name-line-mask"></div>
 
             <!-- DYNAMIC CANDIDATE NAME -->
-            <div class="dynamic-name"><?= strtoupper(htmlspecialchars($user->name)); ?></div>
+            <div class="dynamic-name"><span class="name-text"><?= strtoupper(htmlspecialchars($user->name)); ?></span></div>
 
             <!-- 5 DATA BOX OVERLAYS -->
-            <div class="box-val-duration"><?= htmlspecialchars($duration ?? '60 MINS'); ?></div>
-            <div class="box-val-period"><?= htmlspecialchars($display_date); ?></div>
-            <div class="box-val-examdate"><?= htmlspecialchars($display_date); ?></div>
-            <div class="box-val-score"><?= htmlspecialchars($score ?? 'PASS'); ?></div>
-            <div class="box-val-batch"><?= htmlspecialchars($certificate_no); ?></div>
+            <div class="box-val-duration"><span><?= htmlspecialchars($duration ?? '60 MINS'); ?></span></div>
+            <div class="box-val-period"><span><?= htmlspecialchars($display_date); ?></span></div>
+            <div class="box-val-examdate"><span><?= htmlspecialchars($display_date); ?></span></div>
+            <div class="box-val-score"><span><?= htmlspecialchars($score ?? 'PASS'); ?></span></div>
+            <div class="box-val-batch"><span><?= htmlspecialchars($certificate_no); ?></span></div>
 
             <!-- QR CODE OVERLAY -->
             <div class="qr-box-overlay">
@@ -202,8 +267,7 @@
             </div>
 
             <!-- BOTTOM DATA OVERLAYS -->
-            <div class="val-cert-no"><?= htmlspecialchars($certificate_no); ?></div>
-            <div class="val-issued-date"><?= htmlspecialchars($display_date); ?></div>
+            <div class="val-issued-date"><span><?= htmlspecialchars($display_date); ?></span></div>
         </div>
     </div>
 

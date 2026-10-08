@@ -48,9 +48,8 @@
                 </div>
         </div>
         <div class="row">
-
             <div class="col-sm-4">
-                <label>Business Value or PV</label>
+                <label>Point Value (PV)</label>
                 <input type="text" class="form-control form-control-alternative" name="pv" value="<?php echo set_value('pv') ?>">
             </div>
             <div class="col-sm-4">

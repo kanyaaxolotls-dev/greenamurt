@@ -47,12 +47,12 @@
                                                                                 <td><?php echo $data->total_a ?> </td>
                                                                             </tr>
                                                                             <tr>
-                                                                                <td>Total Business Value:</td>
+                                                                                <td>Total Point Value:</td>
                                                                                 <td><?php echo $data->total_a_pv ?></td>
                                                                             </tr>
                                                                             <tr>
                                                                                 <td>Own Purchase Value:</td>
-                                                                                <td><?php echo $data->mypv ?> PV/BV</td>
+                                                                                <td><?php echo $data->mypv ?> PV</td>
                                                                             </tr>
                                                                             <tr>
                                                                                 <td>Total Business:</td>
@@ -78,7 +78,7 @@
                                                                                 </tr>
                                                                                 <?php if (config_item('enable_investment') !== "Yes") { ?>
                                                                                     <tr>
-                                                                                        <td>Total Business Value:</td>
+                                                                                        <td>Total Point Value:</td>
                                                                                         <td><?php echo $data->total_a_pv ?></td>
                                                                                         <td><?php echo $data->total_b_pv ?></td>
                                                                                     </tr>
@@ -103,7 +103,7 @@
                                                                                 <?php if (config_item('enable_investment') !== "Yes") { ?>
                                                                                     <tr>
                                                                                         <td>Own Purchase Value:</td>
-                                                                                        <td colspan="2" class="text-right"><?php echo $data->mypv ?> PV/BV</td>
+                                                                                        <td colspan="2" class="text-right"><?php echo $data->mypv ?> PV</td>
                                                                                     </tr>
                                                                                 <?php } ?>
                                                                                 </tbody>
@@ -130,7 +130,7 @@
                                                                                         <td><?php echo $data->total_c ?></td>
                                                                                     </tr> 
                                                                                     <tr>
-                                                                                        <td>Total Business Value:</td>
+                                                                                        <td>Total Point Value:</td>
                                                                                         <td><?php echo $data->total_a_pv ?></td>
                                                                                         <td><?php echo $data->total_b_pv ?></td>
                                                                                         <td><?php echo $data->total_c_pv ?></td>
@@ -143,7 +143,7 @@
                                                                                     </tr>
                                                                                     <tr>
                                                                                         <td>Own Purchase Value:</td>
-                                                                                        <td colspan="2"><?php echo $data->mypv ?> PV/BV</td>
+                                                                                        <td colspan="2"><?php echo $data->mypv ?> PV</td>
                                                                                     </tr>
                                                                                     </tbody>
                                                                                 </table>
@@ -171,7 +171,7 @@
                                                                                         <td><?php echo $data->total_d ?></td>
                                                                                     </tr>
                                                                                        <tr>
-                                                                                        <td>Total Business Value:</td>
+                                                                                        <td>Total Point Value:</td>
                                                                                         <td><?php echo $data->total_a_pv ?></td>
                                                                                         <td><?php echo $data->total_b_pv ?></td>
                                                                                         <td><?php echo $data->total_c_pv ?></td>
@@ -188,7 +188,7 @@
                                                                                     </tr>
                                                                                         <tr>
                                                                                         <td style="color: #90111a; font-weight: bold">Own Purchase Value:</td>
-                                                                                        <td colspan="2"><?php echo $data->mypv ?> PV/BV</td>
+                                                                                        <td colspan="2"><?php echo $data->mypv ?> PV</td>
                                                                                     </tr>
                                                                                     </tbody>
                                                                                 </table>
@@ -238,7 +238,7 @@
                                                                                     </tr>
                                                                                         <tr>
                                                                                         <td>Own Purchase Value:(PV)</td>
-                                                                                        <td colspan="2"><?php echo $data->mypv ?> PV/BV</td>
+                                                                                        <td colspan="2"><?php echo $data->mypv ?> PV</td>
                                                                                     </tr>
                                                                                  
 

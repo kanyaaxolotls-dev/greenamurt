@@ -29,7 +29,7 @@
         <label>Counting Based On</label>
         <select class="form-control form-control-alternative form-control-alternative-alternative" name="based_on">
             <option selected>Member</option>
-            <option>PV</option>
+            <option value="PV">PV</option>
         </select>
     </div>
     <div class="col-sm-4">

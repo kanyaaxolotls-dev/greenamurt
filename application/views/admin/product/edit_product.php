@@ -77,7 +77,7 @@
 
             <div class="row">
                     <div class="col-sm-4">
-                        <label>BV/PV</label>
+                        <label>PV</label>
                         <input type="text" class="form-control" name="pv" value="<?php echo set_value('pv', $data->pv) ?>">
                     </div>
                     <div class="col-sm-4">

@@ -15,7 +15,7 @@
                 <div class="col-md-6 mb-2"><strong>MRP:</strong> <?php echo config_item('currency') . $product->prod_price ?></div>
                 <div class="col-md-6 mb-2"><strong>Member Price:</strong> <?php echo config_item('currency') . $product->dealer_price ?></div>
                 <div class="col-md-6 mb-2"><strong>Franchisee Price:</strong> <?php echo config_item('currency') . $product->franchisee_price ?></div>
-                <div class="col-md-6 mb-2"><strong>BV/PV:</strong> <?php echo $product->pv ?></div>
+                <div class="col-md-6 mb-2"><strong>PV:</strong> <?php echo $product->pv ?></div>
                 <div class="col-md-6 mb-2"><strong>GST / Tax:</strong> <?php echo $product->gst ?>%</div>
                 <div class="col-md-6 mb-2"><strong>Available Qty:</strong> <?php echo $product->qty ?></div>
             </div>

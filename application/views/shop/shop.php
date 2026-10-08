@@ -50,7 +50,7 @@
                                                 <div class="product-price">
                                                     <span class="old-price"><?php echo config_item('currency') . $prodd['prod_price'] ?></span>
                                                     <span class="price"><?php echo config_item('currency') . $prodd['prod_price'] ?></span></br>
-                                                    <span class="text-success">BV : <?php echo config_item('pv') . $prodd['pv'] ?></span>
+                                                    <span class="text-success">PV : <?php echo config_item('pv') . $prodd['pv'] ?></span>
                                                 </div>
                                                 <div class="product-review">
                                                     <i class="an an-star"></i>
